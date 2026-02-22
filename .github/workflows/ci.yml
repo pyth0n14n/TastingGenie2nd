@@ -26,5 +26,11 @@ jobs:
       - name: Run unit tests
         run: ./gradlew test
 
+      - name: Formatting
+        run: ./gradlew ktlintCheck
+
+      - name: Static analysis
+        run: ./gradlew detekt
+
       - name: Assemble Debug
         run: ./gradlew assembleDebug
