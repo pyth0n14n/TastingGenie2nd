@@ -23,8 +23,5 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run unit tests
-        run: ./gradlew test
-
-      - name: Assemble Debug
-        run: ./gradlew assembleDebug
+      - name: Run CI check
+        run: ./gradlew ciCheck

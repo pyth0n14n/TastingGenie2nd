@@ -2,4 +2,25 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.ktlint) apply false
+}
+
+tasks.register("ciCheck") {
+    dependsOn(
+        ":app:ktlintCheck",
+        ":app:detekt",
+        ":app:test",
+        ":app:assembleDebug"
+    )
+}
+
+tasks.register("localFix") {
+    dependsOn(
+        ":app:ktlintFormat",
+        ":app:ktlintCheck",
+        ":app:detekt",
+        ":app:test",
+        ":app:assembleDebug"
+    )
 }
