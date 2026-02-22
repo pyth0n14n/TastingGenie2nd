@@ -18,14 +18,9 @@ CI configuration is the ultimate source of truth.
 
 ## Local Usage
 
-### Auto format (fix issues)
+### Fix & Check
 
-    ./gradlew ktlintFormat
-
-### Check only (no modification)
-
-    ./gradlew ktlintCheck
-    ./gradlew detekt
+    ./gradlew localFix
 
 ---
 
@@ -33,10 +28,7 @@ CI configuration is the ultimate source of truth.
 
 The following tasks must pass in CI:
 
-    ./gradlew ktlintCheck
-    ./gradlew detekt
-    ./gradlew test
-    ./gradlew assembleDebug
+    ./gradlew ciCheck
 
 If CI fails, fix locally before pushing again.
 
