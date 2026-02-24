@@ -5,6 +5,8 @@
 - static（酒情報）と dynamic（レビュー）を分離
 - 1銘柄に複数レビューを紐付け可能
 - 画像はURIベース管理
+- 第1マイルストーンでは削除機能を実装しない
+- マスタデータは `assets/master/*.json` を単一ソースとする
 
 ---
 
@@ -58,9 +60,37 @@
 | dish | String | 任意 |
 | comment | String | 任意 |
 | review | Enum | 任意 |
+| imageUri | String(URI) | 任意 |
 
 ---
 
 ## 4. 関係
 
 Sake (1) ---- (N) Review
+
+---
+
+## 5. Enum定義
+
+### 5.1 Sake系
+
+- `grade`: `docs/spec/master/sake_type.md` に定義
+- `type`: `docs/spec/master/classification.md` に定義
+- `prefecture`: `docs/spec/master/prefecture.md` に定義
+
+### 5.2 Review系
+
+- `temperature`: `docs/spec/master/temperature.md` に定義
+- `color`: `docs/spec/master/color.md` に定義
+- `intensity`: `docs/spec/master/intensity.md` に定義
+- `scentTop`, `scentBase`, `scentMouth`: `docs/spec/master/aroma.md` に定義
+- `sweet`, `sour`, `bitter`, `umami`, `sharp`: `docs/spec/master/taste_scale.md` に定義
+- `review`: `docs/spec/master/overall_review.md` に定義
+
+---
+
+## 6. 保持形式
+
+- `LocalDate` は日付として保存する
+- `List<Enum>` は JSON 文字列で永続化する
+- 画像は `Review.imageUri` に 1件保持する
