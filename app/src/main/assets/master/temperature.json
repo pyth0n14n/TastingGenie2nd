@@ -1,0 +1,14 @@
+{
+  "items": [
+    { "value": "TOBIKIRI_KAN", "label": "飛び切り燗" },
+    { "value": "ATSUKAN", "label": "熱燗" },
+    { "value": "JOKAN", "label": "上燗" },
+    { "value": "NURUKAN", "label": "ぬる燗" },
+    { "value": "HITOHADA", "label": "人肌燗" },
+    { "value": "HINATA", "label": "日向燗" },
+    { "value": "JOON", "label": "常温" },
+    { "value": "SUZUHIE", "label": "涼冷え" },
+    { "value": "HANABIE", "label": "花冷え" },
+    { "value": "YUKIBIE", "label": "雪冷え" }
+  ]
+}

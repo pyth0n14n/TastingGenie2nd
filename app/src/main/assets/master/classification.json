@@ -1,0 +1,28 @@
+{
+  "items": [
+    { "value": "KIMOTO", "label": "生酛" },
+    { "value": "YAMAHAI", "label": "山廃酛" },
+    { "value": "NAMAZUME", "label": "生詰め酒" },
+    { "value": "NAMACHOZO", "label": "生貯蔵酒" },
+    { "value": "NAMA", "label": "生酒" },
+    { "value": "GENSHU", "label": "原酒" },
+    { "value": "HIYAOROSHI", "label": "冷やおろし" },
+    { "value": "YUKIMURO", "label": "雪室貯蔵" },
+    { "value": "TARU", "label": "樽酒" },
+    { "value": "AGED", "label": "長期熟成酒" },
+    { "value": "SHINSHU", "label": "新酒" },
+    { "value": "KOSHU", "label": "古酒" },
+    { "value": "NIGORI", "label": "にごり酒" },
+    { "value": "ORI", "label": "おり酒" },
+    { "value": "DOBUROKU", "label": "どぶろく" },
+    { "value": "ARABASHIRI", "label": "荒走り" },
+    { "value": "NAKAGUMI", "label": "中汲み" },
+    { "value": "SEME", "label": "責め" },
+    { "value": "SHIZUKU", "label": "雫酒" },
+    { "value": "FROZEN", "label": "凍結酒" },
+    { "value": "SPARKLING", "label": "発泡酒" },
+    { "value": "KIIPON", "label": "生一本" },
+    { "value": "KIJOSHU", "label": "貴醸酒" },
+    { "value": "OTHER", "label": "その他" }
+  ]
+}

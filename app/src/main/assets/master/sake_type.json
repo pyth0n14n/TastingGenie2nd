@@ -1,0 +1,13 @@
+{
+  "items": [
+    { "value": "JUNMAI_DAIGINJO", "label": "純米大吟醸" },
+    { "value": "DAIGINJO", "label": "大吟醸" },
+    { "value": "JUNMAI_GINJO", "label": "純米吟醸" },
+    { "value": "GINJO", "label": "吟醸" },
+    { "value": "TOKUBETSU_JUNMAI", "label": "特別純米" },
+    { "value": "TOKUBETSU_HONJOZO", "label": "特別本醸造" },
+    { "value": "JUNMAI", "label": "純米" },
+    { "value": "HONJOZO", "label": "本醸造" },
+    { "value": "OTHER", "label": "その他" }
+  ]
+}
