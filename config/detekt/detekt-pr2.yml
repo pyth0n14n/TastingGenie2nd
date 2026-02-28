@@ -1,0 +1,14 @@
+config:
+  validation: true
+
+naming:
+  FunctionNaming:
+    active: true
+    ignoreAnnotated:
+      - Composable
+
+style:
+  MagicNumber:
+    active: true
+    excludes:
+      - "**/ui/theme/**"

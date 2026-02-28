@@ -1,0 +1,15 @@
+{
+  "items": [
+    { "value": "AOZAE", "label": "青冴え" },
+    { "value": "CLEAR", "label": "透明" },
+    { "value": "ALMOST_CLEAR", "label": "ほぼ透明" },
+    { "value": "LIGHT_YELLOW", "label": "やや黄色" },
+    { "value": "YAMABUKI", "label": "山吹色" },
+    { "value": "AMBER", "label": "琥珀色" },
+    { "value": "BROWN", "label": "番茶色" },
+    { "value": "ORANGE", "label": "橙色" },
+    { "value": "WHITE", "label": "白色" },
+    { "value": "CLOUDY", "label": "白濁" },
+    { "value": "GREEN", "label": "緑色" }
+  ]
+}

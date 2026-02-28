@@ -1,0 +1,9 @@
+{
+  "items": [
+    { "value": "VERY_BAD", "label": "とても悪い" },
+    { "value": "BAD", "label": "悪い" },
+    { "value": "NEUTRAL", "label": "普通" },
+    { "value": "GOOD", "label": "良い" },
+    { "value": "VERY_GOOD", "label": "とても良い" }
+  ]
+}

@@ -36,3 +36,6 @@ google-services.json
 # vscode
 *code-workspace
 .vscode/
+
+# local temporary parking area for split PR workflow
+tmp_non_compilable/

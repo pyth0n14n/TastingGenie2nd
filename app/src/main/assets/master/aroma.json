@@ -1,0 +1,105 @@
+{
+  "categories": [
+    {
+      "group": "FLORAL",
+      "label": "フローラル",
+      "items": [
+        { "value": "UME_NO_HANA", "label": "梅の花" },
+        { "value": "SAKURA", "label": "桜" },
+        { "value": "KUCHINASHI", "label": "クチナシ" },
+        { "value": "TULIP", "label": "チューリップ" },
+        { "value": "LYCHEE", "label": "ライチ" },
+        { "value": "MELON", "label": "メロン" },
+        { "value": "BANANA", "label": "バナナ" },
+        { "value": "PEAR", "label": "洋ナシ" },
+        { "value": "PEACH", "label": "桃" }
+      ]
+    },
+    {
+      "group": "FRESH",
+      "label": "フレッシュ",
+      "items": [
+        { "value": "SAZANKA", "label": "さざんか" },
+        { "value": "RINDO", "label": "りんどう" },
+        { "value": "SUISEN", "label": "水仙" },
+        { "value": "FUJI_FLOWER", "label": "藤" },
+        { "value": "LEMON_BALM", "label": "レモンバーム" },
+        { "value": "THYME", "label": "タイム" },
+        { "value": "RASPBERRY", "label": "ラズベリー" },
+        { "value": "STRAWBERRY", "label": "イチゴ" },
+        { "value": "LEMON", "label": "レモン" },
+        { "value": "LIME", "label": "ライム" },
+        { "value": "ORANGE", "label": "オレンジ" },
+        { "value": "GRAPEFRUIT", "label": "グレープフルーツ" },
+        { "value": "CRESS", "label": "クレソン" },
+        { "value": "MITSUBA", "label": "三つ葉" },
+        { "value": "BASIL", "label": "バジル" },
+        { "value": "PINE_NEEDLE", "label": "松の葉" },
+        { "value": "GREEN_BAMBOO", "label": "青竹" },
+        { "value": "NEW_LEAF", "label": "新芽" }
+      ]
+    },
+    {
+      "group": "MILD",
+      "label": "穏やか",
+      "items": [
+        { "value": "MINERAL", "label": "ミネラル" },
+        { "value": "STONE", "label": "石" },
+        { "value": "CHARCOAL", "label": "木炭" },
+        { "value": "OIL", "label": "オイル" },
+        { "value": "HAKUSAI", "label": "白菜" },
+        { "value": "NANOHANA", "label": "菜の花" },
+        { "value": "CARROT", "label": "人参" },
+        { "value": "GOBO", "label": "ごぼう" },
+        { "value": "DAIKON", "label": "大根" },
+        { "value": "SHUNGIKU", "label": "春菊" },
+        { "value": "MAPLE", "label": "楓" },
+        { "value": "HINOKI", "label": "ヒノキ" },
+        { "value": "WASHI", "label": "和紙" },
+        { "value": "WALNUT", "label": "くるみ" },
+        { "value": "GINKGO", "label": "銀杏" },
+        { "value": "SESAME", "label": "胡麻" },
+        { "value": "SHIMEJI", "label": "ぶなしめじ" },
+        { "value": "ENOKI", "label": "エノキ" },
+        { "value": "MAITAKE", "label": "まいたけ" }
+      ]
+    },
+    {
+      "group": "RICH",
+      "label": "ふくよか",
+      "items": [
+        { "value": "RICE_EAR", "label": "稲穂" },
+        { "value": "MOCHI", "label": "つきたての餅" },
+        { "value": "WHITE_RICE", "label": "白米" },
+        { "value": "TOFU", "label": "豆腐" },
+        { "value": "SOBA", "label": "蕎麦" },
+        { "value": "CHESTNUT", "label": "栗" },
+        { "value": "CASHEW", "label": "カシューナッツ" },
+        { "value": "PEANUT", "label": "ピーナッツ" },
+        { "value": "BUTTER", "label": "バター" },
+        { "value": "CUSTARD", "label": "カスタードクリーム" },
+        { "value": "YOGURT", "label": "ヨーグルト" },
+        { "value": "SEAWEED", "label": "磯の香" },
+        { "value": "MOSS", "label": "ミズゴケ" },
+        { "value": "NORI", "label": "青のり" },
+        { "value": "CASTELLA", "label": "カステラ" },
+        { "value": "KONBU", "label": "昆布" },
+        { "value": "HONEY", "label": "はちみつ" },
+        { "value": "DRIED_SHIITAKE", "label": "干し椎茸" }
+      ]
+    },
+    {
+      "group": "NEGATIVE",
+      "label": "マイナス",
+      "items": [
+        { "value": "CEMENT", "label": "セメダイン" },
+        { "value": "MOLD", "label": "カビ" },
+        { "value": "ALCOHOL", "label": "アルコール" },
+        { "value": "RICE_VINEGAR", "label": "米酢" },
+        { "value": "RUBBER", "label": "ゴム" },
+        { "value": "FILTER_PAPER", "label": "フィルタ紙" },
+        { "value": "CHAR", "label": "炭" }
+      ]
+    }
+  ]
+}
