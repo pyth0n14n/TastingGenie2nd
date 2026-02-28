@@ -9,6 +9,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 
 class ConvertersTest {
@@ -17,9 +18,10 @@ class ConvertersTest {
         val converter = SakeConverters()
         val gradeRaw = converter.fromGrade(SakeGrade.JUNMAI_GINJO)
         val prefectureRaw = converter.fromPrefecture(Prefecture.KYOTO)
-        val listRaw = converter.fromClassificationList(
-            listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI),
-        )
+        val listRaw =
+            converter.fromClassificationList(
+                listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI),
+            )
 
         assertEquals(SakeGrade.JUNMAI_GINJO, converter.toGrade(gradeRaw))
         assertEquals(Prefecture.KYOTO, converter.toPrefecture(prefectureRaw))
@@ -50,5 +52,26 @@ class ConvertersTest {
         val restored = converter.toAromaList(raw)
 
         assertEquals(listOf(Aroma.LEMON, Aroma.BANANA), restored)
+    }
+
+    @Test
+    fun converters_throwOnUnknownEnumValue() {
+        // 欠損/不正値は静かに落とさず、呼び出し側でエラー表示できるよう例外を期待する。
+        val sakeConverter = SakeConverters()
+        val reviewConverter = ReviewEnumConverters()
+
+        expectFailure<IllegalArgumentException> { sakeConverter.toGrade("UNKNOWN") }
+        expectFailure<IllegalArgumentException> { reviewConverter.toTemperature("UNKNOWN") }
+    }
+
+    private inline fun <reified T : Throwable> expectFailure(block: () -> Unit) {
+        try {
+            block()
+            fail("Expected ${T::class.simpleName} but no exception was thrown.")
+        } catch (expected: Throwable) {
+            if (expected !is T) {
+                fail("Expected ${T::class.simpleName}, but was ${expected::class.simpleName}.")
+            }
+        }
     }
 }

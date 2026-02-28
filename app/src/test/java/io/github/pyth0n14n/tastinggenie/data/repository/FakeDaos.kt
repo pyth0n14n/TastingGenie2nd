@@ -52,9 +52,13 @@ class FakeReviewDao : ReviewDao {
     private val stream = MutableStateFlow<List<ReviewEntity>>(emptyList())
     private var nextId: Long = 1L
 
-    override fun observeBySakeId(sakeId: Long): Flow<List<ReviewEntity>> {
-        return stream.map { list -> list.filter { it.sakeId == sakeId }.sortedByDescending { it.dateEpochDay } }
-    }
+    override fun observeBySakeId(sakeId: Long): Flow<List<ReviewEntity>> =
+        stream.map { list ->
+            list
+                .filter {
+                    it.sakeId == sakeId
+                }.sortedByDescending { it.dateEpochDay }
+        }
 
     override suspend fun getById(id: Long): ReviewEntity? = entries.firstOrNull { it.id == id }
 
