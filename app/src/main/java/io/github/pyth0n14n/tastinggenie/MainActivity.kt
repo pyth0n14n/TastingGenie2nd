@@ -17,13 +17,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TastingGenie2ndAndroidTheme {
-                AppPlaceholder()
+                appPlaceholder()
             }
         }
     }
 }
 
 @Composable
-private fun AppPlaceholder() {
+private fun appPlaceholder() {
     Text(text = stringResource(R.string.app_name))
 }
