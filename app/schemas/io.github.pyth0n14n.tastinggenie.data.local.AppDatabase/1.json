@@ -1,0 +1,271 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "327222c36305fe90defe9a2f46dc5990",
+    "entities": [
+      {
+        "tableName": "sakes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `grade` TEXT NOT NULL, `type` TEXT NOT NULL, `typeOther` TEXT, `maker` TEXT, `prefecture` TEXT, `alcohol` INTEGER, `kojiMai` TEXT, `kojiPolish` INTEGER, `kakeMai` TEXT, `kakePolish` INTEGER, `sakeDegree` REAL, `acidity` REAL, `amino` REAL, `yeast` TEXT, `water` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "grade",
+            "columnName": "grade",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typeOther",
+            "columnName": "typeOther",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "maker",
+            "columnName": "maker",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "prefecture",
+            "columnName": "prefecture",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "alcohol",
+            "columnName": "alcohol",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "kojiMai",
+            "columnName": "kojiMai",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "kojiPolish",
+            "columnName": "kojiPolish",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "kakeMai",
+            "columnName": "kakeMai",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "kakePolish",
+            "columnName": "kakePolish",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sakeDegree",
+            "columnName": "sakeDegree",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "acidity",
+            "columnName": "acidity",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "amino",
+            "columnName": "amino",
+            "affinity": "REAL"
+          },
+          {
+            "fieldPath": "yeast",
+            "columnName": "yeast",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "water",
+            "columnName": "water",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "reviews",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sakeId` INTEGER NOT NULL, `dateEpochDay` INTEGER NOT NULL, `bar` TEXT, `price` INTEGER, `volume` INTEGER, `temperature` TEXT, `color` TEXT, `viscosity` INTEGER, `intensity` TEXT, `scentTop` TEXT NOT NULL, `scentBase` TEXT NOT NULL, `scentMouth` TEXT NOT NULL, `sweet` TEXT, `sour` TEXT, `bitter` TEXT, `umami` TEXT, `sharp` TEXT, `scene` TEXT, `dish` TEXT, `comment` TEXT, `review` TEXT, `imageUri` TEXT, FOREIGN KEY(`sakeId`) REFERENCES `sakes`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sakeId",
+            "columnName": "sakeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateEpochDay",
+            "columnName": "dateEpochDay",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bar",
+            "columnName": "bar",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "price",
+            "columnName": "price",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "volume",
+            "columnName": "volume",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "temperature",
+            "columnName": "temperature",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "viscosity",
+            "columnName": "viscosity",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "intensity",
+            "columnName": "intensity",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "scentTop",
+            "columnName": "scentTop",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scentBase",
+            "columnName": "scentBase",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scentMouth",
+            "columnName": "scentMouth",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sweet",
+            "columnName": "sweet",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sour",
+            "columnName": "sour",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bitter",
+            "columnName": "bitter",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "umami",
+            "columnName": "umami",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sharp",
+            "columnName": "sharp",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "scene",
+            "columnName": "scene",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dish",
+            "columnName": "dish",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "comment",
+            "columnName": "comment",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "review",
+            "columnName": "review",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "imageUri",
+            "columnName": "imageUri",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_reviews_sakeId",
+            "unique": false,
+            "columnNames": [
+              "sakeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `${TABLE_NAME}` (`sakeId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sakes",
+            "onDelete": "NO ACTION",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sakeId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '327222c36305fe90defe9a2f46dc5990')"
+    ]
+  }
+}
