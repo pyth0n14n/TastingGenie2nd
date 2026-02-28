@@ -7,13 +7,12 @@ import kotlinx.serialization.json.Json
 
 class AromaListConverter {
     @TypeConverter
-    fun toAromaList(raw: String?): List<Aroma> {
-        return if (raw.isNullOrBlank()) {
+    fun toAromaList(raw: String?): List<Aroma> =
+        if (raw.isNullOrBlank()) {
             emptyList()
         } else {
             Json.decodeFromString(raw)
         }
-    }
 
     @TypeConverter
     fun fromAromaList(values: List<Aroma>): String = Json.encodeToString(values)

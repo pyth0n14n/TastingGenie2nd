@@ -8,10 +8,14 @@ interface AssetTextSource {
     fun read(path: String): String
 }
 
-class AndroidAssetTextSource @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : AssetTextSource {
-    override fun read(path: String): String {
-        return context.assets.open(path).bufferedReader().use { it.readText() }
+class AndroidAssetTextSource
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) : AssetTextSource {
+        override fun read(path: String): String =
+            context.assets
+                .open(path)
+                .bufferedReader()
+                .use { it.readText() }
     }
-}

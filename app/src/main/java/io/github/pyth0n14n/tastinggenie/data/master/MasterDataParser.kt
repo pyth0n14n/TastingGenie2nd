@@ -16,8 +16,11 @@ private const val PATH_TASTE_SCALE = "master/taste_scale.json"
 private const val PATH_OVERALL_REVIEW = "master/overall_review.json"
 private const val PATH_AROMA = "master/aroma.json"
 
-fun parseMasterData(source: AssetTextSource, json: Json): MasterDataBundle {
-    return MasterDataBundle(
+fun parseMasterData(
+    source: AssetTextSource,
+    json: Json,
+): MasterDataBundle =
+    MasterDataBundle(
         sakeGrades = parseMasterList(source, json, PATH_SAKE_TYPE),
         classifications = parseMasterList(source, json, PATH_CLASSIFICATION),
         temperatures = parseMasterList(source, json, PATH_TEMPERATURE),
@@ -28,9 +31,12 @@ fun parseMasterData(source: AssetTextSource, json: Json): MasterDataBundle {
         overallReviews = parseMasterList(source, json, PATH_OVERALL_REVIEW),
         aromaCategories = parseAroma(source, json),
     )
-}
 
-private fun parseMasterList(source: AssetTextSource, json: Json, path: String): List<MasterOption> {
+private fun parseMasterList(
+    source: AssetTextSource,
+    json: Json,
+    path: String,
+): List<MasterOption> {
     val raw = source.read(path)
     val parsed = json.decodeFromString<MasterAsset>(raw)
     return parsed.items.map { item ->
@@ -42,16 +48,20 @@ private fun parseMasterList(source: AssetTextSource, json: Json, path: String): 
     }
 }
 
-private fun parseAroma(source: AssetTextSource, json: Json): List<AromaCategoryMaster> {
+private fun parseAroma(
+    source: AssetTextSource,
+    json: Json,
+): List<AromaCategoryMaster> {
     val raw = source.read(PATH_AROMA)
     val parsed = json.decodeFromString<AromaMasterAsset>(raw)
     return parsed.categories.map { category ->
         AromaCategoryMaster(
             group = enumValueOf<AromaGroup>(category.group),
             label = category.label,
-            items = category.items.map { item ->
-                MasterOption(value = item.value, label = item.label, description = item.description)
-            },
+            items =
+                category.items.map { item ->
+                    MasterOption(value = item.value, label = item.label, description = item.description)
+                },
         )
     }
 }
