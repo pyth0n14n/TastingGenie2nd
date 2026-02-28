@@ -15,19 +15,18 @@ class SakeConverters {
     fun fromGrade(grade: SakeGrade): String = grade.name
 
     @TypeConverter
-    fun toPrefecture(raw: String?): Prefecture? = raw?.let { enumValueOf(it) }
+    fun toPrefecture(raw: String?): Prefecture? = raw?.let { enumValueOf<Prefecture>(it) }
 
     @TypeConverter
     fun fromPrefecture(prefecture: Prefecture?): String? = prefecture?.name
 
     @TypeConverter
-    fun toClassificationList(raw: String?): List<SakeClassification> {
-        return if (raw.isNullOrBlank()) {
+    fun toClassificationList(raw: String?): List<SakeClassification> =
+        if (raw.isNullOrBlank()) {
             emptyList()
         } else {
             Json.decodeFromString(raw)
         }
-    }
 
     @TypeConverter
     fun fromClassificationList(value: List<SakeClassification>): String = Json.encodeToString(value)
