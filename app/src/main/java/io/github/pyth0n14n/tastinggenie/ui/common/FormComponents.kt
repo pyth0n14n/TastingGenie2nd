@@ -1,8 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.OutlinedTextField
@@ -13,6 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import io.github.pyth0n14n.tastinggenie.R
 
 @Composable
 fun LabeledTextField(
@@ -40,16 +42,18 @@ fun SimpleDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = selectedLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { expanded = true },
-        )
+        Button(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val displayedLabel =
+                if (selectedLabel.isBlank()) {
+                    stringResource(R.string.label_unselected)
+                } else {
+                    selectedLabel
+                }
+            Text(text = "$label: $displayedLabel")
+        }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },

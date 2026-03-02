@@ -7,6 +7,7 @@
     <string name="action_back">戻る</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_grade">種別</string>
+    <string name="label_unselected">未選択</string>
     <string name="message_no_sakes">登録された酒がありません</string>
     <string name="message_saving">保存中...</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
