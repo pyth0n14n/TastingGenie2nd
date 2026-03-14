@@ -7,4 +7,5 @@ data class SakeListUiState(
     val isLoading: Boolean = true,
     val error: UiError? = null,
     val sakes: List<Sake> = emptyList(),
+    val gradeLabels: Map<String, String> = emptyMap(),
 )

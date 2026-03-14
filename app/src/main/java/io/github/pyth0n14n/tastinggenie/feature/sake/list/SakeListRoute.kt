@@ -71,6 +71,7 @@ fun SakeListScreen(
             else ->
                 SakeList(
                     items = state.sakes,
+                    gradeLabels = state.gradeLabels,
                     onOpenSake = onOpenSake,
                     modifier = Modifier.padding(padding),
                 )
@@ -81,6 +82,7 @@ fun SakeListScreen(
 @Composable
 private fun SakeList(
     items: List<Sake>,
+    gradeLabels: Map<String, String>,
     onOpenSake: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -94,7 +96,7 @@ private fun SakeList(
                 headlineContent = { Text(sake.name) },
                 supportingContent = {
                     Text(
-                        text = sake.grade.name,
+                        text = gradeLabels[sake.grade.name] ?: sake.grade.name,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 },

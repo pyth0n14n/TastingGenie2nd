@@ -1,10 +1,13 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
+import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,13 +41,14 @@ class SakeListViewModelTest {
                             ),
                         ),
                 )
-            val viewModel = SakeListViewModel(repository)
+            val viewModel = SakeListViewModel(repository, FakeMasterDataRepository())
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertEquals(1, state.sakes.size)
             assertEquals("テスト銘柄", state.sakes.first().name)
+            assertEquals("純米", state.gradeLabels[SakeGrade.JUNMAI.name])
             assertEquals(null, state.error)
         }
 
@@ -52,7 +56,7 @@ class SakeListViewModelTest {
     fun uiState_setsErrorWhenRepositoryFails() =
         runTest {
             val repository = FailingObserveSakeRepository()
-            val viewModel = SakeListViewModel(repository)
+            val viewModel = SakeListViewModel(repository, FakeMasterDataRepository())
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -92,4 +96,23 @@ private class FailingObserveSakeRepository : SakeRepository {
     override suspend fun getSake(id: SakeId): Sake? = null
 
     override suspend fun upsertSake(input: SakeInput): SakeId = 1L
+}
+
+private class FakeMasterDataRepository : MasterDataRepository {
+    override suspend fun getMasterData(): MasterDataBundle =
+        MasterDataBundle(
+            sakeGrades =
+                listOf(
+                    MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
+                    MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
+                ),
+            classifications = emptyList(),
+            temperatures = emptyList(),
+            colors = emptyList(),
+            prefectures = emptyList(),
+            intensityLevels = emptyList(),
+            tasteLevels = emptyList(),
+            overallReviews = emptyList(),
+            aromaCategories = emptyList(),
+        )
 }

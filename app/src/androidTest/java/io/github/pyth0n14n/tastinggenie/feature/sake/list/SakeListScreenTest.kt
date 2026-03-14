@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -50,12 +51,14 @@ class SakeListScreenTest {
                                     grade = SakeGrade.GINJO,
                                 ),
                             ),
+                        gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
                     ),
                 onCreateSake = {},
                 onOpenSake = { openedId = it },
             )
         }
 
+        composeRule.onNodeWithText("吟醸").assertExists()
         composeRule.onNodeWithText("吟醸酒").performClick()
         composeRule.runOnIdle { assertEquals(42L, openedId) }
     }
