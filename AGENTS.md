@@ -31,6 +31,7 @@ See:
 - Linear history only (no merge commits).
 - Prefer squash merge.
 - 1 PR = 1 responsibility.
+- Commit in small logical units. Do not accumulate large batches of unrelated or weakly-related changes before committing.
 - No unrelated refactoring or formatting-only changes.
 
 Each PR must include:
