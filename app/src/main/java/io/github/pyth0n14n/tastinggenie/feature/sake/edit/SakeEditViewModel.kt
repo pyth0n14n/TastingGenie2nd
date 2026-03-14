@@ -42,6 +42,7 @@ class SakeEditViewModel
             _uiState.update { current ->
                 if (selectedGrade == null) {
                     current.copy(
+                        grade = null,
                         error =
                             UiError(
                                 messageResId = R.string.error_invalid_sake_grade,

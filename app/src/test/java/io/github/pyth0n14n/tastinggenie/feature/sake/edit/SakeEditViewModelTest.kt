@@ -115,6 +115,38 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun save_afterUnexpectedGradeValue_doesNotPersistStaleGrade() =
+        runTest {
+            val repository =
+                RecordingSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = EXISTING_SAKE_ID,
+                                name = "既存銘柄",
+                                grade = SakeGrade.GINJO,
+                            ),
+                        ),
+                )
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onGradeSelected("BROKEN_VALUE")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(null, state.grade)
+            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
     fun loadInitial_editMode_populatesExistingSake() =
         runTest {
             val repository =
