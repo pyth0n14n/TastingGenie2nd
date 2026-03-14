@@ -38,7 +38,23 @@ class SakeEditViewModel
         }
 
         fun onGradeSelected(value: String) {
-            _uiState.update { it.copy(grade = enumValueOf<SakeGrade>(value)) }
+            val selectedGrade = SakeGrade.entries.firstOrNull { grade -> grade.name == value }
+            _uiState.update { current ->
+                if (selectedGrade == null) {
+                    current.copy(
+                        error =
+                            UiError(
+                                messageResId = R.string.error_invalid_sake_grade,
+                                causeKey = value,
+                            ),
+                    )
+                } else {
+                    current.copy(
+                        grade = selectedGrade,
+                        error = null,
+                    )
+                }
+            }
         }
 
         fun save() {

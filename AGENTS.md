@@ -16,6 +16,10 @@ This project follows a specification-first workflow.
 
 All checks required by CI must pass before merging.
 
+- Local development: use `./gradlew localFix` for pre-commit verification and autofix.
+- CI / pull request gate: `./gradlew ciCheck`
+- Do not default to running `./gradlew ciCheck` locally unless you specifically need to reproduce a CI-only failure.
+
 See:
 - `.github/workflows/`
 - `docs/style/LINTING.md`

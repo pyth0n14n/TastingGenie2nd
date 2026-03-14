@@ -94,3 +94,9 @@ Sake (1) ---- (N) Review
 - `LocalDate` は日付として保存する
 - `List<Enum>` は JSON 文字列で永続化する
 - 画像は `Review.imageUri` に 1件保持する
+
+## 7. 外部入力とバリデーション
+
+- `assets/master/*.json`、import JSON、URI などの外部入力は信頼しない
+- Enum を表す `value` は spec で定義された値と一致することを実行時に検証する
+- 不正な `value` を受け取った場合はクラッシュさせず、UI に失敗状態として表示する

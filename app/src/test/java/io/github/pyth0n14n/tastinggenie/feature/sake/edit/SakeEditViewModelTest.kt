@@ -95,6 +95,26 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun onGradeSelected_withUnexpectedValue_setsUiErrorWithoutCrashing() =
+        runTest {
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onGradeSelected("BROKEN_VALUE")
+
+            val state = viewModel.uiState.value
+            assertEquals(null, state.grade)
+            assertNotNull(state.error)
+            assertEquals(R.string.error_invalid_sake_grade, state.error?.messageResId)
+            assertEquals("BROKEN_VALUE", state.error?.causeKey)
+        }
+
+    @Test
     fun loadInitial_editMode_populatesExistingSake() =
         runTest {
             val repository =

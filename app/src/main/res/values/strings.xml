@@ -13,5 +13,6 @@
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_save_sake">酒情報の保存に失敗しました</string>
+    <string name="error_invalid_sake_grade">種別の選択値が不正です</string>
     <string name="error_invalid_sake_input">銘柄名と種別は必須です</string>
 </resources>
