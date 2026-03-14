@@ -22,6 +22,10 @@ CI configuration is the ultimate source of truth.
 
     ./gradlew localFix
 
+- ローカルでの事前確認・自動修正は `./gradlew localFix` を使う
+- ローカルで `./gradlew ciCheck` を常用しない
+- `ciCheck` は CI / PR で走る最終ゲートとして扱う
+
 ---
 
 ## CI Required Checks
@@ -30,7 +34,7 @@ The following tasks must pass in CI:
 
     ./gradlew ciCheck
 
-If CI fails, fix locally before pushing again.
+If CI fails, fix locally with `./gradlew localFix` before pushing again.
 
 ---
 
