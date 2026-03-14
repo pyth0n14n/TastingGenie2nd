@@ -127,6 +127,8 @@ class ReviewEditViewModel
                         it.copy(
                             isLoading = false,
                             sakeId = args.sakeId,
+                            reviewId = args.reviewId,
+                            isEditTargetMissing = args.reviewId != null,
                             error =
                                 UiError(
                                     messageResId = R.string.error_load_review,

@@ -3,11 +3,13 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFakeMasterDataRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_SAKE_ID
+import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import io.github.pyth0n14n.tastinggenie.feature.review.testSake
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
@@ -124,6 +126,36 @@ class ReviewEditViewModelTest {
         }
 
     @Test
+    fun loadInitial_editModeWhenSeedLoadFails_blocksSave() =
+        runTest {
+            val repository = RecordingReviewRepository(initial = listOf(testReview()))
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle =
+                        SavedStateHandle(
+                            mapOf(
+                                AppDestination.ARG_SAKE_ID to TEST_SAKE_ID,
+                                AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
+                            ),
+                        ),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = repository,
+                    masterDataRepository = ThrowingMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.DATE, value = "2026-03-14"))
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.isEditTargetMissing)
+            assertEquals(TEST_REVIEW_ID, state.reviewId)
+            assertEquals(R.string.error_load_review, state.error?.messageResId)
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
     fun loadInitial_editModeWithMissingReview_setsErrorAndBlocksSave() =
         runTest {
             val repository = RecordingReviewRepository()
@@ -151,4 +183,8 @@ class ReviewEditViewModelTest {
             assertEquals(R.string.error_load_review, state.error?.messageResId)
             assertTrue(repository.savedInputs.isEmpty())
         }
+}
+
+private class ThrowingMasterDataRepository : MasterDataRepository {
+    override suspend fun getMasterData() = throw IllegalStateException("seed load failure")
 }
