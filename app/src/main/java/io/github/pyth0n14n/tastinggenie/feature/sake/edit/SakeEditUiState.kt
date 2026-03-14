@@ -8,6 +8,7 @@ data class SakeEditUiState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
+    val isEditTargetMissing: Boolean = false,
     val error: UiError? = null,
     val sakeId: Long? = null,
     val name: String = "",

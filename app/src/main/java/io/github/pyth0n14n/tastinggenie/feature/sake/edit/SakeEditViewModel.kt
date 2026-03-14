@@ -34,12 +34,21 @@ class SakeEditViewModel
         }
 
         fun onNameChanged(value: String) {
-            _uiState.update { it.copy(name = value) }
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    current
+                } else {
+                    current.copy(name = value)
+                }
+            }
         }
 
         fun onGradeSelected(value: String) {
             val selectedGrade = SakeGrade.entries.firstOrNull { grade -> grade.name == value }
             _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    return@update current
+                }
                 if (selectedGrade == null) {
                     current.copy(
                         grade = null,
@@ -60,6 +69,9 @@ class SakeEditViewModel
 
         fun save() {
             val snapshot = uiState.value
+            if (snapshot.isEditTargetMissing) {
+                return
+            }
             val grade = snapshot.grade
             // PR-3 で必須にしている入力のみ先に弾く。
             if (snapshot.name.isBlank() || grade == null) {
@@ -107,9 +119,25 @@ class SakeEditViewModel
                     val existing = sakeId?.let { sakeRepository.getSake(it) }
                     master to existing
                 }.onSuccess { (master, existing) ->
+                    if (sakeId != null && existing == null) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                isEditTargetMissing = true,
+                                gradeOptions = master.sakeGrades,
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_load_sake,
+                                        causeKey = sakeId.toString(),
+                                    ),
+                            )
+                        }
+                        return@onSuccess
+                    }
                     _uiState.update {
                         it.copy(
                             isLoading = false,
+                            isEditTargetMissing = false,
                             gradeOptions = master.sakeGrades,
                             sakeId = existing?.id,
                             name = existing?.name.orEmpty(),

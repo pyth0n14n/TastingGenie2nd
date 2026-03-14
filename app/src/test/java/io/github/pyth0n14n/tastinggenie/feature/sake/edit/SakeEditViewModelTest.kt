@@ -147,6 +147,31 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun loadInitial_editModeWithMissingSake_setsLoadErrorAndBlocksSave() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onNameChanged("should not save")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertTrue(state.isEditTargetMissing)
+            assertEquals(R.string.error_load_sake, state.error?.messageResId)
+            assertEquals(EXISTING_SAKE_ID.toString(), state.error?.causeKey)
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
     fun loadInitial_editMode_populatesExistingSake() =
         runTest {
             val repository =

@@ -92,33 +92,17 @@ fun SakeEditScreen(
             contentPadding = PaddingValues(SCREEN_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
         ) {
-            item {
-                LabeledTextField(
-                    label = stringResource(R.string.label_sake_name),
-                    value = state.name,
-                    onValueChange = onNameChanged,
-                )
-            }
-            item {
-                SimpleDropdown(
-                    label = stringResource(R.string.label_grade),
-                    selectedLabel = selectedGradeLabel(state.grade?.name, gradeOptions),
-                    options = gradeOptions,
-                    onSelected = onGradeSelected,
-                )
-            }
-            item {
-                if (state.error != null) {
-                    Text(
-                        text = stringResource(state.error.messageResId),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
+            formFields(
+                state = state,
+                gradeOptions = gradeOptions,
+                onNameChanged = onNameChanged,
+                onGradeSelected = onGradeSelected,
+            )
+            errorMessage(state = state)
             item {
                 SaveButton(
                     isSaving = state.isSaving,
+                    isEnabled = !state.isEditTargetMissing,
                     onSave = onSave,
                 )
             }
@@ -126,15 +110,51 @@ fun SakeEditScreen(
     }
 }
 
+private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
+    state: SakeEditUiState,
+    gradeOptions: List<DropdownOption>,
+    onNameChanged: (String) -> Unit,
+    onGradeSelected: (String) -> Unit,
+) {
+    item {
+        LabeledTextField(
+            label = stringResource(R.string.label_sake_name),
+            value = state.name,
+            onValueChange = onNameChanged,
+        )
+    }
+    item {
+        SimpleDropdown(
+            label = stringResource(R.string.label_grade),
+            selectedLabel = selectedGradeLabel(state.grade?.name, gradeOptions),
+            options = gradeOptions,
+            onSelected = onGradeSelected,
+        )
+    }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.errorMessage(state: SakeEditUiState) {
+    item {
+        if (state.error != null) {
+            Text(
+                text = stringResource(state.error.messageResId),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
 @Composable
 private fun SaveButton(
     isSaving: Boolean,
+    isEnabled: Boolean,
     onSave: () -> Unit,
 ) {
     Button(
         onClick = onSave,
         modifier = Modifier.fillMaxWidth(),
-        enabled = !isSaving,
+        enabled = isEnabled && !isSaving,
     ) {
         Text(
             text =
