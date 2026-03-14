@@ -14,6 +14,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +40,7 @@ private const val LIST_SPACING = 8
 fun SakeListRoute(
     onCreateSake: () -> Unit,
     onOpenSake: (Long) -> Unit,
+    onEditSake: (Long) -> Unit,
     viewModel: SakeListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -46,6 +48,7 @@ fun SakeListRoute(
         state = uiState,
         onCreateSake = onCreateSake,
         onOpenSake = onOpenSake,
+        onEditSake = onEditSake,
     )
 }
 
@@ -55,6 +58,7 @@ fun SakeListScreen(
     state: SakeListUiState,
     onCreateSake: () -> Unit,
     onOpenSake: (Long) -> Unit,
+    onEditSake: (Long) -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.screen_sake_list)) }) },
@@ -73,6 +77,7 @@ fun SakeListScreen(
                     items = state.sakes,
                     gradeLabels = state.gradeLabels,
                     onOpenSake = onOpenSake,
+                    onEditSake = onEditSake,
                     modifier = Modifier.padding(padding),
                 )
         }
@@ -84,6 +89,7 @@ private fun SakeList(
     items: List<Sake>,
     gradeLabels: Map<String, String>,
     onOpenSake: (Long) -> Unit,
+    onEditSake: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -99,6 +105,11 @@ private fun SakeList(
                         text = gradeLabels[sake.grade.name] ?: sake.grade.name,
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                },
+                trailingContent = {
+                    TextButton(onClick = { onEditSake(sake.id) }) {
+                        Text(text = stringResource(R.string.action_edit))
+                    }
                 },
                 modifier =
                     Modifier
