@@ -96,10 +96,15 @@ fun ReviewEditScreen(
 @Composable
 private fun viscosityOptions(): List<DropdownOption> =
     listOf(
+        DropdownOption(value = "", label = stringResource(R.string.label_none)),
         DropdownOption(value = "1", label = stringResource(R.string.label_viscosity_1)),
         DropdownOption(value = "2", label = stringResource(R.string.label_viscosity_2)),
         DropdownOption(value = "3", label = stringResource(R.string.label_viscosity_3)),
     )
+
+@Composable
+private fun List<DropdownOption>.withUnselectedOption(): List<DropdownOption> =
+    listOf(DropdownOption(value = "", label = stringResource(R.string.label_none))) + this
 
 @Composable
 private fun ReviewEditBody(
@@ -118,13 +123,13 @@ private fun ReviewEditBody(
             ReviewEditFormUiData(
                 singleChoiceUiData =
                     SingleChoiceUiData(
-                        temperatureOptions = state.temperatureOptions.toOptions(),
-                        colorOptions = state.colorOptions.toOptions(),
-                        intensityOptions = state.intensityOptions.toOptions(),
+                        temperatureOptions = state.temperatureOptions.toOptions().withUnselectedOption(),
+                        colorOptions = state.colorOptions.toOptions().withUnselectedOption(),
+                        intensityOptions = state.intensityOptions.toOptions().withUnselectedOption(),
                         viscosityOptions = viscosityOptions,
                     ),
-                tasteOptions = state.tasteOptions.toOptions(),
-                overallReviewOptions = state.overallReviewOptions.toOptions(),
+                tasteOptions = state.tasteOptions.toOptions().withUnselectedOption(),
+                overallReviewOptions = state.overallReviewOptions.toOptions().withUnselectedOption(),
                 aromaUiData =
                     AromaUiData(
                         categories = state.aromaCategories,
