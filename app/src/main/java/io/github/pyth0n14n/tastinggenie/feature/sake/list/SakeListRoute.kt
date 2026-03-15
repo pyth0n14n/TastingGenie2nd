@@ -30,6 +30,11 @@ import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 
 private const val LIST_SPACING = 8
 
+data class SakeListTopBarActions(
+    val onOpenHelp: () -> Unit,
+    val onOpenSettings: () -> Unit,
+)
+
 /**
  * Route for sake list screen.
  *
@@ -41,6 +46,7 @@ fun SakeListRoute(
     onCreateSake: () -> Unit,
     onOpenSake: (Long) -> Unit,
     onEditSake: (Long) -> Unit,
+    topBarActions: SakeListTopBarActions,
     viewModel: SakeListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,6 +55,7 @@ fun SakeListRoute(
         onCreateSake = onCreateSake,
         onOpenSake = onOpenSake,
         onEditSake = onEditSake,
+        topBarActions = topBarActions,
     )
 }
 
@@ -59,9 +66,22 @@ fun SakeListScreen(
     onCreateSake: () -> Unit,
     onOpenSake: (Long) -> Unit,
     onEditSake: (Long) -> Unit,
+    topBarActions: SakeListTopBarActions,
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.screen_sake_list)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.screen_sake_list)) },
+                actions = {
+                    TextButton(onClick = topBarActions.onOpenHelp) {
+                        Text(stringResource(R.string.screen_help))
+                    }
+                    TextButton(onClick = topBarActions.onOpenSettings) {
+                        Text(stringResource(R.string.screen_settings))
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = onCreateSake) {
                 Text(text = stringResource(R.string.action_add))

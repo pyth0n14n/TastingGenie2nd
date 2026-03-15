@@ -8,12 +8,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.github.pyth0n14n.tastinggenie.feature.help.HelpRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.image.ReviewImageRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.list.ReviewListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.edit.SakeEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRoute
+import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListTopBarActions
+import io.github.pyth0n14n.tastinggenie.feature.settings.SettingsRoute
 
 @Composable
 fun AppNavGraph() {
@@ -33,6 +36,11 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
             onCreateSake = { navController.navigate(AppDestination.sakeEditRoute(sakeId = null)) },
             onOpenSake = { sakeId -> navController.navigate(AppDestination.reviewListRoute(sakeId = sakeId)) },
             onEditSake = { sakeId -> navController.navigate(AppDestination.sakeEditRoute(sakeId = sakeId)) },
+            topBarActions =
+                SakeListTopBarActions(
+                    onOpenHelp = { navController.navigate(AppDestination.HELP) },
+                    onOpenSettings = { navController.navigate(AppDestination.SETTINGS) },
+                ),
         )
     }
     composable(
@@ -46,6 +54,12 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
             ),
     ) {
         SakeEditRoute(onBack = { navController.popBackStack() })
+    }
+    composable(AppDestination.HELP) {
+        HelpRoute(onBack = { navController.popBackStack() })
+    }
+    composable(AppDestination.SETTINGS) {
+        SettingsRoute(onBack = { navController.popBackStack() })
     }
 }
 
