@@ -138,9 +138,7 @@ private fun <T> ReviewEditUiState.copySelection(
     selected: T?,
     assign: (ReviewEditUiState, T?) -> ReviewEditUiState,
 ): ReviewEditUiState =
-    if (value.isBlank()) {
-        assign(this, null).copy(error = null)
-    } else if (selected == null) {
+    if (selected == null) {
         assign(this, null).copy(error = invalidSelectionError(value))
     } else {
         assign(this, selected).copy(error = null)

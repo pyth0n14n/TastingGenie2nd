@@ -100,36 +100,6 @@ class ReviewEditViewModelTest {
         }
 
     @Test
-    fun onSelectionCleared_withBlankValue_resetsOptionalFieldWithoutError() =
-        runTest {
-            val viewModel =
-                ReviewEditViewModel(
-                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.onAction(
-                ReviewEditAction.SelectionChanged(
-                    field = ReviewSelectionField.TEMPERATURE,
-                    value = Temperature.JOON.name,
-                ),
-            )
-            viewModel.onAction(
-                ReviewEditAction.SelectionChanged(
-                    field = ReviewSelectionField.TEMPERATURE,
-                    value = "",
-                ),
-            )
-
-            val state = viewModel.uiState.value
-            assertEquals(null, state.temperature)
-            assertEquals(null, state.error)
-        }
-
-    @Test
     fun onTemperatureSelected_withUnexpectedValue_setsUiErrorWithoutCrashing() =
         runTest {
             val viewModel =
@@ -216,5 +186,5 @@ class ReviewEditViewModelTest {
 }
 
 private class ThrowingMasterDataRepository : MasterDataRepository {
-    override suspend fun getMasterData() = throw IllegalStateException("seed load failure")
+    override suspend fun getMasterData() = error("seed load failure")
 }
