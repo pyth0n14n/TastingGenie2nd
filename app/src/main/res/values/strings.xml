@@ -5,10 +5,12 @@
     <string name="screen_review_list">レビュー一覧</string>
     <string name="screen_review_edit">レビュー登録/編集</string>
     <string name="screen_review_detail">レビュー詳細</string>
+    <string name="screen_image_viewer">画像ビューア</string>
     <string name="action_add">追加</string>
     <string name="action_save">保存</string>
     <string name="action_back">戻る</string>
     <string name="action_edit">編集</string>
+    <string name="action_view_image">画像</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_review_date">日付</string>
     <string name="label_bar">店名</string>
@@ -40,8 +42,10 @@
     <string name="label_viscosity_3">3</string>
     <string name="message_no_sakes">登録された酒がありません</string>
     <string name="message_no_reviews">登録されたレビューがありません</string>
+    <string name="message_no_image">画像が登録されていません</string>
     <string name="message_review_count">%1$d件選択済み</string>
     <string name="message_saving">保存中...</string>
+    <string name="content_review_image">レビュー画像</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>

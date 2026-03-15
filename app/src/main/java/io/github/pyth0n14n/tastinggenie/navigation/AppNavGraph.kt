@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
+import io.github.pyth0n14n.tastinggenie.feature.review.image.ReviewImageRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.list.ReviewListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.edit.SakeEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRoute
@@ -70,6 +71,7 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
     }
     addReviewEditDestinations(navController)
     addReviewDetailDestination(navController)
+    addReviewImageDestination(navController)
 }
 
 private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostController) {
@@ -115,6 +117,23 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
             onEditReview = { sakeId, reviewId ->
                 navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = reviewId))
             },
+            onOpenImage = { reviewId ->
+                navController.navigate(AppDestination.reviewImageRoute(reviewId = reviewId))
+            },
         )
+    }
+}
+
+private fun NavGraphBuilder.addReviewImageDestination(navController: NavHostController) {
+    composable(
+        route = AppDestination.REVIEW_IMAGE,
+        arguments =
+            listOf(
+                navArgument(AppDestination.ARG_REVIEW_ID) {
+                    type = NavType.LongType
+                },
+            ),
+    ) {
+        ReviewImageRoute(onBack = { navController.popBackStack() })
     }
 }
