@@ -22,13 +22,14 @@ fun LabeledTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(text = label) },
         modifier = modifier.fillMaxWidth(),
-        singleLine = true,
+        singleLine = singleLine,
     )
 }
 
