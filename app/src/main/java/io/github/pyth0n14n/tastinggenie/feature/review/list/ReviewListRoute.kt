@@ -36,6 +36,7 @@ fun ReviewListRoute(
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onOpenReview: (Long) -> Unit,
+    onOpenImage: (Long) -> Unit,
     viewModel: ReviewListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -44,6 +45,7 @@ fun ReviewListRoute(
         onBack = onBack,
         onAddReview = onAddReview,
         onOpenReview = onOpenReview,
+        onOpenImage = onOpenImage,
     )
 }
 
@@ -54,6 +56,7 @@ fun ReviewListScreen(
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onOpenReview: (Long) -> Unit,
+    onOpenImage: (Long) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -91,6 +94,7 @@ fun ReviewListScreen(
                     reviews = state.reviews,
                     overallReviewLabels = state.overallReviewLabels,
                     onOpenReview = onOpenReview,
+                    onOpenImage = onOpenImage,
                     modifier = Modifier.padding(padding),
                 )
         }
@@ -102,6 +106,7 @@ private fun ReviewList(
     reviews: List<Review>,
     overallReviewLabels: Map<String, String>,
     onOpenReview: (Long) -> Unit,
+    onOpenImage: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -123,6 +128,13 @@ private fun ReviewList(
                             text = text,
                             style = MaterialTheme.typography.bodyMedium,
                         )
+                    }
+                },
+                trailingContent = {
+                    if (!review.imageUri.isNullOrBlank()) {
+                        TextButton(onClick = { onOpenImage(review.id) }) {
+                            Text(stringResource(R.string.action_view_image))
+                        }
                     }
                 },
                 modifier =

@@ -28,6 +28,12 @@ class SakeListScreenTest {
                     ),
                 onCreateSake = { called = true },
                 onOpenSake = {},
+                onEditSake = {},
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
             )
         }
 
@@ -55,11 +61,43 @@ class SakeListScreenTest {
                     ),
                 onCreateSake = {},
                 onOpenSake = { openedId = it },
+                onEditSake = {},
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
             )
         }
 
         composeRule.onNodeWithText("吟醸").assertExists()
         composeRule.onNodeWithText("吟醸酒").performClick()
         composeRule.runOnIdle { assertEquals(42L, openedId) }
+    }
+
+    @Test
+    fun topBarActions_openHelpAndSettings() {
+        var helpOpened = false
+        var settingsOpened = false
+        composeRule.setContent {
+            SakeListScreen(
+                state = SakeListUiState(isLoading = false),
+                onCreateSake = {},
+                onOpenSake = {},
+                onEditSake = {},
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = { helpOpened = true },
+                        onOpenSettings = { settingsOpened = true },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("ヘルプ").performClick()
+        composeRule.onNodeWithText("設定").performClick()
+        composeRule.runOnIdle {
+            assertTrue(helpOpened)
+            assertTrue(settingsOpened)
+        }
     }
 }
