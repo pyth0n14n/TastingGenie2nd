@@ -21,7 +21,6 @@ import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 fun ReviewDetailRoute(
     onBack: () -> Unit,
     onEditReview: (Long, Long) -> Unit,
-    onOpenImage: (Long) -> Unit,
     viewModel: ReviewDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -29,7 +28,6 @@ fun ReviewDetailRoute(
         state = state,
         onBack = onBack,
         onEditReview = onEditReview,
-        onOpenImage = onOpenImage,
     )
 }
 
@@ -39,7 +37,6 @@ fun ReviewDetailScreen(
     state: ReviewDetailUiState,
     onBack: () -> Unit,
     onEditReview: (Long, Long) -> Unit,
-    onOpenImage: (Long) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -53,11 +50,6 @@ fun ReviewDetailScreen(
                 actions = {
                     val review = state.review
                     if (review != null) {
-                        if (!review.imageUri.isNullOrBlank()) {
-                            TextButton(onClick = { onOpenImage(review.id) }) {
-                                Text(stringResource(R.string.action_view_image))
-                            }
-                        }
                         TextButton(onClick = { onEditReview(review.sakeId, review.id) }) {
                             Text(stringResource(R.string.action_edit))
                         }

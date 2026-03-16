@@ -34,13 +34,26 @@ class ReviewImageViewModel
         private fun loadImage() {
             viewModelScope.launch {
                 runCatching {
-                    reviewRepository.getReview(reviewId)?.imageUri
-                        ?: error("missing review image")
-                }.onSuccess { imageUri ->
+                    reviewRepository.getReview(reviewId)
+                }.onSuccess { review ->
+                    if (review == null) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_load_review,
+                                        causeKey = reviewId.toString(),
+                                    ),
+                            )
+                        }
+                        return@onSuccess
+                    }
+
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            imageUri = imageUri,
+                            imageUri = review.imageUri,
                         )
                     }
                 }.onFailure { throwable ->

@@ -81,6 +81,9 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
             onOpenReview = { reviewId ->
                 navController.navigate(AppDestination.reviewDetailRoute(reviewId = reviewId))
             },
+            onOpenImage = { reviewId ->
+                navController.navigate(AppDestination.reviewImageRoute(reviewId = reviewId))
+            },
         )
     }
     addReviewEditDestinations(navController)
@@ -130,9 +133,6 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
             onBack = { navController.popBackStack() },
             onEditReview = { sakeId, reviewId ->
                 navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = reviewId))
-            },
-            onOpenImage = { reviewId ->
-                navController.navigate(AppDestination.reviewImageRoute(reviewId = reviewId))
             },
         )
     }

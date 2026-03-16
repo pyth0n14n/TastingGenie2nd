@@ -54,4 +54,23 @@ class ReviewImageViewModelTest {
             assertNotNull(state.error)
             assertEquals(R.string.error_load_review, state.error?.messageResId)
         }
+
+    @Test
+    fun loadImage_nullImageUri_keepsEmptyStateWithoutError() =
+        runTest {
+            val viewModel =
+                ReviewImageViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID)),
+                    reviewRepository =
+                        RecordingReviewRepository(
+                            initial = listOf(testReview().copy(imageUri = null)),
+                        ),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertEquals(null, state.imageUri)
+            assertEquals(null, state.error)
+        }
 }

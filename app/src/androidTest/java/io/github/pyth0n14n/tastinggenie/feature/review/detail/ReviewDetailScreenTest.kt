@@ -5,7 +5,6 @@ import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -16,27 +15,26 @@ class ReviewDetailScreenTest {
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun imageAction_opensViewerWhenImageExists() {
-        var openedReviewId: Long? = null
+    fun editAction_opensEditor() {
+        var openedReview: Pair<Long, Long>? = null
         composeRule.setContent {
             ReviewDetailScreen(
                 state =
                     ReviewDetailUiState(
                         isLoading = false,
-                        review = testReview().copy(imageUri = "content://review/image/1"),
+                        review = testReview(),
                     ),
                 onBack = {},
-                onEditReview = { _, _ -> },
-                onOpenImage = { reviewId -> openedReviewId = reviewId },
+                onEditReview = { sakeId, reviewId -> openedReview = sakeId to reviewId },
             )
         }
 
-        composeRule.onNodeWithText("画像").performClick()
-        composeRule.runOnIdle { assertEquals(TEST_REVIEW_ID, openedReviewId) }
+        composeRule.onNodeWithText("編集").performClick()
+        composeRule.runOnIdle { assertEquals(testReview().sakeId to testReview().id, openedReview) }
     }
 
     @Test
-    fun imageAction_isHiddenWhenImageDoesNotExist() {
+    fun imageAction_isNotShownOnDetailScreen() {
         composeRule.setContent {
             ReviewDetailScreen(
                 state =
@@ -46,7 +44,6 @@ class ReviewDetailScreenTest {
                     ),
                 onBack = {},
                 onEditReview = { _, _ -> },
-                onOpenImage = { error("should not be called") },
             )
         }
 
