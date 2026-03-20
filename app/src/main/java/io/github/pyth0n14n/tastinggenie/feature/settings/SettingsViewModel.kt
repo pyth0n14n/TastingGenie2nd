@@ -9,6 +9,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,20 +43,25 @@ class SettingsViewModel
 
         suspend fun exportJson(): String? {
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
-            return importExportRepository
-                .exportJson()
-                .onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            error =
-                                UiError(
-                                    messageResId = R.string.error_export_failed,
-                                    causeKey = throwable.message,
-                                ),
-                        )
-                    }
-                }.getOrNull()
+            return try {
+                importExportRepository
+                    .exportJson()
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                isProcessingTransfer = false,
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_export_failed,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }.getOrNull()
+            } catch (throwable: CancellationException) {
+                clearTransferInProgress()
+                throw throwable
+            }
         }
 
         fun completeExport(writeResult: Result<Unit>) {
@@ -84,24 +90,29 @@ class SettingsViewModel
 
         suspend fun importJson(rawJson: String) {
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
-            importExportRepository
-                .importJson(rawJson)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            messageResId = R.string.message_import_success,
-                            error = null,
-                        )
+            try {
+                importExportRepository
+                    .importJson(rawJson)
+                    .onSuccess {
+                        _uiState.update {
+                            it.copy(
+                                isProcessingTransfer = false,
+                                messageResId = R.string.message_import_success,
+                                error = null,
+                            )
+                        }
+                    }.onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                isProcessingTransfer = false,
+                                error = mapImportError(throwable),
+                            )
+                        }
                     }
-                }.onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            error = mapImportError(throwable),
-                        )
-                    }
-                }
+            } catch (throwable: CancellationException) {
+                clearTransferInProgress()
+                throw throwable
+            }
         }
 
         fun onImportFailed(throwable: Throwable) {
@@ -119,6 +130,10 @@ class SettingsViewModel
 
         fun clearMessage() {
             _uiState.update { it.copy(messageResId = null) }
+        }
+
+        private fun clearTransferInProgress() {
+            _uiState.update { it.copy(isProcessingTransfer = false) }
         }
 
         private fun observeSettings() {

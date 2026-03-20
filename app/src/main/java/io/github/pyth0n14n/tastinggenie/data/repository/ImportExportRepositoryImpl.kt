@@ -10,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.CURRENT_SCHEMA_VERSION
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceException
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -25,7 +26,7 @@ class ImportExportRepositoryImpl
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : ImportExportRepository {
         override suspend fun exportJson(): Result<String> =
-            runCatching {
+            runSuspendCatching {
                 withContext(ioDispatcher) {
                     val payload =
                         database.withTransaction {
@@ -44,7 +45,7 @@ class ImportExportRepositoryImpl
             }
 
         override suspend fun importJson(rawJson: String): Result<Unit> =
-            runCatching {
+            runSuspendCatching {
                 withContext(ioDispatcher) {
                     val payload = json.decodeFromString<BackupPayload>(rawJson)
                     validateSchemaVersion(payload.schemaVersion)
@@ -75,4 +76,11 @@ class ImportExportRepositoryImpl
                 throw UnsupportedSchemaVersionException(version = version)
             }
         }
+
+        private suspend fun <T> runSuspendCatching(block: suspend () -> T): Result<T> =
+            runCatching { block() }.onFailure { throwable ->
+                if (throwable is CancellationException) {
+                    throw throwable
+                }
+            }
     }

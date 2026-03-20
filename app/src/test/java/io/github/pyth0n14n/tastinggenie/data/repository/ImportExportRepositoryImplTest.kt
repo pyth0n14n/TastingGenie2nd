@@ -19,6 +19,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -142,6 +143,32 @@ class ImportExportRepositoryImplTest {
             assertTrue(database.reviewDao().getAllOnce().isEmpty())
         }
 
+    @Test
+    fun exportJson_cancellationPropagates() =
+        runTest {
+            val repository = createRepository(ioDispatcher = CancellationDispatcher())
+
+            try {
+                repository.exportJson()
+                org.junit.Assert.fail("Expected exportJson to throw CancellationException")
+            } catch (_: CancellationException) {
+                // Expected.
+            }
+        }
+
+    @Test
+    fun importJson_cancellationPropagates() =
+        runTest {
+            val repository = createRepository(ioDispatcher = CancellationDispatcher())
+
+            try {
+                repository.importJson("""{"schemaVersion":1}""")
+                org.junit.Assert.fail("Expected importJson to throw CancellationException")
+            } catch (_: CancellationException) {
+                // Expected.
+            }
+        }
+
     private fun createRepository(
         ioDispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
     ): ImportExportRepositoryImpl =
@@ -223,4 +250,11 @@ class ImportExportRepositoryImplTest {
             review = OverallReview.GOOD,
             imageUri = "content://review/image/1",
         )
+}
+
+private class CancellationDispatcher : CoroutineDispatcher() {
+    override fun dispatch(
+        context: kotlin.coroutines.CoroutineContext,
+        block: Runnable,
+    ) = throw CancellationException("cancelled")
 }

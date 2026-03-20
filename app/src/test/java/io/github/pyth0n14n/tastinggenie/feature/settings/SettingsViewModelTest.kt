@@ -122,6 +122,31 @@ class SettingsViewModelTest {
         }
 
     @Test
+    fun exportJson_cancellationClearsBusyState() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            exportFailure = kotlinx.coroutines.CancellationException("cancelled"),
+                        ),
+                )
+            advanceUntilIdle()
+
+            try {
+                viewModel.exportJson()
+                Assert.fail("Expected exportJson to throw CancellationException")
+            } catch (_: kotlinx.coroutines.CancellationException) {
+                // Expected.
+            }
+
+            val state = viewModel.uiState.value
+            Assert.assertFalse(state.isProcessingTransfer)
+            Assert.assertNull(state.error)
+        }
+
+    @Test
     fun importJson_successSetsSuccessMessage() =
         runTest {
             val repository = FakeImportExportRepository()
@@ -202,6 +227,31 @@ class SettingsViewModelTest {
         }
 
     @Test
+    fun importJson_cancellationClearsBusyState() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            importFailure = kotlinx.coroutines.CancellationException("cancelled"),
+                        ),
+                )
+            advanceUntilIdle()
+
+            try {
+                viewModel.importJson("""{"schemaVersion":1}""")
+                Assert.fail("Expected importJson to throw CancellationException")
+            } catch (_: kotlinx.coroutines.CancellationException) {
+                // Expected.
+            }
+
+            val state = viewModel.uiState.value
+            Assert.assertFalse(state.isProcessingTransfer)
+            Assert.assertNull(state.error)
+        }
+
+    @Test
     fun onImportFailed_setsGenericReadError() =
         runTest {
             val viewModel =
@@ -261,11 +311,19 @@ private class FakeImportExportRepository(
     var importedJson: String? = null
 
     override suspend fun exportJson(): Result<String> =
-        exportFailure?.let { Result.failure(it) } ?: Result.success(exportJson)
+        when (val failure = exportFailure) {
+            is kotlinx.coroutines.CancellationException -> throw failure
+            null -> Result.success(exportJson)
+            else -> Result.failure(failure)
+        }
 
     override suspend fun importJson(rawJson: String): Result<Unit> {
         importedJson = rawJson
-        return importFailure?.let { Result.failure(it) } ?: Result.success(Unit)
+        return when (val failure = importFailure) {
+            is kotlinx.coroutines.CancellationException -> throw failure
+            null -> Result.success(Unit)
+            else -> Result.failure(failure)
+        }
     }
 }
 
