@@ -27,14 +27,18 @@ class ImportExportRepositoryImpl
         override suspend fun exportJson(): Result<String> =
             runCatching {
                 withContext(ioDispatcher) {
-                    val sakes = database.sakeDao().getAllOnce().map { sake -> sake.toSerializable() }
-                    val reviews = database.reviewDao().getAllOnce().map { review -> review.toSerializable() }
+                    val payload =
+                        database.withTransaction {
+                            val sakes = database.sakeDao().getAllOnce().map { sake -> sake.toSerializable() }
+                            val reviews = database.reviewDao().getAllOnce().map { review -> review.toSerializable() }
+                            BackupPayload(
+                                schemaVersion = CURRENT_SCHEMA_VERSION,
+                                sakes = sakes,
+                                reviews = reviews,
+                            )
+                        }
                     json.encodeToString(
-                        BackupPayload(
-                            schemaVersion = CURRENT_SCHEMA_VERSION,
-                            sakes = sakes,
-                            reviews = reviews,
-                        ),
+                        payload,
                     )
                 }
             }

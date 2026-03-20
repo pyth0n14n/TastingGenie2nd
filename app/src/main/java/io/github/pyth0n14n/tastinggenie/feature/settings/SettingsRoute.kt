@@ -1,5 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.settings
 
+import android.content.Context
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -28,7 +30,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.charset.StandardCharsets
 
 private const val SCREEN_PADDING = 16
@@ -50,16 +54,7 @@ fun SettingsRoute(
             }
             scope.launch {
                 val rawJson = viewModel.exportJson() ?: return@launch
-                runCatching {
-                    // Export success depends on both JSON generation and URI write completion.
-                    val outputStream =
-                        checkNotNull(context.contentResolver.openOutputStream(uri)) {
-                            "Failed to open output stream for export"
-                        }
-                    outputStream.writer(StandardCharsets.UTF_8).use { writer ->
-                        writer.write(rawJson)
-                    }
-                }.also(viewModel::completeExport)
+                runCatching { writeBackupJson(context, uri, rawJson) }.also(viewModel::completeExport)
             }
         }
     val importLauncher =
@@ -69,15 +64,7 @@ fun SettingsRoute(
             }
             scope.launch {
                 val rawJson =
-                    runCatching {
-                        val inputStream =
-                            checkNotNull(context.contentResolver.openInputStream(uri)) {
-                                "Failed to open input stream for import"
-                            }
-                        inputStream.reader(StandardCharsets.UTF_8).use { reader ->
-                            reader.readText()
-                        }
-                    }.getOrElse { throwable ->
+                    runCatching { readBackupJson(context, uri) }.getOrElse { throwable ->
                         viewModel.onImportFailed(throwable)
                         return@launch
                     }
@@ -97,6 +84,35 @@ fun SettingsRoute(
             ),
     )
 }
+
+private suspend fun writeBackupJson(
+    context: Context,
+    uri: Uri,
+    rawJson: String,
+) = withContext(Dispatchers.IO) {
+    // Export success depends on both JSON generation and URI write completion.
+    val outputStream =
+        checkNotNull(context.contentResolver.openOutputStream(uri)) {
+            "Failed to open output stream for export"
+        }
+    outputStream.writer(StandardCharsets.UTF_8).use { writer ->
+        writer.write(rawJson)
+    }
+}
+
+private suspend fun readBackupJson(
+    context: Context,
+    uri: Uri,
+): String =
+    withContext(Dispatchers.IO) {
+        val inputStream =
+            checkNotNull(context.contentResolver.openInputStream(uri)) {
+                "Failed to open input stream for import"
+            }
+        inputStream.reader(StandardCharsets.UTF_8).use { reader ->
+            reader.readText()
+        }
+    }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
