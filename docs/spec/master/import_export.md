@@ -33,6 +33,15 @@
 
 ## 4. 読み込みポリシー
 
-- `sakes`: `id` をキーに upsert
-- `reviews`: `id` をキーに upsert
-- `reviews.sakeId` が存在しない場合は失敗扱い
+- バックアップ内の `id` / `sakeId` は payload 内参照用であり、端末ローカルの DB 主キーとしては再利用しない
+- `sakes`: import 時に新しいローカル ID を採番して追加する
+- `reviews`: import 時に新しいローカル ID を採番して追加する
+- `reviews.sakeId` は同じ payload 内の `sakes.id` を参照している必要がある
+- payload 内で `sakes.id` が重複している場合は失敗扱い
+
+---
+
+## 5. 画像の扱い
+
+- review 画像は URI ベース管理のため、バックアップには画像バイト列を含めない
+- `imageUri` は端末や権限状態をまたいで復元可能な値ではないため、export/import 対象にしない
