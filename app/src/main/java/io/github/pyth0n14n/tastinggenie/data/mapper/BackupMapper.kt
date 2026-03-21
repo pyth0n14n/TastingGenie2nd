@@ -15,6 +15,9 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import java.time.LocalDate
 
+private const val MIN_IMPORTED_VISCOSITY = 1
+private const val MAX_IMPORTED_VISCOSITY = 3
+
 fun SakeEntity.toSerializable(): SerializableSake =
     SerializableSake(
         id = id,
@@ -38,7 +41,10 @@ fun SakeEntity.toSerializable(): SerializableSake =
 
 fun SerializableSake.toImportedEntity(): SakeEntity =
     SakeEntity(
-        name = name,
+        name =
+            name
+                .trim()
+                .also { trimmedName -> require(trimmedName.isNotEmpty()) { "Backup sake name must not be blank" } },
         grade = enumValueOf<SakeGrade>(grade),
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
         typeOther = typeOther,
@@ -93,7 +99,12 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         volume = volume,
         temperature = temperature?.let { value -> enumValueOf<Temperature>(value) },
         color = color?.let { value -> enumValueOf<SakeColor>(value) },
-        viscosity = viscosity,
+        viscosity =
+            viscosity?.also { importedViscosity ->
+                require(importedViscosity in MIN_IMPORTED_VISCOSITY..MAX_IMPORTED_VISCOSITY) {
+                    "Backup viscosity must be between $MIN_IMPORTED_VISCOSITY and $MAX_IMPORTED_VISCOSITY"
+                }
+            },
         intensity = intensity?.let { value -> enumValueOf<IntensityLevel>(value) },
         scentTop = scentTop.map { aroma -> enumValueOf<Aroma>(aroma) },
         scentBase = scentBase.map { aroma -> enumValueOf<Aroma>(aroma) },

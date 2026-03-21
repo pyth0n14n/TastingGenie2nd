@@ -195,6 +195,42 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importJson_blankSakeName_returnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake().copy(name = "   ")),
+                    reviews = emptyList(),
+                )
+
+            val result = repository.importJson(json.encodeToString(payload))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+            assertTrue(database.sakeDao().getAllOnce().isEmpty())
+        }
+
+    @Test
+    fun importJson_outOfRangeViscosity_returnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake()),
+                    reviews = listOf(sampleSerializableReview().copy(viscosity = 4)),
+                )
+
+            val result = repository.importJson(json.encodeToString(payload))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+            assertTrue(database.reviewDao().getAllOnce().isEmpty())
+        }
+
+    @Test
     fun exportJson_cancellationPropagates() =
         runTest {
             val repository = createRepository(ioDispatcher = CancellationDispatcher())
