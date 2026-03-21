@@ -1,6 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.settings
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
@@ -44,11 +46,14 @@ fun SettingsRoute(
     viewModel: SettingsViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current.applicationContext
-    DisposableEffect(viewModel) {
+    val activityContext = LocalContext.current
+    val context = activityContext.applicationContext
+    DisposableEffect(activityContext, viewModel) {
         viewModel.setSettingsVisible(visible = true)
         onDispose {
-            viewModel.setSettingsVisible(visible = false)
+            if (!activityContext.isChangingConfigurations()) {
+                viewModel.setSettingsVisible(visible = false)
+            }
         }
     }
     val exportLauncher =
@@ -82,6 +87,15 @@ fun SettingsRoute(
             ),
     )
 }
+
+private tailrec fun Context.findActivity(): Activity? =
+    when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
+
+private fun Context.isChangingConfigurations(): Boolean = findActivity()?.isChangingConfigurations == true
 
 private suspend fun <T> runRouteTransferCatching(block: suspend () -> T): Result<T> =
     runCatching { block() }.onFailure { throwable ->
