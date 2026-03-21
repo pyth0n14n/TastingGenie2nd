@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,7 +62,7 @@ fun SettingsRoute(
             scope.launch {
                 try {
                     val rawJson = viewModel.exportJson() ?: return@launch
-                    runCatching { writeBackupJson(context, uri, rawJson) }.also(viewModel::completeExport)
+                    runRouteTransferCatching { writeBackupJson(context, uri, rawJson) }.also(viewModel::completeExport)
                 } finally {
                     isRouteTransferInProgress = false
                 }
@@ -76,7 +77,7 @@ fun SettingsRoute(
             scope.launch {
                 try {
                     val rawJson =
-                        runCatching { readBackupJson(context, uri) }.getOrElse { throwable ->
+                        runRouteTransferCatching { readBackupJson(context, uri) }.getOrElse { throwable ->
                             viewModel.onImportFailed(throwable)
                             return@launch
                         }
@@ -100,6 +101,13 @@ fun SettingsRoute(
     )
 }
 
+private suspend fun <T> runRouteTransferCatching(block: suspend () -> T): Result<T> =
+    runCatching { block() }.onFailure { throwable ->
+        if (throwable is CancellationException) {
+            throw throwable
+        }
+    }
+
 private suspend fun writeBackupJson(
     context: Context,
     uri: Uri,
@@ -107,7 +115,7 @@ private suspend fun writeBackupJson(
 ) = withContext(Dispatchers.IO) {
     // Export success depends on both JSON generation and URI write completion.
     val outputStream =
-        checkNotNull(context.contentResolver.openOutputStream(uri)) {
+        checkNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
             "Failed to open output stream for export"
         }
     outputStream.writer(StandardCharsets.UTF_8).use { writer ->
