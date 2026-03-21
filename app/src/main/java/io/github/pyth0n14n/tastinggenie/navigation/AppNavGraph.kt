@@ -1,6 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -59,7 +61,11 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
         HelpRoute(onBack = { navController.popBackStack() })
     }
     composable(AppDestination.SETTINGS) {
-        SettingsRoute(onBack = { navController.popBackStack() })
+        val sakeListEntry = remember(it) { navController.getBackStackEntry(AppDestination.SAKE_LIST) }
+        SettingsRoute(
+            onBack = { navController.popBackStack() },
+            viewModel = hiltViewModel(sakeListEntry),
+        )
     }
 }
 
