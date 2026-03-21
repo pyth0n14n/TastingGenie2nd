@@ -118,6 +118,7 @@
 
 ## テストケースとシナリオ
 
+### 必須テスト
 - Unit
   - Repository: `upsertSake`, `upsertReview`, `observe*` の整合
   - Converter: Enum/List/LocalDate(またはepochDay) の往復
@@ -128,10 +129,29 @@
   - S0→S1→S0 登録反映
   - S0→S2→S3→S2 レビュー反映
   - S2→S4 詳細表示
+
+### 推奨テスト
+- Integration
+  - `AppDatabase` + DAOのCRUD
+  - `RepositoryImpl` のファイル/DB結合
 - E2E（手動受け入れ）
   - 同一銘柄へ複数レビュー登録
   - アプリ再起動後の保持
   - M2: JSON export/import round-trip
+
+### テストガードレール
+- CIで `ciCheck` が通っても、androidTest（emulator/device）での起動と基本操作が通ることを最優先で確認する。
+- `androidTest` を書く際は、以下を最低ラインとする：
+  1. アプリ起動
+  2. S0のロード状態 → データ表示
+  3. S1新規作成 → 戻る
+  4. S2レビュー作成・表示
+- リグレッションカテゴリは明示し、 `docs/spec` に対応箇所を紐付ける。
+
+## Codex Review 指摘のテスト仕様化
+- これまでに指摘された Codex レビューをテスト仕様に落とし込み、同じ指摘を今後避ける。
+- 新たな指摘を受けない工夫: コードレビューで指摘を受けた場合、関連 docs (e.g., `docs/spec/`, `docs/style/`) を修正してドキュメントを改善する。
+- 指摘が出た場合、原因と対応を `docs/spec/qa.md` に蓄積する（将来的には `docs/spec/qa.md` に移行）。
 
 ## Assumptions / Defaults
 - 第1マイルストーンで削除機能は実装しない。
