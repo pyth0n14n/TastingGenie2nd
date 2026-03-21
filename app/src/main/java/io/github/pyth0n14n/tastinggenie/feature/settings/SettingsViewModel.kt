@@ -41,40 +41,77 @@ class SettingsViewModel
             updateSetting { settingsRepository.updateShowImagePreview(enabled) }
         }
 
-        suspend fun exportJson(): String? {
+        fun exportBackup(writeJson: suspend (String) -> Result<Unit>) {
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
-            return try {
-                importExportRepository
-                    .exportJson()
-                    .onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                isProcessingTransfer = false,
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_export_failed,
-                                        causeKey = throwable.message,
-                                    ),
-                            )
+            viewModelScope.launch {
+                try {
+                    val rawJson = exportJsonPayload() ?: return@launch
+                    writeJson(rawJson)
+                        .onSuccess {
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    messageResId = R.string.message_export_success,
+                                    error = null,
+                                )
+                            }
+                        }.onFailure { throwable ->
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    error =
+                                        UiError(
+                                            messageResId = R.string.error_export_failed,
+                                            causeKey = throwable.message,
+                                        ),
+                                )
+                            }
                         }
-                    }.getOrNull()
-            } catch (throwable: CancellationException) {
-                clearTransferInProgress()
-                throw throwable
+                } catch (throwable: CancellationException) {
+                    clearTransferInProgress()
+                    throw throwable
+                }
             }
         }
 
-        fun completeExport(writeResult: Result<Unit>) {
-            writeResult
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            messageResId = R.string.message_export_success,
-                            error = null,
-                        )
-                    }
-                }.onFailure { throwable ->
+        fun importBackup(readJson: suspend () -> Result<String>) {
+            _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
+            viewModelScope.launch {
+                try {
+                    val rawJson =
+                        readJson().getOrElse { throwable ->
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    error =
+                                        UiError(
+                                            messageResId = R.string.error_import_failed,
+                                            causeKey = throwable.message,
+                                        ),
+                                )
+                            }
+                            return@launch
+                        }
+                    importJsonPayload(rawJson)
+                } catch (throwable: CancellationException) {
+                    clearTransferInProgress()
+                    throw throwable
+                }
+            }
+        }
+
+        fun clearMessage() {
+            _uiState.update { it.copy(messageResId = null) }
+        }
+
+        private fun clearTransferInProgress() {
+            _uiState.update { it.copy(isProcessingTransfer = false) }
+        }
+
+        private suspend fun exportJsonPayload(): String? =
+            importExportRepository
+                .exportJson()
+                .onFailure { throwable ->
                     _uiState.update {
                         it.copy(
                             isProcessingTransfer = false,
@@ -85,55 +122,27 @@ class SettingsViewModel
                                 ),
                         )
                     }
-                }
-        }
+                }.getOrNull()
 
-        suspend fun importJson(rawJson: String) {
-            _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
-            try {
-                importExportRepository
-                    .importJson(rawJson)
-                    .onSuccess {
-                        _uiState.update {
-                            it.copy(
-                                isProcessingTransfer = false,
-                                messageResId = R.string.message_import_success,
-                                error = null,
-                            )
-                        }
-                    }.onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                isProcessingTransfer = false,
-                                error = mapImportError(throwable),
-                            )
-                        }
+        private suspend fun importJsonPayload(rawJson: String) {
+            importExportRepository
+                .importJson(rawJson)
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isProcessingTransfer = false,
+                            messageResId = R.string.message_import_success,
+                            error = null,
+                        )
                     }
-            } catch (throwable: CancellationException) {
-                clearTransferInProgress()
-                throw throwable
-            }
-        }
-
-        fun onImportFailed(throwable: Throwable) {
-            _uiState.update {
-                it.copy(
-                    isProcessingTransfer = false,
-                    error =
-                        UiError(
-                            messageResId = R.string.error_import_failed,
-                            causeKey = throwable.message,
-                        ),
-                )
-            }
-        }
-
-        fun clearMessage() {
-            _uiState.update { it.copy(messageResId = null) }
-        }
-
-        private fun clearTransferInProgress() {
-            _uiState.update { it.copy(isProcessingTransfer = false) }
+                }.onFailure { throwable ->
+                    _uiState.update {
+                        it.copy(
+                            isProcessingTransfer = false,
+                            error = mapImportError(throwable),
+                        )
+                    }
+                }
         }
 
         private fun observeSettings() {

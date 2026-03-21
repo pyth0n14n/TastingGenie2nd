@@ -78,8 +78,9 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun exportJson_successReturnsPayloadAndPublishesSuccessMessage() =
+    fun exportBackup_successPublishesSuccessMessage() =
         runTest {
+            var writtenJson: String? = null
             val viewModel =
                 SettingsViewModel(
                     settingsRepository = FakeSettingsRepository(),
@@ -90,18 +91,21 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            val rawJson = viewModel.exportJson()
-            viewModel.completeExport(Result.success(Unit))
+            viewModel.exportBackup { rawJson ->
+                writtenJson = rawJson
+                Result.success(Unit)
+            }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals("""{"schemaVersion":1}""", rawJson)
+            Assert.assertEquals("""{"schemaVersion":1}""", writtenJson)
             Assert.assertEquals(R.string.message_export_success, state.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
             Assert.assertNull(state.error)
         }
 
     @Test
-    fun exportJson_failureSetsError() =
+    fun exportBackup_repositoryFailureSetsError() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -113,16 +117,16 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            val rawJson = viewModel.exportJson()
+            viewModel.exportBackup { Result.success(Unit) }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertNull(rawJson)
             Assert.assertEquals(R.string.error_export_failed, state.error?.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
         }
 
     @Test
-    fun exportJson_cancellationClearsBusyState() =
+    fun exportBackup_cancellationClearsBusyState() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -134,12 +138,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            try {
-                viewModel.exportJson()
-                Assert.fail("Expected exportJson to throw CancellationException")
-            } catch (_: kotlinx.coroutines.CancellationException) {
-                // Expected.
-            }
+            viewModel.exportBackup { Result.success(Unit) }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertFalse(state.isProcessingTransfer)
@@ -147,7 +147,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun importJson_successSetsSuccessMessage() =
+    fun importBackup_successSetsSuccessMessage() =
         runTest {
             val repository = FakeImportExportRepository()
             val viewModel =
@@ -157,7 +157,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importJson("""{"schemaVersion":1}""")
+            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals("""{"schemaVersion":1}""", repository.importedJson)
@@ -167,7 +168,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun importJson_unsupportedVersionMapsToSpecificError() =
+    fun importBackup_unsupportedVersionMapsToSpecificError() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -179,7 +180,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importJson("""{"schemaVersion":99}""")
+            viewModel.importBackup { Result.success("""{"schemaVersion":99}""") }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_import_unsupported_version, state.error?.messageResId)
@@ -187,7 +189,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun importJson_invalidJsonMapsToSpecificError() =
+    fun importBackup_invalidJsonMapsToSpecificError() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -199,7 +201,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importJson("{not-json")
+            viewModel.importBackup { Result.success("{not-json") }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_import_invalid_json, state.error?.messageResId)
@@ -207,7 +210,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun importJson_invalidPayloadMapsToSpecificError() =
+    fun importBackup_invalidPayloadMapsToSpecificError() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -219,7 +222,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importJson("""{"schemaVersion":1}""")
+            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_import_invalid_payload, state.error?.messageResId)
@@ -227,7 +231,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun importJson_cancellationClearsBusyState() =
+    fun importBackup_cancellationClearsBusyState() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -239,12 +243,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            try {
-                viewModel.importJson("""{"schemaVersion":1}""")
-                Assert.fail("Expected importJson to throw CancellationException")
-            } catch (_: kotlinx.coroutines.CancellationException) {
-                // Expected.
-            }
+            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertFalse(state.isProcessingTransfer)
@@ -252,7 +252,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun onImportFailed_setsGenericReadError() =
+    fun importBackup_readFailureSetsGenericError() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -261,7 +261,8 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.onImportFailed(IllegalStateException("read failed"))
+            viewModel.importBackup { Result.failure(IllegalStateException("read failed")) }
+            advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_import_failed, state.error?.messageResId)
@@ -280,8 +281,8 @@ class SettingsViewModelTest {
                         ),
                 )
             advanceUntilIdle()
-            viewModel.exportJson()
-            viewModel.completeExport(Result.success(Unit))
+            viewModel.exportBackup { Result.success(Unit) }
+            advanceUntilIdle()
 
             viewModel.clearMessage()
 

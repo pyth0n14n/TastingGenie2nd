@@ -21,10 +21,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -49,23 +45,14 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var isRouteTransferInProgress by remember { mutableStateOf(false) }
-    val isProcessingTransfer = state.isProcessingTransfer || isRouteTransferInProgress
+    val context = LocalContext.current.applicationContext
     val exportLauncher =
         rememberLauncherForActivityResult(CreateDocument("application/json")) { uri ->
             if (uri == null) {
                 return@rememberLauncherForActivityResult
             }
-            isRouteTransferInProgress = true
-            scope.launch {
-                try {
-                    val rawJson = viewModel.exportJson() ?: return@launch
-                    runRouteTransferCatching { writeBackupJson(context, uri, rawJson) }.also(viewModel::completeExport)
-                } finally {
-                    isRouteTransferInProgress = false
-                }
+            viewModel.exportBackup { rawJson ->
+                runRouteTransferCatching { writeBackupJson(context, uri, rawJson) }
             }
         }
     val importLauncher =
@@ -73,29 +60,19 @@ fun SettingsRoute(
             if (uri == null) {
                 return@rememberLauncherForActivityResult
             }
-            isRouteTransferInProgress = true
-            scope.launch {
-                try {
-                    val rawJson =
-                        runRouteTransferCatching { readBackupJson(context, uri) }.getOrElse { throwable ->
-                            viewModel.onImportFailed(throwable)
-                            return@launch
-                        }
-                    viewModel.importJson(rawJson)
-                } finally {
-                    isRouteTransferInProgress = false
-                }
+            viewModel.importBackup {
+                runRouteTransferCatching { readBackupJson(context, uri) }
             }
         }
     SettingsScreen(
-        state = state.copy(isProcessingTransfer = isProcessingTransfer),
+        state = state,
         onBack = onBack,
         actions =
             SettingsScreenActions(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleImagePreview = viewModel::toggleImagePreview,
-                onExportJson = { if (!isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
-                onImportJson = { if (!isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
+                onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
+                onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
                 onDismissMessage = viewModel::clearMessage,
             ),
     )
