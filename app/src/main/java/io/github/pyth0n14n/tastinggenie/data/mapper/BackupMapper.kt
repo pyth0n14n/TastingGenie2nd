@@ -36,9 +36,8 @@ fun SakeEntity.toSerializable(): SerializableSake =
         water = water,
     )
 
-fun SerializableSake.toEntity(): SakeEntity =
+fun SerializableSake.toImportedEntity(): SakeEntity =
     SakeEntity(
-        id = id,
         name = name,
         grade = enumValueOf<SakeGrade>(grade),
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
@@ -81,12 +80,12 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         dish = dish,
         comment = comment,
         review = review?.name,
-        imageUri = imageUri,
+        // SAF content URIs are not portable across installs or devices, so backups omit them.
+        imageUri = null,
     )
 
-fun SerializableReview.toEntity(): ReviewEntity =
+fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
     ReviewEntity(
-        id = id,
         sakeId = sakeId,
         dateEpochDay = LocalDate.parse(date).toEpochDay(),
         bar = bar,
@@ -108,5 +107,5 @@ fun SerializableReview.toEntity(): ReviewEntity =
         dish = dish,
         comment = comment,
         review = review?.let { value -> enumValueOf<OverallReview>(value) },
-        imageUri = imageUri,
+        imageUri = null,
     )

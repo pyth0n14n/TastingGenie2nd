@@ -2,7 +2,7 @@ package io.github.pyth0n14n.tastinggenie.data.repository
 
 import androidx.room.withTransaction
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
-import io.github.pyth0n14n.tastinggenie.data.mapper.toEntity
+import io.github.pyth0n14n.tastinggenie.data.mapper.toImportedEntity
 import io.github.pyth0n14n.tastinggenie.data.mapper.toSerializable
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
 import io.github.pyth0n14n.tastinggenie.domain.model.BackupPayload
@@ -51,21 +51,27 @@ class ImportExportRepositoryImpl
                     validateSchemaVersion(payload.schemaVersion)
                     database.withTransaction {
                         validateReviewReferences(payload)
-                        database.sakeDao().insertAll(payload.sakes.map { sake -> sake.toEntity() })
-                        database.reviewDao().insertAll(payload.reviews.map { review -> review.toEntity() })
+                        val importedSakeIds =
+                            payload.sakes.associate { sake ->
+                                sake.id to database.sakeDao().insert(sake.toImportedEntity())
+                            }
+                        payload.reviews.forEach { review ->
+                            val importedSakeId =
+                                checkNotNull(importedSakeIds[review.sakeId]) {
+                                    "Review references unknown backup sakeId: ${review.sakeId}"
+                                }
+                            database.reviewDao().insert(review.toImportedEntity(sakeId = importedSakeId))
+                        }
                     }
                 }
             }
 
         private suspend fun validateReviewReferences(payload: BackupPayload) {
-            val payloadSakeIds = payload.sakes.map { sake -> sake.id }.toSet()
-            val existingSakeIds =
-                database
-                    .sakeDao()
-                    .getAllOnce()
-                    .map { sake -> sake.id }
-                    .toSet()
-            val allowedSakeIds = payloadSakeIds + existingSakeIds
+            val payloadSakeIds = payload.sakes.map { sake -> sake.id }
+            require(payloadSakeIds.size == payloadSakeIds.toSet().size) {
+                "Backup contains duplicate sake ids"
+            }
+            val allowedSakeIds = payloadSakeIds.toSet()
             payload.reviews.firstOrNull { review -> review.sakeId !in allowedSakeIds }?.let { invalidReview ->
                 throw InvalidBackupReferenceException(sakeId = invalidReview.sakeId)
             }

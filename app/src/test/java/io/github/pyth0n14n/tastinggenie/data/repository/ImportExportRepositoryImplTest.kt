@@ -74,11 +74,11 @@ class ImportExportRepositoryImplTest {
             assertEquals(1, payload.sakes.size)
             assertEquals("テスト酒", payload.sakes.single().name)
             assertEquals(1, payload.reviews.size)
-            assertEquals("content://review/image/1", payload.reviews.single().imageUri)
+            assertEquals(null, payload.reviews.single().imageUri)
         }
 
     @Test
-    fun importJson_roundTripUpsertsPayload() =
+    fun importJson_roundTripCreatesFreshLocalIdsAndDropsImageUri() =
         runTest {
             val repository = createRepository()
             val payload =
@@ -94,8 +94,11 @@ class ImportExportRepositoryImplTest {
             val storedReview = database.reviewDao().getAllOnce().single()
             assertEquals("テスト酒", storedSake.name)
             assertEquals(SakeGrade.JUNMAI, storedSake.grade)
+            assertTrue(storedSake.id != sampleSerializableSake().id)
+            assertEquals(storedSake.id, storedReview.sakeId)
+            assertTrue(storedReview.id != sampleSerializableReview().id)
             assertEquals(LocalDate.parse("2026-03-17").toEpochDay(), storedReview.dateEpochDay)
-            assertEquals("content://review/image/1", storedReview.imageUri)
+            assertEquals(null, storedReview.imageUri)
         }
 
     @Test
@@ -144,6 +147,54 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importJson_existingLocalIdsDoNotOverwriteUnrelatedRows() =
+        runTest {
+            val repository = createRepository()
+            database.sakeDao().insert(sampleSakeEntity())
+            database.reviewDao().insert(sampleReviewEntity())
+
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake().copy(name = "バックアップ酒")),
+                    reviews = listOf(sampleSerializableReview().copy(comment = "imported")),
+                )
+
+            repository.importJson(json.encodeToString(payload)).getOrThrow()
+
+            val storedSakes = database.sakeDao().getAllOnce()
+            val storedReviews = database.reviewDao().getAllOnce()
+            assertEquals(2, storedSakes.size)
+            assertEquals(2, storedReviews.size)
+            assertTrue(storedSakes.any { sake -> sake.id == sampleSakeEntity().id && sake.name == "テスト酒" })
+            assertTrue(storedSakes.any { sake -> sake.id != sampleSerializableSake().id && sake.name == "バックアップ酒" })
+            assertTrue(storedReviews.any { review -> review.id == sampleReviewEntity().id && review.comment == null })
+            assertTrue(
+                storedReviews.any { review ->
+                    review.id != sampleSerializableReview().id && review.comment == "imported"
+                },
+            )
+        }
+
+    @Test
+    fun importJson_existingLocalSakeIdDoesNotSatisfyBackupReference() =
+        runTest {
+            val repository = createRepository()
+            database.sakeDao().insert(sampleSakeEntity())
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = emptyList(),
+                    reviews = listOf(sampleSerializableReview()),
+                )
+
+            val result = repository.importJson(json.encodeToString(payload))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is InvalidBackupReferenceException)
+        }
+
+    @Test
     fun exportJson_cancellationPropagates() =
         runTest {
             val repository = createRepository(ioDispatcher = CancellationDispatcher())
@@ -180,7 +231,7 @@ class ImportExportRepositoryImplTest {
 
     private fun sampleSerializableSake(): SerializableSake =
         SerializableSake(
-            id = 1L,
+            id = 101L,
             name = "テスト酒",
             grade = SakeGrade.JUNMAI.name,
             type = emptyList(),
@@ -189,8 +240,8 @@ class ImportExportRepositoryImplTest {
 
     private fun sampleSerializableReview(): SerializableReview =
         SerializableReview(
-            id = 2L,
-            sakeId = 1L,
+            id = 202L,
+            sakeId = 101L,
             date = "2026-03-17",
             temperature = Temperature.JOON.name,
             color = SakeColor.CLEAR.name,
@@ -226,8 +277,8 @@ class ImportExportRepositoryImplTest {
 
     private fun sampleReviewEntity(): ReviewEntity =
         ReviewEntity(
-            id = 2L,
-            sakeId = 1L,
+            id = 202L,
+            sakeId = 101L,
             dateEpochDay = LocalDate.parse("2026-03-17").toEpochDay(),
             bar = null,
             price = null,
