@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -45,6 +46,9 @@ fun SettingsRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current.applicationContext
+    LaunchedEffect(viewModel) {
+        viewModel.clearTransferFeedback()
+    }
     val exportLauncher =
         rememberLauncherForActivityResult(CreateDocument("application/json")) { uri ->
             if (uri == null) {
@@ -72,7 +76,7 @@ fun SettingsRoute(
                 onToggleImagePreview = viewModel::toggleImagePreview,
                 onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
                 onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
-                onDismissMessage = viewModel::clearMessage,
+                onDismissMessage = viewModel::clearTransferFeedback,
             ),
     )
 }

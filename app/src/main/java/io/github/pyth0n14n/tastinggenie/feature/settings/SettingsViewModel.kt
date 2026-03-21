@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.settings
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -100,8 +101,17 @@ class SettingsViewModel
             }
         }
 
-        fun clearMessage() {
-            _uiState.update { it.copy(messageResId = null) }
+        fun clearTransferFeedback() {
+            _uiState.update { current ->
+                if (current.isProcessingTransfer) {
+                    current
+                } else {
+                    current.copy(
+                        messageResId = null,
+                        error = current.error?.takeUnless { error -> error.messageResId.isTransferFeedbackMessage() },
+                    )
+                }
+            }
         }
 
         private fun clearTransferInProgress() {
@@ -202,3 +212,11 @@ private fun mapImportError(throwable: Throwable): UiError {
         }
     return UiError(messageResId = messageResId, causeKey = throwable.message)
 }
+
+@StringRes
+private fun Int.isTransferFeedbackMessage(): Boolean =
+    this == R.string.error_export_failed ||
+        this == R.string.error_import_failed ||
+        this == R.string.error_import_invalid_json ||
+        this == R.string.error_import_unsupported_version ||
+        this == R.string.error_import_invalid_payload

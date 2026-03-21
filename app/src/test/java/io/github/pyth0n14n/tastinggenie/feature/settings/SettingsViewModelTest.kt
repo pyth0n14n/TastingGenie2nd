@@ -270,7 +270,7 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun clearMessage_removesSuccessFeedback() =
+    fun clearTransferFeedback_removesSuccessFeedback() =
         runTest {
             val viewModel =
                 SettingsViewModel(
@@ -284,9 +284,49 @@ class SettingsViewModelTest {
             viewModel.exportBackup { Result.success(Unit) }
             advanceUntilIdle()
 
-            viewModel.clearMessage()
+            viewModel.clearTransferFeedback()
 
             Assert.assertNull(viewModel.uiState.value.messageResId)
+        }
+
+    @Test
+    fun clearTransferFeedback_removesTransferErrorAndMessage() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            exportFailure = IllegalStateException("export failed"),
+                        ),
+                )
+            advanceUntilIdle()
+            viewModel.exportBackup { Result.success(Unit) }
+            advanceUntilIdle()
+
+            viewModel.clearTransferFeedback()
+
+            val state = viewModel.uiState.value
+            Assert.assertNull(state.messageResId)
+            Assert.assertNull(state.error)
+        }
+
+    @Test
+    fun clearTransferFeedback_preservesNonTransferError() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FailingUpdateSettingsRepository(),
+                    importExportRepository = FakeImportExportRepository(),
+                )
+            advanceUntilIdle()
+            viewModel.toggleHelpHints(enabled = false)
+            advanceUntilIdle()
+
+            viewModel.clearTransferFeedback()
+
+            val state = viewModel.uiState.value
+            Assert.assertEquals(R.string.error_save_settings, state.error?.messageResId)
         }
 }
 
