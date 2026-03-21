@@ -28,6 +28,8 @@ class SettingsViewModel
         private val importExportRepository: ImportExportRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
+        private var isSettingsVisible = false
+        private var hasUnseenTransferFeedback = false
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
         init {
@@ -43,6 +45,7 @@ class SettingsViewModel
         }
 
         fun exportBackup(writeJson: suspend (String) -> Result<Unit>) {
+            hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
@@ -56,6 +59,7 @@ class SettingsViewModel
                                     error = null,
                                 )
                             }
+                            hasUnseenTransferFeedback = !isSettingsVisible
                         }.onFailure { throwable ->
                             _uiState.update {
                                 it.copy(
@@ -67,15 +71,17 @@ class SettingsViewModel
                                         ),
                                 )
                             }
+                            hasUnseenTransferFeedback = !isSettingsVisible
                         }
                 } catch (throwable: CancellationException) {
-                    clearTransferInProgress()
+                    _uiState.update { it.copy(isProcessingTransfer = false) }
                     throw throwable
                 }
             }
         }
 
         fun importBackup(readJson: suspend () -> Result<String>) {
+            hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
@@ -91,17 +97,19 @@ class SettingsViewModel
                                         ),
                                 )
                             }
+                            hasUnseenTransferFeedback = !isSettingsVisible
                             return@launch
                         }
                     importJsonPayload(rawJson)
                 } catch (throwable: CancellationException) {
-                    clearTransferInProgress()
+                    _uiState.update { it.copy(isProcessingTransfer = false) }
                     throw throwable
                 }
             }
         }
 
         fun clearTransferFeedback() {
+            hasUnseenTransferFeedback = false
             _uiState.update { current ->
                 if (current.isProcessingTransfer) {
                     current
@@ -114,8 +122,18 @@ class SettingsViewModel
             }
         }
 
-        private fun clearTransferInProgress() {
-            _uiState.update { it.copy(isProcessingTransfer = false) }
+        fun setSettingsVisible(visible: Boolean) {
+            isSettingsVisible = visible
+            if (!visible || uiState.value.isProcessingTransfer) {
+                return
+            }
+            if (uiState.value.hasTransferFeedback()) {
+                if (hasUnseenTransferFeedback) {
+                    hasUnseenTransferFeedback = false
+                } else {
+                    clearTransferFeedback()
+                }
+            }
         }
 
         private suspend fun exportJsonPayload(): String? =
@@ -132,6 +150,7 @@ class SettingsViewModel
                                 ),
                         )
                     }
+                    hasUnseenTransferFeedback = !isSettingsVisible
                 }.getOrNull()
 
         private suspend fun importJsonPayload(rawJson: String) {
@@ -145,6 +164,7 @@ class SettingsViewModel
                             error = null,
                         )
                     }
+                    hasUnseenTransferFeedback = !isSettingsVisible
                 }.onFailure { throwable ->
                     _uiState.update {
                         it.copy(
@@ -152,6 +172,7 @@ class SettingsViewModel
                             error = mapImportError(throwable),
                         )
                     }
+                    hasUnseenTransferFeedback = !isSettingsVisible
                 }
         }
 
@@ -212,6 +233,9 @@ private fun mapImportError(throwable: Throwable): UiError {
         }
     return UiError(messageResId = messageResId, causeKey = throwable.message)
 }
+
+private fun SettingsUiState.hasTransferFeedback(): Boolean =
+    messageResId != null || error?.messageResId?.isTransferFeedbackMessage() == true
 
 @StringRes
 private fun Int.isTransferFeedbackMessage(): Boolean =

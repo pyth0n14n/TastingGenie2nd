@@ -20,7 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +31,6 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.nio.charset.StandardCharsets
 
@@ -46,8 +45,11 @@ fun SettingsRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current.applicationContext
-    LaunchedEffect(viewModel) {
-        viewModel.clearTransferFeedback()
+    DisposableEffect(viewModel) {
+        viewModel.setSettingsVisible(visible = true)
+        onDispose {
+            viewModel.setSettingsVisible(visible = false)
+        }
     }
     val exportLauncher =
         rememberLauncherForActivityResult(CreateDocument("application/json")) { uri ->

@@ -328,6 +328,65 @@ class SettingsViewModelTest {
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_save_settings, state.error?.messageResId)
         }
+
+    @Test
+    fun setSettingsVisible_reopenClearsTransferFeedbackSeenOnScreen() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            exportJson = """{"schemaVersion":1}""",
+                        ),
+                )
+            advanceUntilIdle()
+            viewModel.setSettingsVisible(visible = true)
+
+            viewModel.exportBackup { Result.success(Unit) }
+            advanceUntilIdle()
+            Assert.assertEquals(R.string.message_export_success, viewModel.uiState.value.messageResId)
+
+            viewModel.setSettingsVisible(visible = false)
+            viewModel.setSettingsVisible(visible = true)
+
+            val state = viewModel.uiState.value
+            Assert.assertNull(state.messageResId)
+            Assert.assertNull(state.error)
+        }
+
+    @Test
+    fun setSettingsVisible_reopenKeepsTransferFeedbackCompletedOffScreenUntilSeen() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            importFailure = InvalidBackupReferenceException(sakeId = 1L),
+                        ),
+                )
+            advanceUntilIdle()
+            viewModel.setSettingsVisible(visible = false)
+
+            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            advanceUntilIdle()
+            val initialState = viewModel.uiState.value
+            val initialError = initialState.error?.messageResId
+            Assert.assertEquals(R.string.error_import_invalid_payload, initialError)
+
+            viewModel.setSettingsVisible(visible = true)
+            val reopenedState = viewModel.uiState.value
+            val reopenedError = reopenedState.error?.messageResId
+            Assert.assertEquals(R.string.error_import_invalid_payload, reopenedError)
+
+            viewModel.setSettingsVisible(visible = false)
+            viewModel.setSettingsVisible(visible = true)
+
+            val state = viewModel.uiState.value
+            Assert.assertNull(state.messageResId)
+            Assert.assertNull(state.error)
+        }
 }
 
 private class FakeSettingsRepository : SettingsRepository {
