@@ -9,6 +9,8 @@ This project follows a specification-first workflow.
 - All functional behavior must follow `docs/spec/`.
 - If implementation differs from spec, update the spec in the same PR.
 - Do not invent features not described in spec.
+- If code review points out issues, update relevant docs (e.g., `docs/spec/`, `docs/style/`) to prevent similar issues in the future.
+- For QA guidelines and preventing regressions: See `docs/spec/qa.md`.
 
 ---
 
@@ -17,8 +19,8 @@ This project follows a specification-first workflow.
 All checks required by CI must pass before merging.
 
 - Local development: use `./gradlew localFix` for pre-commit verification and autofix.
-- CI / pull request gate: `./gradlew ciCheck`
-- Do not default to running `./gradlew ciCheck` locally unless you specifically need to reproduce a CI-only failure.
+- CI / pull request gate: `./gradlew ciCheck`.
+- Include expected scope of tests in PR description (unit/test/androidTest status, and any currently skipped tests).
 
 See:
 - `.github/workflows/`
@@ -32,7 +34,11 @@ See:
 - Prefer squash merge.
 - 1 PR = 1 responsibility.
 - Commit in small logical units. Do not accumulate large batches of unrelated or weakly-related changes before committing.
+  - Target: <= 20 files / 800 lines per PR when feasible.
+  - Each commit: target <= 10 files / 300 lines.
+  - 1 logical change per commit (implementation, tests, docs should be separate when possible).
 - No unrelated refactoring or formatting-only changes.
+- Avoid “giant PR syndrome”: if a PR would touch >40 files or appears to encompass multiple features, split into multiple PRs.
 
 Each PR must include:
 - Purpose

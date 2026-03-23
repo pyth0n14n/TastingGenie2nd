@@ -39,3 +39,12 @@ Androidアプリとして再構成したものである。
 - 嗜好分析・推薦
 - 検索UI強化
 - 利き酒モード
+
+---
+
+## 4. QA Guidelines
+
+For quality assurance and preventing regressions from past reviews:
+- **Daily Development**: See [Quick Checklist](qa.md#quick-checklist-for-daily-use) in `qa.md`.
+- **Reviews/Issues**: Refer to [Detailed Guidelines](qa.md#detailed-guidelines) in `qa.md`.
+- **Operational Guidance**: Check [qa.md](qa.md#operational-guidance) for context separation.
