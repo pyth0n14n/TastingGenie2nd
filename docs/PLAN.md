@@ -1,162 +1,97 @@
-# TastingGenie 開発開始プラン（仕様準拠・実装着手用）
+# PLAN.md 更新案: 次開発フェーズ実行計画
 
 ## Summary
-- 開発は **仕様補完 → 基盤実装 → 縦切りMVP（S0〜S4）→ v1残機能（S5/S6/S7 + JSON入出力）** の順で進める。
-- 既決定事項を前提に固定する。
-- 既決定事項:
-  - 第1マイルストーン: `S0〜S4` の縦切りMVP
-  - 第2マイルストーン: インポート/エクスポート（`JSONのみ`）
-  - 未定義Enum: `5段階`
-  - DI: `Hilt`
-  - 削除機能: 第1マイルストーンでは含めない
-  - マスタデータ: `JSON assets` 読み込み
-  - 画像: `Reviewに1枚`
+- 現在の blocker は `Gradle` ではなく `AGP 8.7.3 + compileSdk 36` の組み合わせ。`./gradlew ciCheck` は通るが、`compileSdk 36` 未検証警告が出るため、最初の PR はツールチェーン調整スパイクにする。
+- 以降は大きな横断 PR を避け、**1 PR = 1機能責務**で進める。各 PR で `docs/spec` と `docs/spec/qa.md` を同時更新する。`PLAN.md` の旧前提「削除なし / 画像は Review / JSON のみ」は破棄する。
+- 画像は **1酒1画像**、入力は **SakeEdit から**、保存は **アプリ専用領域**、バックアップは **ZIP（manifest JSON + 画像ファイル）** をデフォルトとする。
 
-## Public API / Interface / Type 変更（先に固定）
-- Domain types（新規）
-  - `SakeId`, `ReviewId`（typealias Long）
-  - `Sake`, `Review` ドメインモデル
-  - `UiError`（メッセージID + optional cause key）
-- Enum（specへ明記して実装）
-  - `IntensityLevel`: `VERY_WEAK, WEAK, MEDIUM, STRONG, VERY_STRONG`
-  - `TasteLevel`: `VERY_WEAK, WEAK, MEDIUM, STRONG, VERY_STRONG`
-  - `OverallReview`: `VERY_BAD, BAD, NEUTRAL, GOOD, VERY_GOOD`
-  - `Prefecture`: 47都道府県固定Enum（JIS順）
-- Repository interfaces（新規）
-  - `SakeRepository`
-    - `observeSakes(): Flow<List<Sake>>`
-    - `getSake(id: SakeId): Sake?`
-    - `upsertSake(input: SakeInput): SakeId`
-  - `ReviewRepository`
-    - `observeReviews(sakeId: SakeId): Flow<List<Review>>`
-    - `getReview(id: ReviewId): Review?`
-    - `upsertReview(input: ReviewInput): ReviewId`
-  - `MasterDataRepository`
-    - `getMasterData(): MasterDataBundle`（assets JSONをメモリキャッシュ）
-- Room schema（初版）
-  - `sakes` テーブル
-  - `reviews` テーブル（`sakeId` FK, `imageUri TEXT NULL`）
-  - List/Enum は `TypeConverter` で保存（JSON string）
-- Navigation routes（新規）
-  - `sake/list` (S0)
-  - `sake/edit/{sakeId?}` (S1)
-  - `review/list/{sakeId}` (S2)
-  - `review/edit/{sakeId}/{reviewId?}` (S3)
-  - `review/detail/{reviewId}` (S4)
-  - M2で追加: `review/image/{reviewId}` (S5), `help` (S6), `settings` (S7)
+## Public API / Interface / Type 変更
+- `Sake` / `SakeInput` に `imageUri: String?` を追加し、画像の正規保存先を酒に移す。
+- `Review` / `ReviewInput` から `imageUri` を削除する。
+- `ReviewEntity` から `imageUri` カラムを削除し、Room migration で整理する。
+- `SakeRepository` に `deleteSake(id)`、`ReviewRepository` に `deleteReview(id)` を追加する。
+- Backup I/O は `.json` 単体から `.zip` に変更し、ZIP 内に `backup.json` と `images/...` を持つ構成へ変更する。
+- `prefecture` は地方 -> 都道府県の階層選択 UI を前提化し、`classification` は `OTHER` 時に自由記述欄を必須表示にする。
+- `viscosity` は値域は現行どおり `1..3` を維持し、表示ラベルだけ `弱い / 中程度 / 強い` に変更する。
 
-## 実行計画（PR単位, 1PR=1責務）
+## PR Plan
+1. **PR-1: Toolchain compatibility spike**
+   - AGP / Kotlin / KSP の更新を 1 回試行し、Android Studio 推奨警告の解消を目指す。
+   - 成功時は更新を採用。失敗時は依存ブロッカーを記録し、警告抑止または compileSdk 方針を docs に固定して終了する。
+   - 完了条件: Android Studio sync と `./gradlew ciCheck` が通る。
 
-### PR-1: Spec補完（docsのみ）
-- 目的: 実装判断をゼロにする。
-- 変更:
-  - `docs/spec/data_model.md` に未定義Enumの定義追記。
-  - `docs/spec/master/` に不足マスタ追加:
-    - `prefecture.md`
-    - `intensity.md`
-    - `taste_scale.md`
-    - `overall_review.md`
-    - `import_export.md`（M2でJSON、version付き）
-    - `image.md`（Review 1枚）
-- 完了条件:
-  - docs内で未定義項目がなく、実装者が追加判断なしで着手可能。
+2. **PR-2: 共通入力コンポーネント刷新**
+   - 既存 `SimpleDropdown` を見直し、ポップアップのアンカーずれを解消する。
+   - 日付 picker、段階選択、階層選択、確認ダイアログの共通 UI 土台を追加する。
+   - 完了条件: 左端にずれるポップアップがなくなり、後続 PR がこの基盤だけで実装できる。
 
-### PR-2: アーキテクチャ基盤（Hilt + Room + MasterData）
-- 目的: 以降の画面実装で共通利用する土台を先に固定。
-- 変更:
-  - 依存追加（Hilt, Room, Navigation Compose, kotlinx-serialization）
-  - `Application` + Hilt module
-  - `AppDatabase`, DAO, Entity, Converter
-  - `RepositoryImpl`（DB + assets読み込み）
-  - `assets/master/*.json` 作成（既存master仕様分）
-- 完了条件:
-  - unit testで DB CRUD と converter が通る。
-  - `./gradlew ciCheck` 通過。
+3. **PR-3: 酒フォーム拡張 前半**
+   - `classification` 複数選択 + `OTHER` 自由記述、`maker`、`prefecture` 階層選択を追加する。
+   - 種別選択 UI をタップしやすい形に置き換える。
+   - 完了条件: 既存保存・編集・再表示で上記項目が往復する。
 
-### PR-3: 縦切りMVP 前半（S0/S1 酒管理）
-- 目的: 酒の登録と一覧の最短価値を提供。
-- 変更:
-  - `S0` 酒一覧（空/読込/エラー状態）
-  - `S1` 酒登録/編集（必須: name, grade）
-  - `SakeListViewModel`, `SakeEditViewModel`（StateFlow）
-- 完了条件:
-  - 酒の新規登録・編集・一覧反映・再起動後保持が成立。
-  - UI文字列は `stringResource` 経由のみ。
+4. **PR-4: 酒フォーム拡張 後半**
+   - `sakeDegree`、`acidity`、`kojiMai`/`kojiPolish`、`kakeMai`/`kakePolish`、`alcohol`、`yeast`、`water` を追加する。
+   - 既存 `amino` は削除せず現状維持とし、今回の要求対象外に置く。
+   - 完了条件: SakeEdit が現行ドメイン項目をほぼ UI から編集可能になる。
 
-### PR-4: 縦切りMVP 後半（S2/S3/S4 レビュー管理）
-- 目的: 同一銘柄への複数レビュー記録を完成。
-- 変更:
-  - `S2` レビュー一覧
-  - `S3` レビュー登録/編集（必須: date）
-  - `S4` レビュー詳細
-  - 味覚/香り/温度/色などマスタ選択UI
-- 完了条件:
-  - 1銘柄に複数レビュー保存可能。
-  - 作成/編集/詳細/一覧の往復で整合性維持。
-  - 削除機能は未実装（仕様通りM1スコープ外）。
+5. **PR-5: 酒画像保存基盤**
+   - `Sake.imageUri` 追加、`Review.imageUri` 削除、Room migration、アプリ専用領域への画像コピー、差し替え時の旧画像削除を実装する。
+   - 入力は Photo Picker、表示は URI ベースのまま扱う。
+   - 完了条件: 画像が再起動後も表示され、権限切れで壊れない。
 
-### PR-5: v1機能追加（S5 + S6 + S7）
-- 目的: v1に含む残画面を実装。
-- 変更:
-  - `S5` 単一画像ビューア（Review.imageUri表示）
-  - `S6` ヘルプ（用語表示）
-  - `S7` 設定（表示・画像設定の最小要件）
-- 完了条件:
-  - 画像URI表示と画面遷移が動作。
-  - 設定値は DataStore で保持。
+6. **PR-6: 酒画像 UI**
+   - SakeEdit に画像登録・差し替え・削除 UI を追加する。
+   - 削除は即時ではなく確認導線を入れる。
+   - 完了条件: 酒編集画面だけで画像の追加/削除が完結する。
 
-### PR-6: JSONインポート/エクスポート（M2）
-- 目的: データ持ち運び対応。
-- 変更:
-  - JSON schema version (`schemaVersion`) 定義
-  - export: `sakes + reviews` を1ファイル出力
-  - import: バリデーション後 upsert
-  - 失敗は UI state で明示（例外握り潰し禁止）
-- 完了条件:
-  - export→importでデータ再現。
-  - version不一致/破損JSONでユーザーに明示エラー。
+7. **PR-7: Backup ZIP 対応**
+   - Settings の import/export を ZIP ベースに変更し、`backup.json + images/` の round-trip を実装する。
+   - 画像は ZIP 内相対パスで管理する。
+   - 完了条件: 酒 + レビュー + 酒画像の export/import round-trip が成立する。
 
-## テストケースとシナリオ
+8. **PR-8: レビュー削除 UI**
+   - ReviewList にゴミ箱導線と確認ダイアログを追加する。
+   - 削除後の一覧再読込とエラー表示を整える。
+   - 完了条件: 1レビュー削除が安全に完了し、誤タップで消えない。
 
-### 必須テスト
-- Unit
-  - Repository: `upsertSake`, `upsertReview`, `observe*` の整合
-  - Converter: Enum/List/LocalDate(またはepochDay) の往復
-  - MasterDataRepository: assets JSON parse・必須キー欠損時エラー
-- ViewModel
-  - 初期読込、成功、入力エラー、保存失敗で `UiState` 遷移が正しい
-- UI（Compose test）
-  - S0→S1→S0 登録反映
-  - S0→S2→S3→S2 レビュー反映
-  - S2→S4 詳細表示
+9. **PR-9: 酒削除 UI**
+   - SakeList にゴミ箱導線と確認ダイアログを追加する。
+   - 酒削除時は紐づくレビューと酒画像を一括削除し、確認文に件数を出す。
+   - 完了条件: cascade delete が整合性を壊さず完了する。
 
-### 推奨テスト
-- Integration
-  - `AppDatabase` + DAOのCRUD
-  - `RepositoryImpl` のファイル/DB結合
-- E2E（手動受け入れ）
-  - 同一銘柄へ複数レビュー登録
-  - アプリ再起動後の保持
-  - M2: JSON export/import round-trip
+10. **PR-10: レビュー入力 UI 改修 前半**
+    - 日付を DatePicker 化し、`YYYY-MM-DD` は UI が自動生成する。
+    - 温度・色など残存 dropdown の配置問題を共通基盤へ寄せて解消する。
+    - 完了条件: 手入力日付が不要になり、誤入力と左寄りポップアップが消える。
 
-### テストガードレール
-- CIで `ciCheck` が通っても、androidTest（emulator/device）での起動と基本操作が通ることを最優先で確認する。
-- `androidTest` を書く際は、以下を最低ラインとする：
-  1. アプリ起動
-  2. S0のロード状態 → データ表示
-  3. S1新規作成 → 戻る
-  4. S2レビュー作成・表示
-- リグレッションカテゴリは明示し、 `docs/spec` に対応箇所を紐付ける。
+11. **PR-11: レビュー入力 UI 改修 後半**
+    - `viscosity`、香味強度、甘味などの段階値を dropdown から段階選択 UI に変更する。
+    - 総合評価を星 UI + 意味ラベル表示へ変更する。
+    - 完了条件: レビューの主要評価値がタップしやすい連続選択 UI になる。
 
-## Codex Review 指摘のテスト仕様化
-- これまでに指摘された Codex レビューをテスト仕様に落とし込み、同じ指摘を今後避ける。
-- 新たな指摘を受けない工夫: コードレビューで指摘を受けた場合、関連 docs (e.g., `docs/spec/`, `docs/style/`) を修正してドキュメントを改善する。
-- 指摘が出た場合、原因と対応を `docs/spec/qa.md` に蓄積する（将来的には `docs/spec/qa.md` に移行）。
+12. **PR-12: 香り UI 再構築**
+    - `docs/spec/master/aroma.md` を v1 準拠に更新し、カテゴリ -> 値の段階展開 UI に置き換える。
+    - 上立ち香 / 基調香 / 含み香で同じ階層 UI を再利用する。
+    - 完了条件: `フローラル -> 桜` のような二段階選択ができる。
+
+13. **PR-13: 画面遷移ちらつき修正**
+    - XML theme、window background、Compose root background、ナビゲーション遷移時の空白描画を揃える。
+    - 完了条件: 一覧/編集/設定/詳細の往復で白フラッシュが再現しない。
+
+## Test Plan
+- Toolchain: Android Studio sync、`./gradlew ciCheck`、必要なら `--warning-mode all` で deprecation 原因確認。
+- 酒フォーム: `OTHER` 選択時入力欄表示、prefecture 階層選択、数値項目保存/再編集、必須項目バリデーション。
+- 画像: pick -> 保存 -> 再起動後表示、差し替えで旧画像削除、画像削除確認、酒削除で画像も消える。
+- Backup: ZIP export/import round-trip、画像付き復元、破損 ZIP / schema 不一致 / 欠損画像で明示エラー。
+- 削除: review 単体削除、sake cascade delete、確認キャンセル、削除失敗時 UI エラー。
+- レビュー UI: DatePicker 反映、段階選択の再編集、星評価ラベル表示、香りカテゴリ展開・複数選択。
+- Migration: `Review.imageUri` 削除後に既存テスト DB / schema / mapper / import-export が整合すること。
+- Flicker: 実機または emulator で `SakeList -> SakeEdit -> ReviewList -> ReviewEdit -> Settings` を往復して白フラッシュを手動確認。
 
 ## Assumptions / Defaults
-- 第1マイルストーンで削除機能は実装しない。
-- 画像は Review に1件のみ保持（`imageUri: String?`）。
-- マスタデータは assets JSONを単一ソースとし、DBマスタテーブルは作らない。
-- import/export は第2マイルストーンで JSONのみ。
-- CIゲートは現状どおり `./gradlew ciCheck` を必須とする。
-- 仕様と実装差分が出た場合は同一PRで `docs/spec` を更新する。
+- 未 launch のため後方互換は不要とし、`Review.imageUri` は互換保持なしで削除してよい。
+- 各 PR は docs 更新込みで完結させ、巨大な先行 docs-only PR は作らない。
+- `viscosity` は 3 段階のまま維持し、意味ラベルだけ改善する。
+- 旧 JSON backup は読み捨てではなく、互換が重ければ「非対応化を明記して終了」でよい。無理な後方互換は入れない。
+- 仕様差分が出たら同一 PR で `docs/spec` と `docs/spec/qa.md` を更新する。
