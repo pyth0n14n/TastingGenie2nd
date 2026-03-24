@@ -154,6 +154,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Sake list displays localized grade labels (e.g., "純米" not "JUNMAI").
   - Review details show localized values for all enum fields.
 
+### Problem: Dropdown-style popups open away from the invoking field, making selection hard.
+- **Example**: Temperature or color menus appear near the left edge instead of the tapped field.
+- **Preventive Measure**: For form selectors, use anchored Material 3 components such as `ExposedDropdownMenuBox`; avoid detached `DropdownMenu` triggered from plain buttons.
+- **Test Coverage**:
+  - Open sake/review selector fields and verify the menu is attached to the field.
+  - Select an option and confirm the same field reflects the chosen label.
+
 ## 8. Validation and Error Handling
 
 ### Problem: Invalid input sets error but keeps stale state, allowing silent saves.
