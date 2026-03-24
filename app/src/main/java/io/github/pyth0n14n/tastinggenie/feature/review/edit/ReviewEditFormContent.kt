@@ -1,30 +1,15 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
+import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
-
-private const val AROMA_MENU_MAX_HEIGHT = 320
 
 fun LazyListScope.reviewEditFormContent(
     state: ReviewEditUiState,
@@ -82,7 +67,7 @@ private fun LazyListScope.addBasicFields(
 ) {
     item {
         Text(
-            text = "${stringResource(R.string.label_sake)}: ${state.sakeName}",
+            text = "${reviewTextResource(R.string.label_sake)}: ${state.sakeName}",
             style = MaterialTheme.typography.titleMedium,
         )
     }
@@ -94,7 +79,7 @@ private fun LazyListScope.addBasicFields(
     )
     item {
         Text(
-            text = stringResource(R.string.label_date_format_hint),
+            text = reviewTextResource(R.string.label_date_format_hint),
             style = MaterialTheme.typography.bodySmall,
         )
     }
@@ -223,7 +208,7 @@ private fun LazyListScope.textField(
 ) {
     item {
         LabeledTextField(
-            label = stringResource(labelRes),
+            label = reviewTextResource(labelRes),
             value = value,
             onValueChange = { next ->
                 onAction(ReviewEditAction.TextChanged(field = field, value = next))
@@ -242,7 +227,7 @@ private fun LazyListScope.dropdownField(
 ) {
     item {
         SimpleDropdown(
-            label = stringResource(labelRes),
+            label = reviewTextResource(labelRes),
             selectedLabel = options.firstOrNull { it.value == selectedValue }?.label.orEmpty(),
             options = options,
             onSelected = { next ->
@@ -260,71 +245,14 @@ private fun LazyListScope.aromaField(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     item {
-        AromaMultiSelectDropdown(
-            label = stringResource(labelRes),
-            categories = aromaUiData.categories,
+        GroupedMultiSelectDropdown(
+            label = reviewTextResource(labelRes),
+            groups = aromaUiData.categories.toDropdownGroups(),
             selectedValues = selectedValues,
-            labelMap = aromaUiData.labelMap,
             onToggle = { value ->
                 onAction(ReviewEditAction.AromaToggled(field = field, value = value))
             },
         )
-    }
-}
-
-@Composable
-private fun AromaMultiSelectDropdown(
-    label: String,
-    categories: List<AromaCategoryMaster>,
-    selectedValues: List<String>,
-    labelMap: Map<String, String>,
-    onToggle: (String) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Button(
-        onClick = { expanded = true },
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        val labels = selectedValues.mapNotNull { labelMap[it] }
-        val summary =
-            if (labels.isEmpty()) {
-                stringResource(R.string.label_none)
-            } else if (labels.size <= 2) {
-                labels.joinToString()
-            } else {
-                stringResource(R.string.message_review_count, labels.size)
-            }
-        Text(text = "$label: $summary")
-    }
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = Modifier.heightIn(max = AROMA_MENU_MAX_HEIGHT.dp),
-    ) {
-        categories.forEachIndexed { index, category ->
-            if (index > 0) {
-                HorizontalDivider()
-            }
-            DropdownMenuItem(
-                text = {
-                    Text(
-                        text = category.label,
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                },
-                onClick = {},
-                enabled = false,
-            )
-            category.items.forEach { item ->
-                DropdownMenuItem(
-                    text = {
-                        val prefix = if (selectedValues.contains(item.value)) "[x] " else "[ ] "
-                        Text(text = prefix + item.label)
-                    },
-                    onClick = { onToggle(item.value) },
-                )
-            }
-        }
     }
 }
 
@@ -338,7 +266,6 @@ fun List<MasterOption>.toOptions(): List<DropdownOption> =
 
 data class AromaUiData(
     val categories: List<AromaCategoryMaster>,
-    val labelMap: Map<String, String>,
 )
 
 data class SingleChoiceUiData(

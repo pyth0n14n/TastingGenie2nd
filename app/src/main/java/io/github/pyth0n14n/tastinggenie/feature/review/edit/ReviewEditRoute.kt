@@ -128,10 +128,6 @@ private fun ReviewEditBody(
                 aromaUiData =
                     AromaUiData(
                         categories = state.aromaCategories,
-                        labelMap =
-                            state.aromaCategories
-                                .flatMap { it.items }
-                                .associate { it.value to it.label },
                     ),
             )
         reviewEditFormContent(
