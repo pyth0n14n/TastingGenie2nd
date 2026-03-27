@@ -159,11 +159,17 @@ fun GroupedMultiSelectDropdown(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var expandedGroups by remember(groups) { mutableStateOf(emptySet<String>()) }
     val summary = selectedSummary(groups = groups, selectedValues = selectedValues)
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
+        onExpandedChange = {
+            expanded = !expanded
+            if (!expanded) {
+                expandedGroups = emptySet()
+            }
+        },
         modifier = modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
@@ -183,12 +189,24 @@ fun GroupedMultiSelectDropdown(
         )
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = {
+                expanded = false
+                expandedGroups = emptySet()
+            },
             modifier = Modifier.heightIn(max = GROUP_MENU_MAX_HEIGHT.dp),
         ) {
             GroupedDropdownMenuContent(
                 groups = groups,
                 selectedValues = selectedValues,
+                expandedGroups = expandedGroups,
+                onGroupToggle = { label ->
+                    expandedGroups =
+                        if (expandedGroups.contains(label)) {
+                            expandedGroups - label
+                        } else {
+                            expandedGroups + label
+                        }
+                },
                 onToggle = onToggle,
             )
         }
@@ -199,6 +217,8 @@ fun GroupedMultiSelectDropdown(
 private fun GroupedDropdownMenuContent(
     groups: List<DropdownOptionGroup>,
     selectedValues: Collection<String>,
+    expandedGroups: Set<String>,
+    onGroupToggle: (String) -> Unit,
     onToggle: (String) -> Unit,
 ) {
     groups.forEachIndexed { index, group ->
@@ -208,23 +228,45 @@ private fun GroupedDropdownMenuContent(
         DropdownMenuItem(
             text = {
                 Text(
-                    text = group.label,
+                    text =
+                        groupLabel(
+                            group = group,
+                            selectedValues = selectedValues,
+                            expanded = expandedGroups.contains(group.label),
+                        ),
                     style = MaterialTheme.typography.titleSmall,
                 )
             },
-            onClick = {},
-            enabled = false,
+            onClick = { onGroupToggle(group.label) },
         )
-        group.options.forEach { option ->
-            DropdownMenuItem(
-                text = {
-                    val prefix = if (selectedValues.contains(option.value)) "[x] " else "[ ] "
-                    Text(text = prefix + option.label)
-                },
-                onClick = { onToggle(option.value) },
-            )
+        if (expandedGroups.contains(group.label)) {
+            group.options.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        val prefix = if (selectedValues.contains(option.value)) "[x] " else "[ ] "
+                        Text(text = "  $prefix${option.label}")
+                    },
+                    onClick = { onToggle(option.value) },
+                )
+            }
         }
     }
+}
+
+private fun groupLabel(
+    group: DropdownOptionGroup,
+    selectedValues: Collection<String>,
+    expanded: Boolean,
+): String {
+    val selectedCount = group.options.count { option -> selectedValues.contains(option.value) }
+    val prefix = if (expanded) "[-]" else "[+]"
+    val countSuffix =
+        if (selectedCount == 0) {
+            ""
+        } else {
+            " ($selectedCount)"
+        }
+    return "$prefix ${group.label}$countSuffix"
 }
 
 @Composable

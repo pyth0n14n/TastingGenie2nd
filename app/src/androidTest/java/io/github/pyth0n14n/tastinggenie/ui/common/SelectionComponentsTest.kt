@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.ui.common
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
@@ -51,7 +52,7 @@ class SelectionComponentsTest {
     }
 
     @Test
-    fun groupedMultiSelectDropdown_togglesOption() {
+    fun groupedMultiSelectDropdown_expandsCategoryBeforeTogglingOption() {
         var toggledValue: String? = null
         composeRule.setContent {
             GroupedMultiSelectDropdown(
@@ -69,7 +70,11 @@ class SelectionComponentsTest {
         }
 
         composeRule.onNodeWithText("なし").performClick()
-        composeRule.onNodeWithText("[ ] りんご").performClick()
+        composeRule.runOnIdle {
+            assertEquals(0, composeRule.onAllNodesWithText("  [ ] りんご").fetchSemanticsNodes().size)
+        }
+        composeRule.onNodeWithText("[+] 果実").performClick()
+        composeRule.onNodeWithText("  [ ] りんご").performClick()
         composeRule.runOnIdle { assertEquals("APPLE", toggledValue) }
     }
 
