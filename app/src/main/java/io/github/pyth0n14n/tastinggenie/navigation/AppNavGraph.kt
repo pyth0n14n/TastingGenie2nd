@@ -1,8 +1,10 @@
 package io.github.pyth0n14n.tastinggenie.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -107,7 +109,15 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                 },
             ),
     ) {
-        ReviewEditRoute(onBack = { navController.popBackStack() })
+        ReviewEditRoute(
+            onBack = { navController.popBackStack() },
+            onSaved = {
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
+                navController.popBackStack()
+            },
+        )
     }
     composable(
         route = AppDestination.REVIEW_EDIT,
@@ -121,7 +131,15 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                 },
             ),
     ) {
-        ReviewEditRoute(onBack = { navController.popBackStack() })
+        ReviewEditRoute(
+            onBack = { navController.popBackStack() },
+            onSaved = {
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
+                navController.popBackStack()
+            },
+        )
     }
 }
 
@@ -134,11 +152,19 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
                     type = NavType.LongType
                 },
             ),
-    ) {
+    ) { backStackEntry ->
+        val refreshRequested by
+            backStackEntry.savedStateHandle
+                .getStateFlow(AppDestination.RESULT_REVIEW_REFRESH, false)
+                .collectAsStateWithLifecycle()
         ReviewDetailRoute(
             onBack = { navController.popBackStack() },
             onEditReview = { sakeId, reviewId ->
                 navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = reviewId))
+            },
+            refreshRequested = refreshRequested,
+            onRefreshConsumed = {
+                backStackEntry.savedStateHandle[AppDestination.RESULT_REVIEW_REFRESH] = false
             },
         )
     }

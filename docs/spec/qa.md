@@ -8,7 +8,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - [ ] **Navigation/Settings**: Apply settings reactively in UI; implement all spec-defined routes.
 - [ ] **Data Consistency**: Use transactions for multi-table ops; run I/O on Dispatchers.IO.
 - [ ] **UI Thread**: Never block main thread with I/O; distinguish cancellation from errors.
-- [ ] **Edit/Reload**: Reload data after mutations; lock edits on load failures.
+- [ ] **Edit/Reload**: Keep load timing and update timing aligned; reload data after mutations and lock edits on load failures.
 - [ ] **UI Display**: Map enums to localized labels; parse enums safely.
 - [ ] **Spec Feasibility**: Ensure specs use valid identifiers; test implementation constraints.
 
@@ -122,6 +122,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Cancel transfer via navigation; verify no error shown.
 
 ## 6. Edit and Reload Issues
+
+### Problem: Load timing and update timing drift apart, leaving visible state stale.
+- **Example**: A screen loads an entity on init, a child edit screen updates it, and returning shows the pre-edit snapshot until the user leaves and reopens the screen.
+- **Preventive Measure**: For every screen that displays mutable data, define how it refreshes after writes from child routes, sibling flows, or background updates. Do not rely only on an init-time fetch when the destination can remain on the back stack after data changes.
+- **Test Coverage**:
+  - Open a detail screen, mutate the same record from a child edit flow, return, and verify the visible values refresh immediately.
+  - Keep a destination on the back stack while underlying repository data changes, then resume it and verify the screen refreshes or observes the updated data.
 
 ### Problem: Detail screen shows stale data after edit.
 - **Example**: Edit review, save, back to detail; old values still shown.
