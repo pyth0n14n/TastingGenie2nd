@@ -63,6 +63,7 @@ class SakeEditViewModel
                 } else {
                     current.copy(
                         grade = selectedGrade,
+                        gradeOther = if (selectedGrade == SakeGrade.OTHER) current.gradeOther else "",
                         error = null,
                     )
                 }
@@ -108,6 +109,16 @@ class SakeEditViewModel
                             },
                         error = null,
                     )
+                }
+            }
+        }
+
+        fun onGradeOtherChanged(value: String) {
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    current
+                } else {
+                    current.copy(gradeOther = value)
                 }
             }
         }
@@ -178,6 +189,10 @@ class SakeEditViewModel
                             id = snapshot.sakeId,
                             name = snapshot.name.trim(),
                             grade = grade,
+                            gradeOther =
+                                snapshot.gradeOther
+                                    .normalizedOrNull()
+                                    ?.takeIf { snapshot.grade == SakeGrade.OTHER },
                             type = snapshot.classifications,
                             typeOther =
                                 snapshot.typeOther
@@ -246,6 +261,7 @@ class SakeEditViewModel
                             sakeId = existing?.id,
                             name = existing?.name.orEmpty(),
                             grade = existing?.grade,
+                            gradeOther = existing?.gradeOther.orEmpty(),
                             classifications = existing?.type.orEmpty(),
                             typeOther = existing?.typeOther.orEmpty(),
                             maker = existing?.maker.orEmpty(),

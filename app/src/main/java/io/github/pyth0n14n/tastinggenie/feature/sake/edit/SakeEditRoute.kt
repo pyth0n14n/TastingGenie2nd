@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
@@ -50,6 +51,7 @@ fun SakeEditRoute(
         SakeEditCallbacks(
             onNameChanged = viewModel::onNameChanged,
             onGradeSelected = viewModel::onGradeSelected,
+            onGradeOtherChanged = viewModel::onGradeOtherChanged,
             onClassificationToggled = viewModel::onClassificationToggled,
             onTypeOtherChanged = viewModel::onTypeOtherChanged,
             onMakerChanged = viewModel::onMakerChanged,
@@ -146,6 +148,15 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
             onSelected = callbacks.onGradeSelected,
         )
     }
+    if (state.grade == SakeGrade.OTHER) {
+        item {
+            LabeledTextField(
+                label = stringResource(R.string.label_grade_other),
+                value = state.gradeOther,
+                onValueChange = callbacks.onGradeOtherChanged,
+            )
+        }
+    }
     item {
         GroupedMultiSelectDropdown(
             label = stringResource(R.string.label_classification),
@@ -217,6 +228,7 @@ private fun SaveButton(
 data class SakeEditCallbacks(
     val onNameChanged: (String) -> Unit,
     val onGradeSelected: (String) -> Unit,
+    val onGradeOtherChanged: (String) -> Unit,
     val onClassificationToggled: (String) -> Unit,
     val onTypeOtherChanged: (String) -> Unit,
     val onMakerChanged: (String) -> Unit,

@@ -44,6 +44,7 @@
     <string name="label_grade">種別</string>
     <string name="label_classification">分類</string>
     <string name="label_classification_other">分類（その他）</string>
+    <string name="label_grade_other">種別（その他）</string>
     <string name="label_maker">酒造</string>
     <string name="label_prefecture">都道府県</string>
     <string name="label_unselected">未選択</string>

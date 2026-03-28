@@ -16,6 +16,7 @@ data class SakeEditUiState(
     val name: String = "",
     val grade: SakeGrade? = null,
     val gradeOptions: List<MasterOption> = emptyList(),
+    val gradeOther: String = "",
     val classifications: List<SakeClassification> = emptyList(),
     val classificationOptions: List<MasterOption> = emptyList(),
     val typeOther: String = "",
