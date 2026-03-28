@@ -1,10 +1,14 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,8 +33,7 @@ class SakeEditScreenTest {
                                 MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
                             ),
                     ),
-                onNameChanged = {},
-                onGradeSelected = { selectedValue = it },
+                callbacks = defaultCallbacks(onGradeSelected = { selectedValue = it }),
                 onSave = {},
                 onBack = {},
             )
@@ -53,8 +56,7 @@ class SakeEditScreenTest {
                         grade = SakeGrade.JUNMAI,
                         gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
                     ),
-                onNameChanged = {},
-                onGradeSelected = {},
+                callbacks = defaultCallbacks(),
                 onSave = { saveCalled = true },
                 onBack = {},
             )
@@ -63,4 +65,73 @@ class SakeEditScreenTest {
         composeRule.onNodeWithText("保存").performClick()
         composeRule.runOnIdle { assertTrue(saveCalled) }
     }
+
+    @Test
+    fun selectingOtherClassification_showsFreeTextField() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(value = SakeClassification.KIMOTO.name, label = "生酛"),
+                                MasterOption(value = SakeClassification.OTHER.name, label = "その他"),
+                            ),
+                        classifications = listOf(SakeClassification.OTHER),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("分類（その他）").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectingPrefectureFromGroupedDropdown_callsOnPrefectureSelected() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        prefectureOptions =
+                            listOf(
+                                MasterOption(value = Prefecture.HOKKAIDO.name, label = "北海道"),
+                                MasterOption(value = Prefecture.NAGANO.name, label = "長野県"),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(onPrefectureSelected = { selectedValue = it }),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("都道府県: 未選択").assertExists()
+        composeRule.onNodeWithText("都道府県: 未選択").performClick()
+        composeRule.onNodeWithText("[+] 北関東").performClick()
+        composeRule.onNodeWithText("  ( ) 長野県").performClick()
+        composeRule.runOnIdle { assertEquals(Prefecture.NAGANO.name, selectedValue) }
+    }
 }
+
+private fun defaultCallbacks(
+    onNameChanged: (String) -> Unit = {},
+    onGradeSelected: (String) -> Unit = {},
+    onClassificationToggled: (String) -> Unit = {},
+    onTypeOtherChanged: (String) -> Unit = {},
+    onMakerChanged: (String) -> Unit = {},
+    onPrefectureSelected: (String?) -> Unit = {},
+): SakeEditCallbacks =
+    SakeEditCallbacks(
+        onNameChanged = onNameChanged,
+        onGradeSelected = onGradeSelected,
+        onClassificationToggled = onClassificationToggled,
+        onTypeOtherChanged = onTypeOtherChanged,
+        onMakerChanged = onMakerChanged,
+        onPrefectureSelected = onPrefectureSelected,
+    )
