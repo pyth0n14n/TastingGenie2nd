@@ -47,6 +47,15 @@
     <string name="label_grade_other">種別（その他）</string>
     <string name="label_maker">酒造</string>
     <string name="label_prefecture">都道府県</string>
+    <string name="label_sake_degree">日本酒度</string>
+    <string name="label_acidity">酸度</string>
+    <string name="label_koji_mai">麹米</string>
+    <string name="label_koji_polish">麹米精米歩合</string>
+    <string name="label_kake_mai">酒米</string>
+    <string name="label_kake_polish">酒米精米歩合</string>
+    <string name="label_alcohol">アルコール度数</string>
+    <string name="label_yeast">酵母</string>
+    <string name="label_water">水</string>
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
@@ -83,7 +92,7 @@
     <string name="error_import_invalid_payload">JSONの内容が不正です</string>
     <string name="error_invalid_sake_grade">種別の選択値が不正です</string>
     <string name="error_invalid_sake_selection">酒項目の選択値が不正です</string>
-    <string name="error_invalid_sake_input">銘柄名と種別は必須です</string>
+    <string name="error_invalid_sake_input">銘柄名・種別・数値項目を確認してください</string>
     <string name="error_invalid_review_selection">レビュー項目の選択値が不正です</string>
     <string name="error_invalid_review_input">日付と数値項目を確認してください</string>
 </resources>
