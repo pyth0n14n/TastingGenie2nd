@@ -144,6 +144,32 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun pr4Fields_areDisplayed() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("日本酒度").assertIsDisplayed()
+        composeRule.onNodeWithText("酸度").assertIsDisplayed()
+        composeRule.onNodeWithText("麹米").assertIsDisplayed()
+        composeRule.onNodeWithText("麹米精米歩合").assertIsDisplayed()
+        composeRule.onNodeWithText("酒米").assertIsDisplayed()
+        composeRule.onNodeWithText("酒米精米歩合").assertIsDisplayed()
+        composeRule.onNodeWithText("アルコール度数").assertIsDisplayed()
+        composeRule.onNodeWithText("酵母").assertIsDisplayed()
+        composeRule.onNodeWithText("水").assertIsDisplayed()
+    }
+
+    @Test
     fun selectingPrefectureFromGroupedDropdown_callsOnPrefectureSelected() {
         var selectedValue: String? = null
         composeRule.setContent {
@@ -173,20 +199,14 @@ class SakeEditScreenTest {
 }
 
 private fun defaultCallbacks(
-    onNameChanged: (String) -> Unit = {},
+    onTextChanged: (SakeTextField, String) -> Unit = { _, _ -> },
     onGradeSelected: (String) -> Unit = {},
-    onGradeOtherChanged: (String) -> Unit = {},
     onClassificationToggled: (String) -> Unit = {},
-    onTypeOtherChanged: (String) -> Unit = {},
-    onMakerChanged: (String) -> Unit = {},
     onPrefectureSelected: (String?) -> Unit = {},
 ): SakeEditCallbacks =
     SakeEditCallbacks(
-        onNameChanged = onNameChanged,
+        onTextChanged = onTextChanged,
         onGradeSelected = onGradeSelected,
-        onGradeOtherChanged = onGradeOtherChanged,
         onClassificationToggled = onClassificationToggled,
-        onTypeOtherChanged = onTypeOtherChanged,
-        onMakerChanged = onMakerChanged,
         onPrefectureSelected = onPrefectureSelected,
     )

@@ -32,6 +32,11 @@ class SakeEditViewModelTest {
         private const val EXISTING_SAKE_ID = 7L
         private const val GRADE_OPTION_COUNT = 3
         private const val EXTENDED_OPTION_COUNT = 3
+        private const val TEST_SAKE_DEGREE = 3.5F
+        private const val TEST_ACIDITY = 1.4F
+        private const val TEST_KOJI_POLISH = 50
+        private const val TEST_KAKE_POLISH = 55
+        private const val TEST_ALCOHOL = 16
     }
 
     @get:Rule
@@ -68,7 +73,7 @@ class SakeEditViewModelTest {
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
-            viewModel.onNameChanged("")
+            viewModel.onTextChanged(SakeTextField.NAME, "")
             viewModel.save()
             advanceUntilIdle()
 
@@ -88,7 +93,7 @@ class SakeEditViewModelTest {
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
-            viewModel.onNameChanged("保存テスト")
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
             viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
             viewModel.save()
             advanceUntilIdle()
@@ -112,12 +117,12 @@ class SakeEditViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.onNameChanged("保存テスト")
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
             viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
             viewModel.onClassificationToggled(SakeClassification.KIMOTO.name)
             viewModel.onClassificationToggled(SakeClassification.OTHER.name)
-            viewModel.onTypeOtherChanged("限定品")
-            viewModel.onMakerChanged("蔵元A")
+            viewModel.onTextChanged(SakeTextField.TYPE_OTHER, "限定品")
+            viewModel.onTextChanged(SakeTextField.MAKER, "蔵元A")
             viewModel.onPrefectureSelected(Prefecture.NAGANO.name)
             viewModel.save()
             advanceUntilIdle()
@@ -127,6 +132,44 @@ class SakeEditViewModelTest {
             assertEquals("限定品", saved.typeOther)
             assertEquals("蔵元A", saved.maker)
             assertEquals(Prefecture.NAGANO, saved.prefecture)
+        }
+
+    @Test
+    fun save_withPr4Fields_persistsNumericAndTextMetadata() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onTextChanged(SakeTextField.SAKE_DEGREE, "+3.5")
+            viewModel.onTextChanged(SakeTextField.ACIDITY, "1.4")
+            viewModel.onTextChanged(SakeTextField.KOJI_MAI, "山田錦")
+            viewModel.onTextChanged(SakeTextField.KOJI_POLISH, "50")
+            viewModel.onTextChanged(SakeTextField.KAKE_MAI, "五百万石")
+            viewModel.onTextChanged(SakeTextField.KAKE_POLISH, "55")
+            viewModel.onTextChanged(SakeTextField.ALCOHOL, "16")
+            viewModel.onTextChanged(SakeTextField.YEAST, "協会9号")
+            viewModel.onTextChanged(SakeTextField.WATER, "伏流水")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(TEST_SAKE_DEGREE, saved.sakeDegree)
+            assertEquals(TEST_ACIDITY, saved.acidity)
+            assertEquals("山田錦", saved.kojiMai)
+            assertEquals(TEST_KOJI_POLISH, saved.kojiPolish)
+            assertEquals("五百万石", saved.kakeMai)
+            assertEquals(TEST_KAKE_POLISH, saved.kakePolish)
+            assertEquals(TEST_ALCOHOL, saved.alcohol)
+            assertEquals("協会9号", saved.yeast)
+            assertEquals("伏流水", saved.water)
         }
 
     @Test
@@ -141,15 +184,38 @@ class SakeEditViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.onNameChanged("保存テスト")
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
             viewModel.onGradeSelected(SakeGrade.OTHER.name)
-            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.onTextChanged(SakeTextField.GRADE_OTHER, "普通酒")
             viewModel.save()
             advanceUntilIdle()
 
             val saved = repository.savedInputs.single()
             assertEquals(SakeGrade.OTHER, saved.grade)
             assertEquals("普通酒", saved.gradeOther)
+        }
+
+    @Test
+    fun save_withInvalidNumericField_setsValidationError() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onTextChanged(SakeTextField.ALCOHOL, "16%")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertTrue(repository.savedInputs.isEmpty())
         }
 
     @Test
@@ -203,7 +269,7 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             viewModel.onGradeSelected(SakeGrade.OTHER.name)
-            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.onTextChanged(SakeTextField.GRADE_OTHER, "普通酒")
             viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
 
             val state = viewModel.uiState.value
@@ -223,9 +289,9 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             viewModel.onGradeSelected(SakeGrade.OTHER.name)
-            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.onTextChanged(SakeTextField.GRADE_OTHER, "普通酒")
             viewModel.onClassificationToggled(SakeClassification.OTHER.name)
-            viewModel.onTypeOtherChanged("普通酒")
+            viewModel.onTextChanged(SakeTextField.TYPE_OTHER, "普通酒")
             viewModel.onClassificationToggled(SakeClassification.OTHER.name)
 
             val state = viewModel.uiState.value
@@ -247,7 +313,7 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             viewModel.onClassificationToggled(SakeClassification.OTHER.name)
-            viewModel.onTypeOtherChanged("限定品")
+            viewModel.onTextChanged(SakeTextField.TYPE_OTHER, "限定品")
             viewModel.onClassificationToggled(SakeClassification.OTHER.name)
 
             val state = viewModel.uiState.value
@@ -290,6 +356,15 @@ class SakeEditViewModelTest {
                                 typeOther = "限定品",
                                 maker = "既存酒造",
                                 prefecture = Prefecture.NAGANO,
+                                alcohol = TEST_ALCOHOL,
+                                kojiMai = "山田錦",
+                                kojiPolish = TEST_KOJI_POLISH,
+                                kakeMai = "五百万石",
+                                kakePolish = TEST_KAKE_POLISH,
+                                sakeDegree = TEST_SAKE_DEGREE,
+                                acidity = TEST_ACIDITY,
+                                yeast = "協会9号",
+                                water = "伏流水",
                             ),
                         ),
                 )
@@ -323,7 +398,7 @@ class SakeEditViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.onNameChanged("should not save")
+            viewModel.onTextChanged(SakeTextField.NAME, "should not save")
             viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
             viewModel.save()
             advanceUntilIdle()
@@ -352,6 +427,15 @@ class SakeEditViewModelTest {
                                 typeOther = "限定品",
                                 maker = "既存酒造",
                                 prefecture = Prefecture.NAGANO,
+                                alcohol = TEST_ALCOHOL,
+                                kojiMai = "山田錦",
+                                kojiPolish = TEST_KOJI_POLISH,
+                                kakeMai = "五百万石",
+                                kakePolish = TEST_KAKE_POLISH,
+                                sakeDegree = TEST_SAKE_DEGREE,
+                                acidity = TEST_ACIDITY,
+                                yeast = "協会9号",
+                                water = "伏流水",
                             ),
                         ),
                 )
@@ -373,6 +457,15 @@ class SakeEditViewModelTest {
             assertEquals("限定品", state.typeOther)
             assertEquals("既存酒造", state.maker)
             assertEquals(Prefecture.NAGANO, state.prefecture)
+            assertEquals("3.5", state.sakeDegree)
+            assertEquals("1.4", state.acidity)
+            assertEquals("山田錦", state.kojiMai)
+            assertEquals("50", state.kojiPolish)
+            assertEquals("五百万石", state.kakeMai)
+            assertEquals("55", state.kakePolish)
+            assertEquals("16", state.alcohol)
+            assertEquals("協会9号", state.yeast)
+            assertEquals("伏流水", state.water)
         }
 }
 
@@ -399,6 +492,15 @@ private class RecordingSakeRepository(
                 typeOther = input.typeOther,
                 maker = input.maker,
                 prefecture = input.prefecture,
+                alcohol = input.alcohol,
+                kojiMai = input.kojiMai,
+                kojiPolish = input.kojiPolish,
+                kakeMai = input.kakeMai,
+                kakePolish = input.kakePolish,
+                sakeDegree = input.sakeDegree,
+                acidity = input.acidity,
+                yeast = input.yeast,
+                water = input.water,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
