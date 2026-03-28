@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,12 +50,9 @@ fun SakeEditRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val callbacks =
         SakeEditCallbacks(
-            onNameChanged = viewModel::onNameChanged,
+            onTextChanged = viewModel::onTextChanged,
             onGradeSelected = viewModel::onGradeSelected,
-            onGradeOtherChanged = viewModel::onGradeOtherChanged,
             onClassificationToggled = viewModel::onClassificationToggled,
-            onTypeOtherChanged = viewModel::onTypeOtherChanged,
-            onMakerChanged = viewModel::onMakerChanged,
             onPrefectureSelected = viewModel::onPrefectureSelected,
         )
     LaunchedEffect(state.isSaved) {
@@ -133,13 +131,22 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
 ) {
-    item {
-        LabeledTextField(
-            label = stringResource(R.string.label_sake_name),
-            value = state.name,
-            onValueChange = callbacks.onNameChanged,
-        )
-    }
+    basicFields(state = state, uiData = uiData, callbacks = callbacks)
+    classificationFields(state = state, uiData = uiData, callbacks = callbacks)
+    metadataFields(state = state, callbacks = callbacks)
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
+    state: SakeEditUiState,
+    uiData: SakeEditFormUiData,
+    callbacks: SakeEditCallbacks,
+) {
+    textFieldItem(
+        labelRes = R.string.label_sake_name,
+        value = state.name,
+        callbacks = callbacks,
+        field = SakeTextField.NAME,
+    )
     item {
         SimpleDropdown(
             label = stringResource(R.string.label_grade),
@@ -149,14 +156,20 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
         )
     }
     if (state.grade == SakeGrade.OTHER) {
-        item {
-            LabeledTextField(
-                label = stringResource(R.string.label_grade_other),
-                value = state.gradeOther,
-                onValueChange = callbacks.onGradeOtherChanged,
-            )
-        }
+        textFieldItem(
+            labelRes = R.string.label_grade_other,
+            value = state.gradeOther,
+            callbacks = callbacks,
+            field = SakeTextField.GRADE_OTHER,
+        )
     }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
+    state: SakeEditUiState,
+    uiData: SakeEditFormUiData,
+    callbacks: SakeEditCallbacks,
+) {
     item {
         GroupedMultiSelectDropdown(
             label = stringResource(R.string.label_classification),
@@ -166,27 +179,55 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
         )
     }
     if (state.classifications.contains(SakeClassification.OTHER)) {
-        item {
-            LabeledTextField(
-                label = stringResource(R.string.label_classification_other),
-                value = state.typeOther,
-                onValueChange = callbacks.onTypeOtherChanged,
-            )
-        }
-    }
-    item {
-        LabeledTextField(
-            label = stringResource(R.string.label_maker),
-            value = state.maker,
-            onValueChange = callbacks.onMakerChanged,
+        textFieldItem(
+            labelRes = R.string.label_classification_other,
+            value = state.typeOther,
+            callbacks = callbacks,
+            field = SakeTextField.TYPE_OTHER,
         )
     }
+    textFieldItem(
+        labelRes = R.string.label_maker,
+        value = state.maker,
+        callbacks = callbacks,
+        field = SakeTextField.MAKER,
+    )
     item {
         GroupedSingleSelectDropdown(
             label = stringResource(R.string.label_prefecture),
             groups = uiData.prefectureGroups,
             selectedValue = state.prefecture?.name,
             onSelected = callbacks.onPrefectureSelected,
+        )
+    }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.metadataFields(
+    state: SakeEditUiState,
+    callbacks: SakeEditCallbacks,
+) {
+    textFieldItem(R.string.label_sake_degree, state.sakeDegree, callbacks, SakeTextField.SAKE_DEGREE)
+    textFieldItem(R.string.label_acidity, state.acidity, callbacks, SakeTextField.ACIDITY)
+    textFieldItem(R.string.label_koji_mai, state.kojiMai, callbacks, SakeTextField.KOJI_MAI)
+    textFieldItem(R.string.label_koji_polish, state.kojiPolish, callbacks, SakeTextField.KOJI_POLISH)
+    textFieldItem(R.string.label_kake_mai, state.kakeMai, callbacks, SakeTextField.KAKE_MAI)
+    textFieldItem(R.string.label_kake_polish, state.kakePolish, callbacks, SakeTextField.KAKE_POLISH)
+    textFieldItem(R.string.label_alcohol, state.alcohol, callbacks, SakeTextField.ALCOHOL)
+    textFieldItem(R.string.label_yeast, state.yeast, callbacks, SakeTextField.YEAST)
+    textFieldItem(R.string.label_water, state.water, callbacks, SakeTextField.WATER)
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.textFieldItem(
+    @StringRes labelRes: Int,
+    value: String,
+    callbacks: SakeEditCallbacks,
+    field: SakeTextField,
+) {
+    item {
+        LabeledTextField(
+            label = stringResource(labelRes),
+            value = value,
+            onValueChange = { updated -> callbacks.onTextChanged(field, updated) },
         )
     }
 }
@@ -226,12 +267,9 @@ private fun SaveButton(
 }
 
 data class SakeEditCallbacks(
-    val onNameChanged: (String) -> Unit,
+    val onTextChanged: (SakeTextField, String) -> Unit,
     val onGradeSelected: (String) -> Unit,
-    val onGradeOtherChanged: (String) -> Unit,
     val onClassificationToggled: (String) -> Unit,
-    val onTypeOtherChanged: (String) -> Unit,
-    val onMakerChanged: (String) -> Unit,
     val onPrefectureSelected: (String?) -> Unit,
 )
 

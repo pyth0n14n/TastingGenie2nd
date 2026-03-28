@@ -186,6 +186,27 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Select invalid grade; verify grade resets and save disabled.
   - Enter invalid data; ensure cannot save until corrected.
 
+### Problem: Optional numeric form fields coerce invalid text or lose the typed value before save.
+- **Example**: `16%` や `3..5` を入力しても silently null にされ、どの項目が悪いか分からないまま保存が通る。
+- **Preventive Measure**: Keep optional numeric inputs as raw text in UI state, validate them only on save, and reject the save when any numeric field is invalid. Do not auto-coerce malformed text to `null`.
+- **Test Coverage**:
+  - Enter invalid numeric text in sake/review forms; verify save is blocked and an error is shown.
+  - Reopen an existing item with valid numeric values; verify the exact formatted text is restored to the fields.
+
+### Problem: Range-bounded numeric fields accept impossible values because only parsing is validated.
+- **Example**: 精米歩合に `101` を入れても整数として通ってしまう。
+- **Preventive Measure**: For numeric fields with domain bounds, validate both parseability and range before save. Keep those bounds close to the mapper or ViewModel save validation so UI and import logic can share the same rule later.
+- **Test Coverage**:
+  - Enter `101` or `-1` into a polish ratio field; verify save is blocked.
+  - Enter boundary values such as `0` and `100`; verify the intended acceptance behavior is covered explicitly.
+
+### Problem: Float parsing accepts non-finite values that should never be persisted.
+- **Example**: `NaN` や `1e50` を日本酒度/酸度に入れると `Float` 変換だけは通って保存される。
+- **Preventive Measure**: Treat float fields as valid only when parsing succeeds and the resulting value is finite. Do not rely on `toFloatOrNull()` alone for save-time validation.
+- **Test Coverage**:
+  - Enter `NaN`, `Infinity`, or overflowed scientific notation such as `1e50`; verify save is blocked.
+  - Reconfirm ordinary finite values such as `+3.5` and `1.4` still round-trip through save and edit.
+
 ### Problem: Missing edit target treated as create, causing duplicates.
 - **Example**: Edit route with invalid sakeId creates new sake instead of error.
 - **Root Cause**: From commit `f8eecae022` - Null getSake() result dropped into create mode.

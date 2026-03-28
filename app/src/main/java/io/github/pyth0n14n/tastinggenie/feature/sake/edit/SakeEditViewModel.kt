@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
+import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
@@ -19,6 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val MIN_POLISH_RATIO = 0
+private const val MAX_POLISH_RATIO = 100
 
 @HiltViewModel
 class SakeEditViewModel
@@ -35,12 +40,25 @@ class SakeEditViewModel
             loadInitial()
         }
 
-        fun onNameChanged(value: String) {
-            _uiState.update { current ->
-                if (current.isEditTargetMissing) {
-                    current
-                } else {
-                    current.copy(name = value)
+        fun onTextChanged(
+            field: SakeTextField,
+            value: String,
+        ) {
+            updateEditableState { current ->
+                when (field) {
+                    SakeTextField.NAME -> current.copy(name = value)
+                    SakeTextField.GRADE_OTHER -> current.copy(gradeOther = value)
+                    SakeTextField.TYPE_OTHER -> current.copy(typeOther = value)
+                    SakeTextField.MAKER -> current.copy(maker = value)
+                    SakeTextField.SAKE_DEGREE -> current.copy(sakeDegree = value)
+                    SakeTextField.ACIDITY -> current.copy(acidity = value)
+                    SakeTextField.KOJI_MAI -> current.copy(kojiMai = value)
+                    SakeTextField.KOJI_POLISH -> current.copy(kojiPolish = value)
+                    SakeTextField.KAKE_MAI -> current.copy(kakeMai = value)
+                    SakeTextField.KAKE_POLISH -> current.copy(kakePolish = value)
+                    SakeTextField.ALCOHOL -> current.copy(alcohol = value)
+                    SakeTextField.YEAST -> current.copy(yeast = value)
+                    SakeTextField.WATER -> current.copy(water = value)
                 }
             }
         }
@@ -113,36 +131,6 @@ class SakeEditViewModel
             }
         }
 
-        fun onGradeOtherChanged(value: String) {
-            _uiState.update { current ->
-                if (current.isEditTargetMissing) {
-                    current
-                } else {
-                    current.copy(gradeOther = value)
-                }
-            }
-        }
-
-        fun onTypeOtherChanged(value: String) {
-            _uiState.update { current ->
-                if (current.isEditTargetMissing) {
-                    current
-                } else {
-                    current.copy(typeOther = value)
-                }
-            }
-        }
-
-        fun onMakerChanged(value: String) {
-            _uiState.update { current ->
-                if (current.isEditTargetMissing) {
-                    current
-                } else {
-                    current.copy(maker = value)
-                }
-            }
-        }
-
         fun onPrefectureSelected(value: String?) {
             val selectedPrefecture =
                 when (value) {
@@ -175,33 +163,15 @@ class SakeEditViewModel
             if (snapshot.isEditTargetMissing) {
                 return
             }
-            val grade = snapshot.grade
-            // PR-3 で必須にしている入力のみ先に弾く。
-            if (snapshot.name.isBlank() || grade == null) {
-                _uiState.update { it.copy(error = UiError(messageResId = R.string.error_invalid_sake_input)) }
+            val input = snapshot.toValidatedInput()
+            if (input == null) {
+                invalidateSakeInput()
                 return
             }
             viewModelScope.launch {
                 _uiState.update { it.copy(isSaving = true, error = null) }
                 runCatching {
-                    sakeRepository.upsertSake(
-                        SakeInput(
-                            id = snapshot.sakeId,
-                            name = snapshot.name.trim(),
-                            grade = grade,
-                            gradeOther =
-                                snapshot.gradeOther
-                                    .normalizedOrNull()
-                                    ?.takeIf { snapshot.grade == SakeGrade.OTHER },
-                            type = snapshot.classifications,
-                            typeOther =
-                                snapshot.typeOther
-                                    .normalizedOrNull()
-                                    ?.takeIf { snapshot.classifications.contains(SakeClassification.OTHER) },
-                            maker = snapshot.maker.normalizedOrNull(),
-                            prefecture = snapshot.prefecture,
-                        ),
-                    )
+                    sakeRepository.upsertSake(input)
                 }.onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSaved = true) }
                 }.onFailure { throwable ->
@@ -235,38 +205,13 @@ class SakeEditViewModel
                     master to existing
                 }.onSuccess { (master, existing) ->
                     if (sakeId != null && existing == null) {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                isEditTargetMissing = true,
-                                gradeOptions = master.sakeGrades,
-                                classificationOptions = master.classifications,
-                                prefectureOptions = master.prefectures,
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_load_sake,
-                                        causeKey = sakeId.toString(),
-                                    ),
-                            )
+                        _uiState.update { state ->
+                            state.withMissingEditTarget(master = master, sakeId = sakeId)
                         }
                         return@onSuccess
                     }
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isEditTargetMissing = false,
-                            gradeOptions = master.sakeGrades,
-                            classificationOptions = master.classifications,
-                            prefectureOptions = master.prefectures,
-                            sakeId = existing?.id,
-                            name = existing?.name.orEmpty(),
-                            grade = existing?.grade,
-                            gradeOther = existing?.gradeOther.orEmpty(),
-                            classifications = existing?.type.orEmpty(),
-                            typeOther = existing?.typeOther.orEmpty(),
-                            maker = existing?.maker.orEmpty(),
-                            prefecture = existing?.prefecture,
-                        )
+                    _uiState.update { state ->
+                        state.withLoadedData(master = master, existing = existing)
                     }
                 }.onFailure { throwable ->
                     _uiState.update {
@@ -282,6 +227,163 @@ class SakeEditViewModel
                 }
             }
         }
+
+        private fun updateEditableState(transform: (SakeEditUiState) -> SakeEditUiState) {
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    current
+                } else {
+                    transform(current)
+                }
+            }
+        }
+
+        private fun invalidateSakeInput() {
+            _uiState.update { state ->
+                state.copy(error = UiError(messageResId = R.string.error_invalid_sake_input))
+            }
+        }
     }
 
+private fun SakeEditUiState.withMissingEditTarget(
+    master: MasterDataBundle,
+    sakeId: Long,
+): SakeEditUiState =
+    copy(
+        isLoading = false,
+        isEditTargetMissing = true,
+        gradeOptions = master.sakeGrades,
+        classificationOptions = master.classifications,
+        prefectureOptions = master.prefectures,
+        error =
+            UiError(
+                messageResId = R.string.error_load_sake,
+                causeKey = sakeId.toString(),
+            ),
+    )
+
+private fun SakeEditUiState.withLoadedData(
+    master: MasterDataBundle,
+    existing: Sake?,
+): SakeEditUiState =
+    copy(
+        isLoading = false,
+        isEditTargetMissing = false,
+        gradeOptions = master.sakeGrades,
+        classificationOptions = master.classifications,
+        prefectureOptions = master.prefectures,
+        sakeId = existing?.id,
+        name = existing?.name.orEmpty(),
+        grade = existing?.grade,
+        gradeOther = existing?.gradeOther.orEmpty(),
+        classifications = existing?.type.orEmpty(),
+        typeOther = existing?.typeOther.orEmpty(),
+        maker = existing?.maker.orEmpty(),
+        prefecture = existing?.prefecture,
+        sakeDegree = existing?.sakeDegree?.toString().orEmpty(),
+        acidity = existing?.acidity?.toString().orEmpty(),
+        kojiMai = existing?.kojiMai.orEmpty(),
+        kojiPolish = existing?.kojiPolish?.toString().orEmpty(),
+        kakeMai = existing?.kakeMai.orEmpty(),
+        kakePolish = existing?.kakePolish?.toString().orEmpty(),
+        alcohol = existing?.alcohol?.toString().orEmpty(),
+        yeast = existing?.yeast.orEmpty(),
+        water = existing?.water.orEmpty(),
+    )
+
 private fun String.normalizedOrNull(): String? = trim().takeIf { value -> value.isNotEmpty() }
+
+private fun String.parseOptionalInt(): ParsedNumber<Int> {
+    val normalized = trim()
+    return when {
+        normalized.isEmpty() -> ParsedNumber(isValid = true, value = null)
+        else -> ParsedNumber(isValid = normalized.toIntOrNull() != null, value = normalized.toIntOrNull())
+    }
+}
+
+private fun String.parseOptionalPercentage(): ParsedNumber<Int> {
+    val parsed = parseOptionalInt()
+    val isInRange = parsed.value == null || parsed.value in MIN_POLISH_RATIO..MAX_POLISH_RATIO
+    return ParsedNumber(
+        isValid = parsed.isValid && isInRange,
+        value = parsed.value,
+    )
+}
+
+private fun String.parseOptionalFloat(): ParsedNumber<Float> {
+    val normalized = trim()
+    return when {
+        normalized.isEmpty() -> ParsedNumber(isValid = true, value = null)
+        else -> {
+            val parsed = normalized.toFloatOrNull()
+            ParsedNumber(
+                isValid = parsed?.isFinite() == true,
+                value = parsed?.takeIf { it.isFinite() },
+            )
+        }
+    }
+}
+
+private data class ParsedNumber<T>(
+    val isValid: Boolean,
+    val value: T?,
+)
+
+private data class ParsedSakeNumbers(
+    val alcohol: Int?,
+    val kojiPolish: Int?,
+    val kakePolish: Int?,
+    val sakeDegree: Float?,
+    val acidity: Float?,
+)
+
+private fun SakeEditUiState.toValidatedInput(): SakeInput? {
+    val currentGrade = grade
+    val parsedNumbers = parseSakeNumbers()
+    if (currentGrade == null || name.isBlank() || parsedNumbers == null) return null
+
+    return SakeInput(
+        id = sakeId,
+        name = name.trim(),
+        grade = currentGrade,
+        gradeOther = gradeOther.normalizedOrNull()?.takeIf { currentGrade == SakeGrade.OTHER },
+        type = classifications,
+        typeOther = typeOther.normalizedOrNull()?.takeIf { classifications.contains(SakeClassification.OTHER) },
+        maker = maker.normalizedOrNull(),
+        prefecture = prefecture,
+        alcohol = parsedNumbers.alcohol,
+        kojiMai = kojiMai.normalizedOrNull(),
+        kojiPolish = parsedNumbers.kojiPolish,
+        kakeMai = kakeMai.normalizedOrNull(),
+        kakePolish = parsedNumbers.kakePolish,
+        sakeDegree = parsedNumbers.sakeDegree,
+        acidity = parsedNumbers.acidity,
+        yeast = yeast.normalizedOrNull(),
+        water = water.normalizedOrNull(),
+    )
+}
+
+private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
+    val alcohol = alcohol.parseOptionalInt()
+    val kojiPolish = kojiPolish.parseOptionalPercentage()
+    val kakePolish = kakePolish.parseOptionalPercentage()
+    val sakeDegree = sakeDegree.parseOptionalFloat()
+    val acidity = acidity.parseOptionalFloat()
+    val allNumbersValid =
+        alcohol.isValid &&
+            kojiPolish.isValid &&
+            kakePolish.isValid &&
+            sakeDegree.isValid &&
+            acidity.isValid
+    return if (allNumbersValid) {
+        ParsedSakeNumbers(
+            alcohol = alcohol.value,
+            kojiPolish = kojiPolish.value,
+            kakePolish = kakePolish.value,
+            sakeDegree = sakeDegree.value,
+            acidity = acidity.value,
+        )
+    } else {
+        null
+    }
+}

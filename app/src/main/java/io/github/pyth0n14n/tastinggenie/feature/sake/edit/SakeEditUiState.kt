@@ -23,4 +23,13 @@ data class SakeEditUiState(
     val maker: String = "",
     val prefecture: Prefecture? = null,
     val prefectureOptions: List<MasterOption> = emptyList(),
+    val sakeDegree: String = "",
+    val acidity: String = "",
+    val kojiMai: String = "",
+    val kojiPolish: String = "",
+    val kakeMai: String = "",
+    val kakePolish: String = "",
+    val alcohol: String = "",
+    val yeast: String = "",
+    val water: String = "",
 )
