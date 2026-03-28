@@ -200,6 +200,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Enter `101` or `-1` into a polish ratio field; verify save is blocked.
   - Enter boundary values such as `0` and `100`; verify the intended acceptance behavior is covered explicitly.
 
+### Problem: Float parsing accepts non-finite values that should never be persisted.
+- **Example**: `NaN` や `1e50` を日本酒度/酸度に入れると `Float` 変換だけは通って保存される。
+- **Preventive Measure**: Treat float fields as valid only when parsing succeeds and the resulting value is finite. Do not rely on `toFloatOrNull()` alone for save-time validation.
+- **Test Coverage**:
+  - Enter `NaN`, `Infinity`, or overflowed scientific notation such as `1e50`; verify save is blocked.
+  - Reconfirm ordinary finite values such as `+3.5` and `1.4` still round-trip through save and edit.
+
 ### Problem: Missing edit target treated as create, causing duplicates.
 - **Example**: Edit route with invalid sakeId creates new sake instead of error.
 - **Root Cause**: From commit `f8eecae022` - Null getSake() result dropped into create mode.
