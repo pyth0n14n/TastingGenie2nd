@@ -242,6 +242,30 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun save_withNonFiniteFloatField_setsValidationError() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onTextChanged(SakeTextField.SAKE_DEGREE, "NaN")
+            viewModel.onTextChanged(SakeTextField.ACIDITY, "1e50")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
     fun onGradeSelected_withUnexpectedValue_setsUiErrorWithoutCrashing() =
         runTest {
             val viewModel =

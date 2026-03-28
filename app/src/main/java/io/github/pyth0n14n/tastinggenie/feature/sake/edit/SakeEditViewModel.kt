@@ -314,7 +314,13 @@ private fun String.parseOptionalFloat(): ParsedNumber<Float> {
     val normalized = trim()
     return when {
         normalized.isEmpty() -> ParsedNumber(isValid = true, value = null)
-        else -> ParsedNumber(isValid = normalized.toFloatOrNull() != null, value = normalized.toFloatOrNull())
+        else -> {
+            val parsed = normalized.toFloatOrNull()
+            ParsedNumber(
+                isValid = parsed?.isFinite() == true,
+                value = parsed?.takeIf { it.isFinite() },
+            )
+        }
     }
 }
 
