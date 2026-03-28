@@ -34,7 +34,6 @@ data class Review(
     val dish: String? = null,
     val comment: String? = null,
     val review: OverallReview? = null,
-    val imageUri: String? = null,
 )
 
 /**
@@ -63,5 +62,4 @@ data class ReviewInput(
     val dish: String? = null,
     val comment: String? = null,
     val review: OverallReview? = null,
-    val imageUri: String? = null,
 )

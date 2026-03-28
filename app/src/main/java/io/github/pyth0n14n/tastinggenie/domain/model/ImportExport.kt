@@ -2,7 +2,7 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 2
+const val CURRENT_SCHEMA_VERSION = 3
 
 @Serializable
 data class BackupPayload(
@@ -57,7 +57,6 @@ data class SerializableReview(
     val dish: String? = null,
     val comment: String? = null,
     val review: String? = null,
-    val imageUri: String? = null,
 )
 
 class UnsupportedSchemaVersionException(
