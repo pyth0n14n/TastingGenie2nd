@@ -193,6 +193,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Enter invalid numeric text in sake/review forms; verify save is blocked and an error is shown.
   - Reopen an existing item with valid numeric values; verify the exact formatted text is restored to the fields.
 
+### Problem: Range-bounded numeric fields accept impossible values because only parsing is validated.
+- **Example**: 精米歩合に `101` を入れても整数として通ってしまう。
+- **Preventive Measure**: For numeric fields with domain bounds, validate both parseability and range before save. Keep those bounds close to the mapper or ViewModel save validation so UI and import logic can share the same rule later.
+- **Test Coverage**:
+  - Enter `101` or `-1` into a polish ratio field; verify save is blocked.
+  - Enter boundary values such as `0` and `100`; verify the intended acceptance behavior is covered explicitly.
+
 ### Problem: Missing edit target treated as create, causing duplicates.
 - **Example**: Edit route with invalid sakeId creates new sake instead of error.
 - **Root Cause**: From commit `f8eecae022` - Null getSake() result dropped into create mode.
