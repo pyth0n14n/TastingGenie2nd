@@ -79,6 +79,30 @@ class SelectionComponentsTest {
     }
 
     @Test
+    fun groupedSingleSelectDropdown_expandsCategoryBeforeSelectingOption() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            GroupedSingleSelectDropdown(
+                label = "都道府県",
+                groups =
+                    listOf(
+                        DropdownOptionGroup(
+                            label = "北海道",
+                            options = listOf(DropdownOption(value = "HOKKAIDO", label = "北海道")),
+                        ),
+                    ),
+                selectedValue = null,
+                onSelected = { selectedValue = it },
+            )
+        }
+
+        composeRule.onNodeWithText("未選択").performClick()
+        composeRule.onNodeWithText("[+] 北海道").performClick()
+        composeRule.onNodeWithText("  ( ) 北海道").performClick()
+        composeRule.runOnIdle { assertEquals("HOKKAIDO", selectedValue) }
+    }
+
+    @Test
     fun datePickerField_opensDialog() {
         composeRule.setContent {
             DatePickerField(
