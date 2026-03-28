@@ -186,6 +186,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Select invalid grade; verify grade resets and save disabled.
   - Enter invalid data; ensure cannot save until corrected.
 
+### Problem: Optional numeric form fields coerce invalid text or lose the typed value before save.
+- **Example**: `16%` や `3..5` を入力しても silently null にされ、どの項目が悪いか分からないまま保存が通る。
+- **Preventive Measure**: Keep optional numeric inputs as raw text in UI state, validate them only on save, and reject the save when any numeric field is invalid. Do not auto-coerce malformed text to `null`.
+- **Test Coverage**:
+  - Enter invalid numeric text in sake/review forms; verify save is blocked and an error is shown.
+  - Reopen an existing item with valid numeric values; verify the exact formatted text is restored to the fields.
+
 ### Problem: Missing edit target treated as create, causing duplicates.
 - **Example**: Edit route with invalid sakeId creates new sake instead of error.
 - **Root Cause**: From commit `f8eecae022` - Null getSake() result dropped into create mode.
