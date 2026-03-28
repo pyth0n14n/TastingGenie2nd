@@ -29,7 +29,6 @@ fun ReviewEntity.toDomain(): Review =
         dish = dish,
         comment = comment,
         review = review,
-        imageUri = imageUri,
     )
 
 fun ReviewInput.toEntity(): ReviewEntity =
@@ -56,5 +55,4 @@ fun ReviewInput.toEntity(): ReviewEntity =
         dish = dish,
         comment = comment,
         review = review,
-        imageUri = imageUri,
     )

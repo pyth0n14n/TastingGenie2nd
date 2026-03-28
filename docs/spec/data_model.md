@@ -17,6 +17,7 @@
 | id | Long | PK |
 | name | String | 必須 |
 | grade | Enum | 必須 |
+| imageUri | String(URI) | 任意 |
 | gradeOther | String | 任意 |
 | type | List<Enum> | 任意 |
 | typeOther | String | 任意 |
@@ -61,8 +62,6 @@
 | dish | String | 任意 |
 | comment | String | 任意 |
 | review | Enum | 任意 |
-| imageUri | String(URI) | 任意 |
-
 ---
 
 ## 4. 関係
@@ -94,7 +93,8 @@ Sake (1) ---- (N) Review
 
 - `LocalDate` は日付として保存する
 - `List<Enum>` は JSON 文字列で永続化する
-- 画像は `Review.imageUri` に 1件保持する
+- 画像は `Sake.imageUri` に 1件保持する
+- `Review` は画像を直接保持しない
 
 ## 7. 外部入力とバリデーション
 

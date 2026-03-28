@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +22,7 @@ class ReviewImageViewModel
     constructor(
         savedStateHandle: SavedStateHandle,
         private val reviewRepository: ReviewRepository,
+        private val sakeRepository: SakeRepository,
     ) : ViewModel() {
         private val reviewId = savedStateHandle.get<Long>(AppDestination.ARG_REVIEW_ID) ?: AppDestination.NO_ID
 
@@ -34,9 +36,11 @@ class ReviewImageViewModel
         private fun loadImage() {
             viewModelScope.launch {
                 runCatching {
-                    reviewRepository.getReview(reviewId)
-                }.onSuccess { review ->
-                    if (review == null) {
+                    val review = reviewRepository.getReview(reviewId)
+                    val sake = review?.let { loadedReview -> sakeRepository.getSake(loadedReview.sakeId) }
+                    review to sake
+                }.onSuccess { (review, sake) ->
+                    if (review == null || sake == null) {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -53,7 +57,7 @@ class ReviewImageViewModel
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            imageUri = review.imageUri,
+                            imageUri = sake.imageUri,
                         )
                     }
                 }.onFailure { throwable ->

@@ -37,8 +37,10 @@ object AppProvidesModule {
     ): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
-            .addMigrations(AppDatabaseMigrations.MIGRATION_1_2)
-            .build()
+            .addMigrations(
+                AppDatabaseMigrations.MIGRATION_1_2,
+                AppDatabaseMigrations.MIGRATION_2_3,
+            ).build()
 
     @Provides
     @Singleton
