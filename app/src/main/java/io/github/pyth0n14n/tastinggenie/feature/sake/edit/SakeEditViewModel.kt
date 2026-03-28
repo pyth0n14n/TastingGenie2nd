@@ -22,6 +22,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val MIN_POLISH_RATIO = 0
+private const val MAX_POLISH_RATIO = 100
+
 @HiltViewModel
 class SakeEditViewModel
     @Inject
@@ -298,6 +301,15 @@ private fun String.parseOptionalInt(): ParsedNumber<Int> {
     }
 }
 
+private fun String.parseOptionalPercentage(): ParsedNumber<Int> {
+    val parsed = parseOptionalInt()
+    val isInRange = parsed.value == null || parsed.value in MIN_POLISH_RATIO..MAX_POLISH_RATIO
+    return ParsedNumber(
+        isValid = parsed.isValid && isInRange,
+        value = parsed.value,
+    )
+}
+
 private fun String.parseOptionalFloat(): ParsedNumber<Float> {
     val normalized = trim()
     return when {
@@ -347,8 +359,8 @@ private fun SakeEditUiState.toValidatedInput(): SakeInput? {
 
 private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
     val alcohol = alcohol.parseOptionalInt()
-    val kojiPolish = kojiPolish.parseOptionalInt()
-    val kakePolish = kakePolish.parseOptionalInt()
+    val kojiPolish = kojiPolish.parseOptionalPercentage()
+    val kakePolish = kakePolish.parseOptionalPercentage()
     val sakeDegree = sakeDegree.parseOptionalFloat()
     val acidity = acidity.parseOptionalFloat()
     val allNumbersValid =
