@@ -2,7 +2,7 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 1
+const val CURRENT_SCHEMA_VERSION = 2
 
 @Serializable
 data class BackupPayload(
@@ -16,6 +16,7 @@ data class SerializableSake(
     val id: Long,
     val name: String,
     val grade: String,
+    val gradeOther: String? = null,
     val type: List<String>,
     val typeOther: String? = null,
     val maker: String? = null,

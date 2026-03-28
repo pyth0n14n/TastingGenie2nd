@@ -12,6 +12,7 @@ data class SakeEntity(
     val id: Long = 0L,
     val name: String,
     val grade: SakeGrade,
+    val gradeOther: String?,
     val type: List<SakeClassification>,
     val typeOther: String?,
     val maker: String?,

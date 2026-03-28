@@ -94,6 +94,7 @@ class ImportExportRepositoryImplTest {
             val storedReview = database.reviewDao().getAllOnce().single()
             assertEquals("テスト酒", storedSake.name)
             assertEquals(SakeGrade.JUNMAI, storedSake.grade)
+            assertEquals(null, storedSake.gradeOther)
             assertTrue(storedSake.id != sampleSerializableSake().id)
             assertEquals(storedSake.id, storedReview.sakeId)
             assertTrue(storedReview.id != sampleSerializableReview().id)
@@ -270,6 +271,7 @@ class ImportExportRepositoryImplTest {
             id = 101L,
             name = "テスト酒",
             grade = SakeGrade.JUNMAI.name,
+            gradeOther = null,
             type = emptyList(),
             maker = "酒蔵A",
         )
@@ -294,6 +296,7 @@ class ImportExportRepositoryImplTest {
                 id = sake.id,
                 name = sake.name,
                 grade = SakeGrade.valueOf(sake.grade),
+                gradeOther = sake.gradeOther,
                 type = emptyList(),
                 typeOther = null,
                 maker = sake.maker,

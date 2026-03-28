@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
+import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
+import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
+import io.github.pyth0n14n.tastinggenie.ui.common.GroupedSingleSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
@@ -43,6 +47,16 @@ fun SakeEditRoute(
     viewModel: SakeEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val callbacks =
+        SakeEditCallbacks(
+            onNameChanged = viewModel::onNameChanged,
+            onGradeSelected = viewModel::onGradeSelected,
+            onGradeOtherChanged = viewModel::onGradeOtherChanged,
+            onClassificationToggled = viewModel::onClassificationToggled,
+            onTypeOtherChanged = viewModel::onTypeOtherChanged,
+            onMakerChanged = viewModel::onMakerChanged,
+            onPrefectureSelected = viewModel::onPrefectureSelected,
+        )
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             viewModel.consumeSaved()
@@ -51,8 +65,7 @@ fun SakeEditRoute(
     }
     SakeEditScreen(
         state = state,
-        onNameChanged = viewModel::onNameChanged,
-        onGradeSelected = viewModel::onGradeSelected,
+        callbacks = callbacks,
         onSave = viewModel::save,
         onBack = onBack,
     )
@@ -62,8 +75,7 @@ fun SakeEditRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 fun SakeEditScreen(
     state: SakeEditUiState,
-    onNameChanged: (String) -> Unit,
-    onGradeSelected: (String) -> Unit,
+    callbacks: SakeEditCallbacks,
     onSave: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -72,6 +84,8 @@ fun SakeEditScreen(
         return
     }
     val gradeOptions = state.gradeOptions.toOptions()
+    val classificationGroups = state.classificationOptions.toClassificationGroups()
+    val prefectureGroups = state.prefectureOptions.toPrefectureGroups()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -94,9 +108,13 @@ fun SakeEditScreen(
         ) {
             formFields(
                 state = state,
-                gradeOptions = gradeOptions,
-                onNameChanged = onNameChanged,
-                onGradeSelected = onGradeSelected,
+                uiData =
+                    SakeEditFormUiData(
+                        gradeOptions = gradeOptions,
+                        classificationGroups = classificationGroups,
+                        prefectureGroups = prefectureGroups,
+                    ),
+                callbacks = callbacks,
             )
             errorMessage(state = state)
             item {
@@ -112,23 +130,63 @@ fun SakeEditScreen(
 
 private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
     state: SakeEditUiState,
-    gradeOptions: List<DropdownOption>,
-    onNameChanged: (String) -> Unit,
-    onGradeSelected: (String) -> Unit,
+    uiData: SakeEditFormUiData,
+    callbacks: SakeEditCallbacks,
 ) {
     item {
         LabeledTextField(
             label = stringResource(R.string.label_sake_name),
             value = state.name,
-            onValueChange = onNameChanged,
+            onValueChange = callbacks.onNameChanged,
         )
     }
     item {
         SimpleDropdown(
             label = stringResource(R.string.label_grade),
-            selectedLabel = selectedGradeLabel(state.grade?.name, gradeOptions),
-            options = gradeOptions,
-            onSelected = onGradeSelected,
+            selectedLabel = state.gradeOptions.selectedLabel(state.grade?.name),
+            options = uiData.gradeOptions,
+            onSelected = callbacks.onGradeSelected,
+        )
+    }
+    if (state.grade == SakeGrade.OTHER) {
+        item {
+            LabeledTextField(
+                label = stringResource(R.string.label_grade_other),
+                value = state.gradeOther,
+                onValueChange = callbacks.onGradeOtherChanged,
+            )
+        }
+    }
+    item {
+        GroupedMultiSelectDropdown(
+            label = stringResource(R.string.label_classification),
+            groups = uiData.classificationGroups,
+            selectedValues = state.classifications.map { classification -> classification.name },
+            onToggle = callbacks.onClassificationToggled,
+        )
+    }
+    if (state.classifications.contains(SakeClassification.OTHER)) {
+        item {
+            LabeledTextField(
+                label = stringResource(R.string.label_classification_other),
+                value = state.typeOther,
+                onValueChange = callbacks.onTypeOtherChanged,
+            )
+        }
+    }
+    item {
+        LabeledTextField(
+            label = stringResource(R.string.label_maker),
+            value = state.maker,
+            onValueChange = callbacks.onMakerChanged,
+        )
+    }
+    item {
+        GroupedSingleSelectDropdown(
+            label = stringResource(R.string.label_prefecture),
+            groups = uiData.prefectureGroups,
+            selectedValue = state.prefecture?.name,
+            onSelected = callbacks.onPrefectureSelected,
         )
     }
 }
@@ -167,18 +225,18 @@ private fun SaveButton(
     }
 }
 
-private fun selectedGradeLabel(
-    value: String?,
-    options: List<DropdownOption>,
-): String {
-    val found = options.firstOrNull { option -> option.value == value }
-    return found?.label.orEmpty()
-}
+data class SakeEditCallbacks(
+    val onNameChanged: (String) -> Unit,
+    val onGradeSelected: (String) -> Unit,
+    val onGradeOtherChanged: (String) -> Unit,
+    val onClassificationToggled: (String) -> Unit,
+    val onTypeOtherChanged: (String) -> Unit,
+    val onMakerChanged: (String) -> Unit,
+    val onPrefectureSelected: (String?) -> Unit,
+)
 
-private fun List<MasterOption>.toOptions(): List<DropdownOption> =
-    map { option ->
-        DropdownOption(
-            value = option.value,
-            label = option.label,
-        )
-    }
+data class SakeEditFormUiData(
+    val gradeOptions: List<DropdownOption>,
+    val classificationGroups: List<DropdownOptionGroup>,
+    val prefectureGroups: List<DropdownOptionGroup>,
+)

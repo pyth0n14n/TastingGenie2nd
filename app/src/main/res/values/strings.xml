@@ -42,6 +42,11 @@
     <string name="label_overall_review">総合評価</string>
     <string name="label_sake">銘柄</string>
     <string name="label_grade">種別</string>
+    <string name="label_classification">分類</string>
+    <string name="label_classification_other">分類（その他）</string>
+    <string name="label_grade_other">種別（その他）</string>
+    <string name="label_maker">酒造</string>
+    <string name="label_prefecture">都道府県</string>
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
@@ -77,6 +82,7 @@
     <string name="error_import_unsupported_version">未対応のバックアップバージョンです</string>
     <string name="error_import_invalid_payload">JSONの内容が不正です</string>
     <string name="error_invalid_sake_grade">種別の選択値が不正です</string>
+    <string name="error_invalid_sake_selection">酒項目の選択値が不正です</string>
     <string name="error_invalid_sake_input">銘柄名と種別は必須です</string>
     <string name="error_invalid_review_selection">レビュー項目の選択値が不正です</string>
     <string name="error_invalid_review_input">日付と数値項目を確認してください</string>

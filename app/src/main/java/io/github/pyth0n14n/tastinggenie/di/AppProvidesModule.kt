@@ -12,6 +12,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
+import io.github.pyth0n14n.tastinggenie.data.local.AppDatabaseMigrations
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,7 +34,11 @@ object AppProvidesModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context,
-    ): AppDatabase = Room.databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME).build()
+    ): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, DATABASE_NAME)
+            .addMigrations(AppDatabaseMigrations.MIGRATION_1_2)
+            .build()
 
     @Provides
     @Singleton
