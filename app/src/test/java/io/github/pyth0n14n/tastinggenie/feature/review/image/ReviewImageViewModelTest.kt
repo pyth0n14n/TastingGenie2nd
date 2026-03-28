@@ -3,8 +3,10 @@ package io.github.pyth0n14n.tastinggenie.feature.review.image
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
+import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
+import io.github.pyth0n14n.tastinggenie.feature.review.testSake
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,16 +29,17 @@ class ReviewImageViewModelTest {
             val viewModel =
                 ReviewImageViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID)),
-                    reviewRepository =
-                        RecordingReviewRepository(
-                            initial = listOf(testReview().copy(imageUri = "content://review/image/1")),
+                    reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    sakeRepository =
+                        RecordingSakeRepository(
+                            initial = listOf(testSake(imageUri = "file:///images/sakes/1.jpg")),
                         ),
                 )
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals("content://review/image/1", state.imageUri)
+            assertEquals("file:///images/sakes/1.jpg", state.imageUri)
         }
 
     @Test
@@ -46,6 +49,7 @@ class ReviewImageViewModelTest {
                 ReviewImageViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID)),
                     reviewRepository = RecordingReviewRepository(),
+                    sakeRepository = RecordingSakeRepository(),
                 )
             advanceUntilIdle()
 
@@ -61,10 +65,8 @@ class ReviewImageViewModelTest {
             val viewModel =
                 ReviewImageViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID)),
-                    reviewRepository =
-                        RecordingReviewRepository(
-                            initial = listOf(testReview().copy(imageUri = null)),
-                        ),
+                    reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake(imageUri = null))),
                 )
             advanceUntilIdle()
 

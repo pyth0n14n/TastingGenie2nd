@@ -23,7 +23,8 @@ class ReviewListScreenTest {
                 state =
                     ReviewListUiState(
                         isLoading = false,
-                        reviews = listOf(testReview().copy(imageUri = "content://review/image/1")),
+                        hasSakeImage = true,
+                        reviews = listOf(testReview()),
                     ),
                 onBack = {},
                 onAddReview = {},
@@ -43,6 +44,7 @@ class ReviewListScreenTest {
                 state =
                     ReviewListUiState(
                         isLoading = false,
+                        hasSakeImage = false,
                         reviews = listOf(testReview()),
                     ),
                 onBack = {},
