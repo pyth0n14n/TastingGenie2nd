@@ -168,6 +168,14 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Open sake/review selector fields and verify the menu is attached to the field.
   - Select an option and confirm the same field reflects the chosen label.
 
+### Problem: Grouped masters get flattened in UI, making spec-defined hierarchy and optional clears disappear.
+- **Example**: Sake classification loses its category structure, or prefecture selection cannot be cleared once chosen.
+- **Preventive Measure**: When a master spec defines category or region groupings, keep that grouping in the selector UI and preserve null/clear flows for optional single-select fields.
+- **Test Coverage**:
+  - Expand classification groups and verify options are shown under the correct headings.
+  - Select `OTHER` in sake classification and verify the free-text field appears.
+  - Select and clear prefecture; verify the field returns to `未選択`.
+
 ## 8. Validation and Error Handling
 
 ### Problem: Invalid input sets error but keeps stale state, allowing silent saves.
