@@ -74,11 +74,10 @@ class ImportExportRepositoryImplTest {
             assertEquals(1, payload.sakes.size)
             assertEquals("テスト酒", payload.sakes.single().name)
             assertEquals(1, payload.reviews.size)
-            assertEquals(null, payload.reviews.single().imageUri)
         }
 
     @Test
-    fun importJson_roundTripCreatesFreshLocalIdsAndDropsImageUri() =
+    fun importJson_roundTripCreatesFreshLocalIdsAndDropsImageUris() =
         runTest {
             val repository = createRepository()
             val payload =
@@ -94,12 +93,12 @@ class ImportExportRepositoryImplTest {
             val storedReview = database.reviewDao().getAllOnce().single()
             assertEquals("テスト酒", storedSake.name)
             assertEquals(SakeGrade.JUNMAI, storedSake.grade)
+            assertEquals(null, storedSake.imageUri)
             assertEquals(null, storedSake.gradeOther)
             assertTrue(storedSake.id != sampleSerializableSake().id)
             assertEquals(storedSake.id, storedReview.sakeId)
             assertTrue(storedReview.id != sampleSerializableReview().id)
             assertEquals(LocalDate.parse("2026-03-17").toEpochDay(), storedReview.dateEpochDay)
-            assertEquals(null, storedReview.imageUri)
         }
 
     @Test
@@ -287,7 +286,6 @@ class ImportExportRepositoryImplTest {
             scentTop = listOf(Aroma.MELON.name),
             sweet = TasteLevel.STRONG.name,
             review = OverallReview.GOOD.name,
-            imageUri = "content://review/image/1",
         )
 
     private fun sampleSakeEntity(): SakeEntity =
@@ -296,6 +294,7 @@ class ImportExportRepositoryImplTest {
                 id = sake.id,
                 name = sake.name,
                 grade = SakeGrade.valueOf(sake.grade),
+                imageUri = "file:///images/sakes/1.jpg",
                 gradeOther = sake.gradeOther,
                 type = emptyList(),
                 typeOther = null,
@@ -338,7 +337,6 @@ class ImportExportRepositoryImplTest {
             dish = null,
             comment = null,
             review = OverallReview.GOOD,
-            imageUri = "content://review/image/1",
         )
 }
 

@@ -19,23 +19,19 @@ import java.time.LocalDate
 
 class MapperTest {
     @Test
-    fun reviewMapper_roundTrip_preservesDateAndImageUri() {
-        // LocalDate と imageUri の変換は保存時クラッシュに直結するため往復で固定確認する。
+    fun reviewMapper_roundTrip_preservesDate() {
         val input =
             ReviewInput(
                 id = 10L,
                 sakeId = 20L,
                 date = LocalDate.parse("2026-02-28"),
-                imageUri = "content://images/1",
             )
 
         val entity = input.toEntity()
         val domain = entity.toDomain()
 
         assertEquals(LocalDate.parse("2026-02-28").toEpochDay(), entity.dateEpochDay)
-        assertEquals("content://images/1", entity.imageUri)
         assertEquals(LocalDate.parse("2026-02-28"), domain.date)
-        assertEquals("content://images/1", domain.imageUri)
     }
 
     @Test
@@ -72,7 +68,7 @@ class MapperTest {
     }
 
     @Test
-    fun reviewMapper_handlesNullImageUri() {
+    fun reviewMapper_handlesNullOptionalFields() {
         val entity =
             ReviewEntity(
                 id = 1L,
@@ -97,25 +93,26 @@ class MapperTest {
                 dish = null,
                 comment = null,
                 review = null,
-                imageUri = null,
             )
 
-        assertNull(entity.toDomain().imageUri)
+        assertNull(entity.toDomain().comment)
     }
 
     @Test
-    fun sakeMapper_roundTrip_preservesEnumAndList() {
+    fun sakeMapper_roundTrip_preservesEnumListAndImageUri() {
         val input =
             SakeInput(
                 id = 5L,
                 name = "テスト銘柄",
                 grade = SakeGrade.JUNMAI_GINJO,
+                imageUri = "file:///images/sakes/1.jpg",
                 type = listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI),
                 prefecture = Prefecture.KYOTO,
             )
 
         val restored = input.toEntity().toDomain()
 
+        assertEquals("file:///images/sakes/1.jpg", restored.imageUri)
         assertEquals(SakeGrade.JUNMAI_GINJO, restored.grade)
         assertEquals(listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI), restored.type)
         assertEquals(Prefecture.KYOTO, restored.prefecture)

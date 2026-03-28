@@ -47,6 +47,7 @@ internal class RecordingSakeRepository(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                imageUri = input.imageUri,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
@@ -93,7 +94,6 @@ internal class RecordingReviewRepository(
                 dish = input.dish,
                 comment = input.comment,
                 review = input.review,
-                imageUri = input.imageUri,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
@@ -155,11 +155,13 @@ internal class ReviewFakeMasterDataRepository : MasterDataRepository {
 internal fun testSake(
     id: Long = TEST_SAKE_ID,
     name: String = "テスト銘柄",
+    imageUri: String? = null,
 ): Sake =
     Sake(
         id = id,
         name = name,
         grade = SakeGrade.JUNMAI,
+        imageUri = imageUri,
     )
 
 internal fun testReview(
