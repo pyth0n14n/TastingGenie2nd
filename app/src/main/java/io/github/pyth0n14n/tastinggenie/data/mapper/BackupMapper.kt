@@ -47,6 +47,7 @@ fun SerializableSake.toImportedEntity(): SakeEntity =
                 .trim()
                 .also { trimmedName -> require(trimmedName.isNotEmpty()) { "Backup sake name must not be blank" } },
         grade = enumValueOf<SakeGrade>(grade),
+        imageUri = null,
         gradeOther = gradeOther,
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
         typeOther = typeOther,
@@ -88,8 +89,6 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         dish = dish,
         comment = comment,
         review = review?.name,
-        // SAF content URIs are not portable across installs or devices, so backups omit them.
-        imageUri = null,
     )
 
 fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
@@ -120,5 +119,4 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         dish = dish,
         comment = comment,
         review = review?.let { value -> enumValueOf<OverallReview>(value) },
-        imageUri = null,
     )

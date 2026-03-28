@@ -9,11 +9,13 @@ import io.github.pyth0n14n.tastinggenie.data.master.AssetTextSource
 import io.github.pyth0n14n.tastinggenie.data.repository.ImportExportRepositoryImpl
 import io.github.pyth0n14n.tastinggenie.data.repository.MasterDataRepositoryImpl
 import io.github.pyth0n14n.tastinggenie.data.repository.ReviewRepositoryImpl
+import io.github.pyth0n14n.tastinggenie.data.repository.SakeImageRepositoryImpl
 import io.github.pyth0n14n.tastinggenie.data.repository.SakeRepositoryImpl
 import io.github.pyth0n14n.tastinggenie.data.repository.SettingsRepositoryImpl
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import javax.inject.Singleton
@@ -32,6 +34,10 @@ abstract class AppBindModule {
     @Binds
     @Singleton
     abstract fun bindReviewRepository(impl: ReviewRepositoryImpl): ReviewRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSakeImageRepository(impl: SakeImageRepositoryImpl): SakeImageRepository
 
     @Binds
     @Singleton
