@@ -7,6 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
@@ -67,6 +69,96 @@ class SakeEditViewModel
             }
         }
 
+        fun onClassificationToggled(value: String) {
+            val selectedClassification =
+                SakeClassification.entries.firstOrNull { classification ->
+                    classification.name == value
+                }
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    return@update current
+                }
+                if (selectedClassification == null) {
+                    current.copy(
+                        error =
+                            UiError(
+                                messageResId = R.string.error_invalid_sake_selection,
+                                causeKey = value,
+                            ),
+                    )
+                } else {
+                    val nextSelections =
+                        if (current.classifications.contains(selectedClassification)) {
+                            current.classifications - selectedClassification
+                        } else {
+                            (current.classifications + selectedClassification)
+                                .sortedBy { classification ->
+                                    current.classificationOptions.indexOfFirst { option ->
+                                        option.value == classification.name
+                                    }
+                                }
+                        }
+                    current.copy(
+                        classifications = nextSelections,
+                        typeOther =
+                            if (nextSelections.contains(SakeClassification.OTHER)) {
+                                current.typeOther
+                            } else {
+                                ""
+                            },
+                        error = null,
+                    )
+                }
+            }
+        }
+
+        fun onTypeOtherChanged(value: String) {
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    current
+                } else {
+                    current.copy(typeOther = value)
+                }
+            }
+        }
+
+        fun onMakerChanged(value: String) {
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    current
+                } else {
+                    current.copy(maker = value)
+                }
+            }
+        }
+
+        fun onPrefectureSelected(value: String?) {
+            val selectedPrefecture =
+                when (value) {
+                    null -> null
+                    else -> Prefecture.entries.firstOrNull { prefecture -> prefecture.name == value }
+                }
+            _uiState.update { current ->
+                if (current.isEditTargetMissing) {
+                    return@update current
+                }
+                if (value != null && selectedPrefecture == null) {
+                    current.copy(
+                        error =
+                            UiError(
+                                messageResId = R.string.error_invalid_sake_selection,
+                                causeKey = value,
+                            ),
+                    )
+                } else {
+                    current.copy(
+                        prefecture = selectedPrefecture,
+                        error = null,
+                    )
+                }
+            }
+        }
+
         fun save() {
             val snapshot = uiState.value
             if (snapshot.isEditTargetMissing) {
@@ -86,6 +178,13 @@ class SakeEditViewModel
                             id = snapshot.sakeId,
                             name = snapshot.name.trim(),
                             grade = grade,
+                            type = snapshot.classifications,
+                            typeOther =
+                                snapshot.typeOther
+                                    .normalizedOrNull()
+                                    ?.takeIf { snapshot.classifications.contains(SakeClassification.OTHER) },
+                            maker = snapshot.maker.normalizedOrNull(),
+                            prefecture = snapshot.prefecture,
                         ),
                     )
                 }.onSuccess {
@@ -111,7 +210,8 @@ class SakeEditViewModel
 
         private fun loadInitial() {
             viewModelScope.launch {
-                val sakeIdArg = savedStateHandle.get<Long>(AppDestination.ARG_SAKE_ID) ?: AppDestination.NO_ID
+                val sakeIdArg =
+                    savedStateHandle.get<Long>(AppDestination.ARG_SAKE_ID) ?: AppDestination.NO_ID
                 val sakeId = sakeIdArg.takeIf { it != AppDestination.NO_ID }
                 // 編集モードでは既存データを読み込み、新規モードでは空フォームを返す。
                 runCatching {
@@ -125,6 +225,8 @@ class SakeEditViewModel
                                 isLoading = false,
                                 isEditTargetMissing = true,
                                 gradeOptions = master.sakeGrades,
+                                classificationOptions = master.classifications,
+                                prefectureOptions = master.prefectures,
                                 error =
                                     UiError(
                                         messageResId = R.string.error_load_sake,
@@ -139,9 +241,15 @@ class SakeEditViewModel
                             isLoading = false,
                             isEditTargetMissing = false,
                             gradeOptions = master.sakeGrades,
+                            classificationOptions = master.classifications,
+                            prefectureOptions = master.prefectures,
                             sakeId = existing?.id,
                             name = existing?.name.orEmpty(),
                             grade = existing?.grade,
+                            classifications = existing?.type.orEmpty(),
+                            typeOther = existing?.typeOther.orEmpty(),
+                            maker = existing?.maker.orEmpty(),
+                            prefecture = existing?.prefecture,
                         )
                     }
                 }.onFailure { throwable ->
@@ -159,3 +267,5 @@ class SakeEditViewModel
             }
         }
     }
+
+private fun String.normalizedOrNull(): String? = trim().takeIf { value -> value.isNotEmpty() }
