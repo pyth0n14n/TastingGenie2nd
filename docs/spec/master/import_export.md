@@ -15,7 +15,7 @@
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "sakes": [],
   "reviews": []
 }
@@ -43,5 +43,7 @@
 
 ## 5. 画像の扱い
 
-- review 画像は URI ベース管理のため、バックアップには画像バイト列を含めない
-- `imageUri` は端末や権限状態をまたいで復元可能な値ではないため、export/import 対象にしない
+- 現行の JSON backup は画像バイト列を含めない
+- `Sake.imageUri` はアプリ専用領域の URI を指すため、端末やインストール状態をまたいで復元可能な値ではない
+- そのため、画像は export/import 対象にしない
+- 画像付き backup の扱いは ZIP 化を行う後続 PR で定義する
