@@ -30,22 +30,23 @@ class ReviewDetailViewModel
         val uiState: StateFlow<ReviewDetailUiState> = _uiState.asStateFlow()
 
         init {
-            loadInitial()
+            refresh()
         }
 
-        private fun loadInitial() {
-            viewModelScope.launch {
-                val reviewId = savedStateHandle.reviewIdOrDefault()
-                if (reviewId == AppDestination.NO_ID) {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = UiError(messageResId = R.string.error_load_review),
-                        )
-                    }
-                    return@launch
+        fun refresh() {
+            val reviewId = savedStateHandle.reviewIdOrDefault()
+            if (reviewId == AppDestination.NO_ID) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = UiError(messageResId = R.string.error_load_review),
+                    )
                 }
+                return
+            }
 
+            viewModelScope.launch {
+                _uiState.update { it.copy(isLoading = true, error = null) }
                 runCatching {
                     val master = masterDataRepository.getMasterData()
                     val review = reviewRepository.getReview(reviewId)

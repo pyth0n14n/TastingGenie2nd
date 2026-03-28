@@ -1,10 +1,11 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ fun LabeledTextField(
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun SimpleDropdown(
     label: String,
     selectedLabel: String,
@@ -42,20 +44,34 @@ fun SimpleDropdown(
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier.fillMaxWidth()) {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            val displayedLabel =
-                if (selectedLabel.isBlank()) {
-                    stringResource(R.string.label_unselected)
-                } else {
-                    selectedLabel
-                }
-            Text(text = "$label: $displayedLabel")
+    val displayedLabel =
+        if (selectedLabel.isBlank()) {
+            stringResource(R.string.label_unselected)
+        } else {
+            selectedLabel
         }
-        DropdownMenu(
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        OutlinedTextField(
+            value = displayedLabel,
+            onValueChange = {},
+            modifier =
+                Modifier
+                    .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
+            label = { Text(text = label) },
+            readOnly = true,
+            singleLine = true,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+        )
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {

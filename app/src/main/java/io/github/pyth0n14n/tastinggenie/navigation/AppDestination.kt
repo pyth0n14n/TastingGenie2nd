@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.navigation
 object AppDestination {
     const val ARG_SAKE_ID = "sakeId"
     const val ARG_REVIEW_ID = "reviewId"
+    const val RESULT_REVIEW_REFRESH = "reviewRefresh"
     const val NO_ID = -1L
 
     const val SAKE_LIST = "sake/list"

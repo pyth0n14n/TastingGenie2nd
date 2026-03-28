@@ -32,13 +32,14 @@ private const val ITEM_SPACING = 12
 @OptIn(ExperimentalMaterial3Api::class)
 fun ReviewEditRoute(
     onBack: () -> Unit,
+    onSaved: () -> Unit,
     viewModel: ReviewEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             viewModel.consumeSaved()
-            onBack()
+            onSaved()
         }
     }
     ReviewEditScreen(
@@ -128,10 +129,6 @@ private fun ReviewEditBody(
                 aromaUiData =
                     AromaUiData(
                         categories = state.aromaCategories,
-                        labelMap =
-                            state.aromaCategories
-                                .flatMap { it.items }
-                                .associate { it.value to it.label },
                     ),
             )
         reviewEditFormContent(

@@ -16,6 +16,9 @@
     <string name="action_export_json">JSONを書き出す</string>
     <string name="action_import_json">JSONを読み込む</string>
     <string name="action_close_message">閉じる</string>
+    <string name="action_confirm">確定</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_select">選択</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_review_date">日付</string>
     <string name="label_bar">店名</string>
