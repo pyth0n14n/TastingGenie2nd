@@ -30,7 +30,7 @@ import org.junit.Test
 class SakeEditViewModelTest {
     companion object {
         private const val EXISTING_SAKE_ID = 7L
-        private const val GRADE_OPTION_COUNT = 2
+        private const val GRADE_OPTION_COUNT = 3
         private const val EXTENDED_OPTION_COUNT = 3
     }
 
@@ -130,6 +130,29 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun save_withGradeOther_persistsFreeText() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onNameChanged("保存テスト")
+            viewModel.onGradeSelected(SakeGrade.OTHER.name)
+            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(SakeGrade.OTHER, saved.grade)
+            assertEquals("普通酒", saved.gradeOther)
+        }
+
+    @Test
     fun onGradeSelected_withUnexpectedValue_setsUiErrorWithoutCrashing() =
         runTest {
             val viewModel =
@@ -166,6 +189,50 @@ class SakeEditViewModelTest {
             assertTrue(state.classifications.isEmpty())
             assertEquals(R.string.error_invalid_sake_selection, state.error?.messageResId)
             assertEquals("BROKEN_VALUE", state.error?.causeKey)
+        }
+
+    @Test
+    fun changingGradeAwayFromOther_clearsFreeTextWhenClassificationOtherIsAbsent() =
+        runTest {
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onGradeSelected(SakeGrade.OTHER.name)
+            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+
+            val state = viewModel.uiState.value
+            assertEquals(SakeGrade.JUNMAI, state.grade)
+            assertEquals("", state.gradeOther)
+        }
+
+    @Test
+    fun togglingClassificationOther_doesNotAffectGradeOther() =
+        runTest {
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onGradeSelected(SakeGrade.OTHER.name)
+            viewModel.onGradeOtherChanged("普通酒")
+            viewModel.onClassificationToggled(SakeClassification.OTHER.name)
+            viewModel.onTypeOtherChanged("普通酒")
+            viewModel.onClassificationToggled(SakeClassification.OTHER.name)
+
+            val state = viewModel.uiState.value
+            assertEquals(SakeGrade.OTHER, state.grade)
+            assertEquals("普通酒", state.gradeOther)
+            assertTrue(state.classifications.isEmpty())
+            assertEquals("", state.typeOther)
         }
 
     @Test
@@ -217,7 +284,8 @@ class SakeEditViewModelTest {
                             Sake(
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
-                                grade = SakeGrade.GINJO,
+                                grade = SakeGrade.OTHER,
+                                gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
                                 maker = "既存酒造",
@@ -278,7 +346,8 @@ class SakeEditViewModelTest {
                             Sake(
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
-                                grade = SakeGrade.GINJO,
+                                grade = SakeGrade.OTHER,
+                                gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
                                 maker = "既存酒造",
@@ -298,7 +367,8 @@ class SakeEditViewModelTest {
             assertFalse(state.isLoading)
             assertEquals(EXISTING_SAKE_ID, state.sakeId)
             assertEquals("既存銘柄", state.name)
-            assertEquals(SakeGrade.GINJO, state.grade)
+            assertEquals(SakeGrade.OTHER, state.grade)
+            assertEquals("普通酒", state.gradeOther)
             assertEquals(listOf(SakeClassification.KIMOTO, SakeClassification.OTHER), state.classifications)
             assertEquals("限定品", state.typeOther)
             assertEquals("既存酒造", state.maker)
@@ -324,6 +394,7 @@ private class RecordingSakeRepository(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                gradeOther = input.gradeOther,
                 type = input.type,
                 typeOther = input.typeOther,
                 maker = input.maker,
@@ -343,6 +414,7 @@ private class FakeMasterDataRepository : MasterDataRepository {
                 listOf(
                     MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
                     MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
+                    MasterOption(value = SakeGrade.OTHER.name, label = "その他"),
                 ),
             classifications =
                 listOf(

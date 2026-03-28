@@ -91,6 +91,59 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun selectingOtherGrade_showsFreeTextField() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        grade = SakeGrade.OTHER,
+                        gradeOptions =
+                            listOf(
+                                MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
+                                MasterOption(value = SakeGrade.OTHER.name, label = "その他"),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("種別（その他）").assertIsDisplayed()
+    }
+
+    @Test
+    fun selectingBothOtherValues_showsSeparateFields() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        grade = SakeGrade.OTHER,
+                        gradeOptions =
+                            listOf(
+                                MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
+                                MasterOption(value = SakeGrade.OTHER.name, label = "その他"),
+                            ),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(value = SakeClassification.KIMOTO.name, label = "生酛"),
+                                MasterOption(value = SakeClassification.OTHER.name, label = "その他"),
+                            ),
+                        classifications = listOf(SakeClassification.OTHER),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("種別（その他）").assertIsDisplayed()
+        composeRule.onNodeWithText("分類（その他）").assertIsDisplayed()
+    }
+
+    @Test
     fun selectingPrefectureFromGroupedDropdown_callsOnPrefectureSelected() {
         var selectedValue: String? = null
         composeRule.setContent {
@@ -122,6 +175,7 @@ class SakeEditScreenTest {
 private fun defaultCallbacks(
     onNameChanged: (String) -> Unit = {},
     onGradeSelected: (String) -> Unit = {},
+    onGradeOtherChanged: (String) -> Unit = {},
     onClassificationToggled: (String) -> Unit = {},
     onTypeOtherChanged: (String) -> Unit = {},
     onMakerChanged: (String) -> Unit = {},
@@ -130,6 +184,7 @@ private fun defaultCallbacks(
     SakeEditCallbacks(
         onNameChanged = onNameChanged,
         onGradeSelected = onGradeSelected,
+        onGradeOtherChanged = onGradeOtherChanged,
         onClassificationToggled = onClassificationToggled,
         onTypeOtherChanged = onTypeOtherChanged,
         onMakerChanged = onMakerChanged,

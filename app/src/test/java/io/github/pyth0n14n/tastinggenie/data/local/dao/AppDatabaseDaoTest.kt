@@ -94,6 +94,7 @@ class AppDatabaseDaoTest {
         SakeEntity(
             name = name,
             grade = SakeGrade.JUNMAI,
+            gradeOther = null,
             type = emptyList(),
             typeOther = null,
             maker = null,
