@@ -17,6 +17,7 @@
 | id | Long | PK |
 | name | String | 必須 |
 | grade | Enum | 必須 |
+| gradeOther | String | 任意 |
 | type | List<Enum> | 任意 |
 | typeOther | String | 任意 |
 | maker | String | 任意 |
