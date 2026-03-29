@@ -321,50 +321,6 @@ private fun SakeEditUiState.withLoadedData(
 private fun SakeEditUiState.withInvalidInputError(): SakeEditUiState =
     copy(error = UiError(messageResId = R.string.error_invalid_sake_input))
 
-private suspend fun saveSake(
-    snapshot: SakeEditUiState,
-    input: SakeInput,
-    sakeRepository: SakeRepository,
-    sakeImageRepository: SakeImageRepository,
-) {
-    val previousImageUri = snapshot.persistedImageUri
-    var importedImageUri: String? = null
-    var isSaved = false
-    try {
-        val resolvedImageUri =
-            when {
-                !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
-                    importedImageUri =
-                        sakeImageRepository.importImage(
-                            sourceUri = snapshot.pendingImageSourceUri,
-                        )
-                    importedImageUri
-                }
-
-                snapshot.isImageMarkedForDeletion -> null
-                else -> previousImageUri
-            }
-        sakeRepository.upsertSake(input.copy(imageUri = resolvedImageUri))
-        when {
-            !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
-                if (!previousImageUri.isNullOrBlank() && previousImageUri != importedImageUri) {
-                    sakeImageRepository.deleteImage(previousImageUri)
-                }
-            }
-
-            snapshot.isImageMarkedForDeletion -> sakeImageRepository.deleteImage(previousImageUri)
-        }
-        isSaved = true
-    } finally {
-        if (!isSaved) {
-            val cleanupImageUri = importedImageUri
-            if (cleanupImageUri != null) {
-                sakeImageRepository.deleteImage(cleanupImageUri)
-            }
-        }
-    }
-}
-
 private fun String.normalizedOrNull(): String? = trim().takeIf { value -> value.isNotEmpty() }
 
 private fun String.parseOptionalInt(): ParsedNumber<Int> {
