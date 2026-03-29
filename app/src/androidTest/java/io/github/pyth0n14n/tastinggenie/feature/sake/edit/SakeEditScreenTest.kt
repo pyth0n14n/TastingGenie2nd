@@ -144,6 +144,49 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun selectImageButton_callsOnPickImageRequest() {
+        var pickCalled = false
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(onPickImageRequest = { pickCalled = true }),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("画像を選択").performClick()
+        composeRule.runOnIdle { assertTrue(pickCalled) }
+    }
+
+    @Test
+    fun deletingImage_requiresConfirmation() {
+        var deleteCalled = false
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        imagePreviewUri = "file:///images/sakes/preview.jpg",
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(onDeleteImage = { deleteCalled = true }),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("画像を削除").performClick()
+        composeRule.onNodeWithText("この酒の画像を削除しますか？").assertIsDisplayed()
+        composeRule.onNodeWithText("確定").performClick()
+        composeRule.runOnIdle { assertTrue(deleteCalled) }
+    }
+
+    @Test
     fun pr4Fields_areDisplayed() {
         composeRule.setContent {
             SakeEditScreen(
@@ -203,10 +246,14 @@ private fun defaultCallbacks(
     onGradeSelected: (String) -> Unit = {},
     onClassificationToggled: (String) -> Unit = {},
     onPrefectureSelected: (String?) -> Unit = {},
+    onPickImageRequest: () -> Unit = {},
+    onDeleteImage: () -> Unit = {},
 ): SakeEditCallbacks =
     SakeEditCallbacks(
         onTextChanged = onTextChanged,
         onGradeSelected = onGradeSelected,
         onClassificationToggled = onClassificationToggled,
         onPrefectureSelected = onPrefectureSelected,
+        onPickImageRequest = onPickImageRequest,
+        onDeleteImage = onDeleteImage,
     )
