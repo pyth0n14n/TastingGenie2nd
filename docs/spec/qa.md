@@ -79,6 +79,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Pick a replacement image and cancel edit; verify the persisted image is unchanged.
   - Simulate save failure after image import; verify the newly imported managed image is deleted.
   - Delete an existing image and save; verify the old managed image is removed only after the save succeeds.
+### Problem: Post-save image cleanup failure is treated as a save failure even after the DB commit succeeded.
+- **Example**: SakeEdit saves a replacement image, then `deleteImage(oldUri)` throws and the screen reports `error_save_sake` while the DB already points at the new image.
+- **Preventive Measure**: Mark the DB write as committed before old-image cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
+- **Test Coverage**:
+  - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
+  - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
 
 ## 3. Navigation and Settings Application
 
