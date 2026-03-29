@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
@@ -37,6 +38,9 @@ class SakeEditViewModelTest {
         private const val TEST_KOJI_POLISH = 50
         private const val TEST_KAKE_POLISH = 55
         private const val TEST_ALCOHOL = 16
+        private const val PICKED_IMAGE_URI = "content://picked/image/1"
+        private const val EXISTING_IMAGE_URI = "file:///images/sakes/existing.jpg"
+        private const val IMPORTED_IMAGE_URI = "file:///images/sakes/imported.jpg"
     }
 
     @get:Rule
@@ -51,6 +55,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = sakeRepository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = masterRepository,
                 )
             advanceUntilIdle()
@@ -70,6 +75,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -90,6 +96,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -113,6 +120,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -142,6 +150,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -180,6 +189,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -196,6 +206,92 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun save_withSelectedImage_importsManagedImageAndPersistsUri() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(IMPORTED_IMAGE_URI, saved.imageUri)
+            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
+            assertTrue(imageRepository.deletedUris.isEmpty())
+        }
+
+    @Test
+    fun save_withImageDeletion_deletesPersistedImageAfterSave() =
+        runTest {
+            val repository =
+                RecordingSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = EXISTING_SAKE_ID,
+                                name = "既存銘柄",
+                                grade = SakeGrade.JUNMAI,
+                                imageUri = EXISTING_IMAGE_URI,
+                            ),
+                        ),
+                )
+            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.removeImage()
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(null, saved.imageUri)
+            assertEquals(listOf(EXISTING_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
+    fun save_whenSakeSaveFails_cleansUpImportedImage() =
+        runTest {
+            val repository = RecordingSakeRepository(upsertFailure = IllegalStateException("boom"))
+            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(R.string.error_save_sake, state.error?.messageResId)
+            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
+            assertEquals(listOf(IMPORTED_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
     fun save_withInvalidNumericField_setsValidationError() =
         runTest {
             val repository = RecordingSakeRepository()
@@ -203,6 +299,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -226,6 +323,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -249,6 +347,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -272,6 +371,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -292,6 +392,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -311,6 +412,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -331,6 +433,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -355,6 +458,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -375,6 +479,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(),
                     sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -398,6 +503,7 @@ class SakeEditViewModelTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.OTHER,
+                                imageUri = EXISTING_IMAGE_URI,
                                 gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
@@ -419,6 +525,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -441,6 +548,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -469,6 +577,7 @@ class SakeEditViewModelTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.OTHER,
+                                imageUri = EXISTING_IMAGE_URI,
                                 gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
@@ -490,6 +599,7 @@ class SakeEditViewModelTest {
                 SakeEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
                     sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
                     masterDataRepository = FakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -499,6 +609,8 @@ class SakeEditViewModelTest {
             assertEquals(EXISTING_SAKE_ID, state.sakeId)
             assertEquals("既存銘柄", state.name)
             assertEquals(SakeGrade.OTHER, state.grade)
+            assertEquals(EXISTING_IMAGE_URI, state.imagePreviewUri)
+            assertEquals(EXISTING_IMAGE_URI, state.persistedImageUri)
             assertEquals("普通酒", state.gradeOther)
             assertEquals(listOf(SakeClassification.KIMOTO, SakeClassification.OTHER), state.classifications)
             assertEquals("限定品", state.typeOther)
@@ -518,6 +630,7 @@ class SakeEditViewModelTest {
 
 private class RecordingSakeRepository(
     initial: List<Sake> = emptyList(),
+    private val upsertFailure: Throwable? = null,
 ) : SakeRepository {
     private val stream = MutableStateFlow(initial)
     val savedInputs = mutableListOf<SakeInput>()
@@ -528,12 +641,14 @@ private class RecordingSakeRepository(
 
     override suspend fun upsertSake(input: SakeInput): SakeId {
         savedInputs.add(input)
+        upsertFailure?.let { throw it }
         val id = input.id ?: ((stream.value.maxOfOrNull { it.id } ?: 0L) + 1L)
         val mapped =
             Sake(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                imageUri = input.imageUri,
                 gradeOther = input.gradeOther,
                 type = input.type,
                 typeOther = input.typeOther,
@@ -553,6 +668,25 @@ private class RecordingSakeRepository(
         mutable.add(mapped)
         stream.value = mutable
         return id
+    }
+}
+
+private class RecordingSakeImageRepository(
+    private val importedUri: String = "file:///images/sakes/imported.jpg",
+) : SakeImageRepository {
+    val importedSources = mutableListOf<String>()
+    val deletedUris = mutableListOf<String>()
+
+    override suspend fun importImage(
+        sourceUri: String,
+        previousImageUri: String?,
+    ): String {
+        importedSources += sourceUri
+        return importedUri
+    }
+
+    override suspend fun deleteImage(imageUri: String?) {
+        imageUri?.let(deletedUris::add)
     }
 }
 
