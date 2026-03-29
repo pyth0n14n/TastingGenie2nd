@@ -13,6 +13,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +32,7 @@ class SakeEditViewModel
     constructor(
         private val savedStateHandle: SavedStateHandle,
         private val sakeRepository: SakeRepository,
+        private val sakeImageRepository: SakeImageRepository,
         private val masterDataRepository: MasterDataRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SakeEditUiState())
@@ -60,6 +62,28 @@ class SakeEditViewModel
                     SakeTextField.YEAST -> current.copy(yeast = value)
                     SakeTextField.WATER -> current.copy(water = value)
                 }
+            }
+        }
+
+        fun onImageSelected(imageUri: String) {
+            updateEditableState { current ->
+                current.copy(
+                    imagePreviewUri = imageUri,
+                    pendingImageSourceUri = imageUri,
+                    isImageMarkedForDeletion = false,
+                    error = null,
+                )
+            }
+        }
+
+        fun removeImage() {
+            updateEditableState { current ->
+                current.copy(
+                    imagePreviewUri = null,
+                    pendingImageSourceUri = null,
+                    isImageMarkedForDeletion = true,
+                    error = null,
+                )
             }
         }
 
@@ -165,13 +189,18 @@ class SakeEditViewModel
             }
             val input = snapshot.toValidatedInput()
             if (input == null) {
-                invalidateSakeInput()
+                _uiState.update { state -> state.withInvalidInputError() }
                 return
             }
             viewModelScope.launch {
                 _uiState.update { it.copy(isSaving = true, error = null) }
                 runCatching {
-                    sakeRepository.upsertSake(input)
+                    saveSake(
+                        snapshot = snapshot,
+                        input = input,
+                        sakeRepository = sakeRepository,
+                        sakeImageRepository = sakeImageRepository,
+                    )
                 }.onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSaved = true) }
                 }.onFailure { throwable ->
@@ -237,12 +266,6 @@ class SakeEditViewModel
                 }
             }
         }
-
-        private fun invalidateSakeInput() {
-            _uiState.update { state ->
-                state.copy(error = UiError(messageResId = R.string.error_invalid_sake_input))
-            }
-        }
     }
 
 private fun SakeEditUiState.withMissingEditTarget(
@@ -275,6 +298,10 @@ private fun SakeEditUiState.withLoadedData(
         sakeId = existing?.id,
         name = existing?.name.orEmpty(),
         grade = existing?.grade,
+        imagePreviewUri = existing?.imageUri,
+        persistedImageUri = existing?.imageUri,
+        pendingImageSourceUri = null,
+        isImageMarkedForDeletion = false,
         gradeOther = existing?.gradeOther.orEmpty(),
         classifications = existing?.type.orEmpty(),
         typeOther = existing?.typeOther.orEmpty(),
@@ -290,6 +317,53 @@ private fun SakeEditUiState.withLoadedData(
         yeast = existing?.yeast.orEmpty(),
         water = existing?.water.orEmpty(),
     )
+
+private fun SakeEditUiState.withInvalidInputError(): SakeEditUiState =
+    copy(error = UiError(messageResId = R.string.error_invalid_sake_input))
+
+private suspend fun saveSake(
+    snapshot: SakeEditUiState,
+    input: SakeInput,
+    sakeRepository: SakeRepository,
+    sakeImageRepository: SakeImageRepository,
+) {
+    val previousImageUri = snapshot.persistedImageUri
+    var importedImageUri: String? = null
+    var isSaved = false
+    try {
+        val resolvedImageUri =
+            when {
+                !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
+                    importedImageUri =
+                        sakeImageRepository.importImage(
+                            sourceUri = snapshot.pendingImageSourceUri,
+                        )
+                    importedImageUri
+                }
+
+                snapshot.isImageMarkedForDeletion -> null
+                else -> previousImageUri
+            }
+        sakeRepository.upsertSake(input.copy(imageUri = resolvedImageUri))
+        when {
+            !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
+                if (!previousImageUri.isNullOrBlank() && previousImageUri != importedImageUri) {
+                    sakeImageRepository.deleteImage(previousImageUri)
+                }
+            }
+
+            snapshot.isImageMarkedForDeletion -> sakeImageRepository.deleteImage(previousImageUri)
+        }
+        isSaved = true
+    } finally {
+        if (!isSaved) {
+            val cleanupImageUri = importedImageUri
+            if (cleanupImageUri != null) {
+                sakeImageRepository.deleteImage(cleanupImageUri)
+            }
+        }
+    }
+}
 
 private fun String.normalizedOrNull(): String? = trim().takeIf { value -> value.isNotEmpty() }
 

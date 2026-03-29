@@ -1,5 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,11 +15,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -48,12 +52,20 @@ fun SakeEditRoute(
     viewModel: SakeEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val imagePickerLauncher =
+        rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
+            uri?.toString()?.let(viewModel::onImageSelected)
+        }
     val callbacks =
         SakeEditCallbacks(
             onTextChanged = viewModel::onTextChanged,
             onGradeSelected = viewModel::onGradeSelected,
             onClassificationToggled = viewModel::onClassificationToggled,
             onPrefectureSelected = viewModel::onPrefectureSelected,
+            onPickImageRequest = {
+                imagePickerLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+            },
+            onDeleteImage = viewModel::removeImage,
         )
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
@@ -81,21 +93,21 @@ fun SakeEditScreen(
         LoadingContent()
         return
     }
+    var isDeleteImageDialogVisible by remember { mutableStateOf(false) }
     val gradeOptions = state.gradeOptions.toOptions()
     val classificationGroups = state.classificationOptions.toClassificationGroups()
     val prefectureGroups = state.prefectureOptions.toPrefectureGroups()
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.screen_sake_edit)) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
-            )
-        },
+        topBar = { SakeEditTopBar(onBack = onBack) },
     ) { padding ->
+        DeleteSakeImageDialog(
+            isVisible = isDeleteImageDialogVisible,
+            onConfirm = {
+                callbacks.onDeleteImage()
+                isDeleteImageDialogVisible = false
+            },
+            onDismiss = { isDeleteImageDialogVisible = false },
+        )
         LazyColumn(
             modifier =
                 Modifier
@@ -113,6 +125,7 @@ fun SakeEditScreen(
                         prefectureGroups = prefectureGroups,
                     ),
                 callbacks = callbacks,
+                onDeleteImageRequest = { isDeleteImageDialogVisible = true },
             )
             errorMessage(state = state)
             item {
@@ -130,8 +143,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
     state: SakeEditUiState,
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
+    onDeleteImageRequest: () -> Unit,
 ) {
-    basicFields(state = state, uiData = uiData, callbacks = callbacks)
+    basicFields(
+        state = state,
+        uiData = uiData,
+        callbacks = callbacks,
+        onDeleteImageRequest = onDeleteImageRequest,
+    )
     classificationFields(state = state, uiData = uiData, callbacks = callbacks)
     metadataFields(state = state, callbacks = callbacks)
 }
@@ -140,6 +159,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
     state: SakeEditUiState,
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
+    onDeleteImageRequest: () -> Unit,
 ) {
     textFieldItem(
         labelRes = R.string.label_sake_name,
@@ -153,6 +173,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
             selectedLabel = state.gradeOptions.selectedLabel(state.grade?.name),
             options = uiData.gradeOptions,
             onSelected = callbacks.onGradeSelected,
+        )
+    }
+    item {
+        SakeImageField(
+            imageUri = state.imagePreviewUri,
+            isSaving = state.isSaving,
+            onPickImage = callbacks.onPickImageRequest,
+            onDeleteImageRequest = onDeleteImageRequest,
         )
     }
     if (state.grade == SakeGrade.OTHER) {
@@ -271,6 +299,8 @@ data class SakeEditCallbacks(
     val onGradeSelected: (String) -> Unit,
     val onClassificationToggled: (String) -> Unit,
     val onPrefectureSelected: (String?) -> Unit,
+    val onPickImageRequest: () -> Unit,
+    val onDeleteImage: () -> Unit,
 )
 
 data class SakeEditFormUiData(
