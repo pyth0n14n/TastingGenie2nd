@@ -628,7 +628,7 @@ class SakeEditViewModelTest {
         }
 }
 
-private class RecordingSakeRepository(
+class RecordingSakeRepository(
     initial: List<Sake> = emptyList(),
     private val upsertFailure: Throwable? = null,
 ) : SakeRepository {
@@ -671,8 +671,9 @@ private class RecordingSakeRepository(
     }
 }
 
-private class RecordingSakeImageRepository(
+class RecordingSakeImageRepository(
     private val importedUri: String = "file:///images/sakes/imported.jpg",
+    private val deleteFailures: Set<String> = emptySet(),
 ) : SakeImageRepository {
     val importedSources = mutableListOf<String>()
     val deletedUris = mutableListOf<String>()
@@ -686,11 +687,16 @@ private class RecordingSakeImageRepository(
     }
 
     override suspend fun deleteImage(imageUri: String?) {
-        imageUri?.let(deletedUris::add)
+        imageUri?.let { uri ->
+            deletedUris += uri
+            if (uri in deleteFailures) {
+                error("delete failed for $uri")
+            }
+        }
     }
 }
 
-private class FakeMasterDataRepository : MasterDataRepository {
+class FakeMasterDataRepository : MasterDataRepository {
     override suspend fun getMasterData(): MasterDataBundle =
         MasterDataBundle(
             sakeGrades =
