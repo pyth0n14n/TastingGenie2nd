@@ -39,9 +39,30 @@ class ReviewListViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertEquals("テスト銘柄", state.sakeName)
+            assertEquals(false, state.hasSakeImage)
             assertEquals(1, state.reviews.size)
             assertEquals("好き", state.overallReviewLabels["GOOD"])
             assertEquals(null, state.error)
+        }
+
+    @Test
+    fun uiState_marksImageAvailableWhenParentSakeHasImage() =
+        runTest {
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository =
+                        RecordingSakeRepository(
+                            initial = listOf(testSake(imageUri = "file:///images/sakes/1.jpg")),
+                        ),
+                    reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertEquals(true, state.hasSakeImage)
         }
 
     @Test

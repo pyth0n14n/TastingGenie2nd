@@ -9,6 +9,7 @@ data class ReviewListUiState(
     val error: UiError? = null,
     val sakeId: SakeId? = null,
     val sakeName: String = "",
+    val hasSakeImage: Boolean = false,
     val reviews: List<Review> = emptyList(),
     val overallReviewLabels: Map<String, String> = emptyMap(),
     val isSakeMissing: Boolean = false,

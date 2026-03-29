@@ -48,5 +48,4 @@ data class ReviewEntity(
     val dish: String?,
     val comment: String?,
     val review: OverallReview?,
-    val imageUri: String?,
 )

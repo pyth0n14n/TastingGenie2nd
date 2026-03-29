@@ -113,5 +113,4 @@ private fun Review.toInput(): ReviewInput =
         dish = dish,
         comment = comment,
         review = review,
-        imageUri = imageUri,
     )

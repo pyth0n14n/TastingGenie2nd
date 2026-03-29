@@ -93,8 +93,12 @@ fun ReviewListScreen(
                 ReviewList(
                     reviews = state.reviews,
                     overallReviewLabels = state.overallReviewLabels,
-                    onOpenReview = onOpenReview,
-                    onOpenImage = onOpenImage,
+                    callbacks =
+                        ReviewListCallbacks(
+                            onOpenReview = onOpenReview,
+                            onOpenImage = onOpenImage,
+                        ),
+                    hasSakeImage = state.hasSakeImage,
                     modifier = Modifier.padding(padding),
                 )
         }
@@ -105,8 +109,8 @@ fun ReviewListScreen(
 private fun ReviewList(
     reviews: List<Review>,
     overallReviewLabels: Map<String, String>,
-    onOpenReview: (Long) -> Unit,
-    onOpenImage: (Long) -> Unit,
+    callbacks: ReviewListCallbacks,
+    hasSakeImage: Boolean,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -131,8 +135,8 @@ private fun ReviewList(
                     }
                 },
                 trailingContent = {
-                    if (!review.imageUri.isNullOrBlank()) {
-                        TextButton(onClick = { onOpenImage(review.id) }) {
+                    if (hasSakeImage) {
+                        TextButton(onClick = { callbacks.onOpenImage(review.id) }) {
                             Text(stringResource(R.string.action_view_image))
                         }
                     }
@@ -140,8 +144,13 @@ private fun ReviewList(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenReview(review.id) },
+                        .clickable { callbacks.onOpenReview(review.id) },
             )
         }
     }
 }
+
+private data class ReviewListCallbacks(
+    val onOpenReview: (Long) -> Unit,
+    val onOpenImage: (Long) -> Unit,
+)

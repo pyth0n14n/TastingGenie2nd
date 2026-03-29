@@ -82,6 +82,7 @@ class ReviewListViewModel
                 observeReviews(
                     sakeId = sakeId,
                     sakeName = sake.name,
+                    hasSakeImage = !sake.imageUri.isNullOrBlank(),
                     overallReviewLabels = overallReviewLabels,
                 )
             }
@@ -111,6 +112,7 @@ class ReviewListViewModel
         private suspend fun observeReviews(
             sakeId: Long,
             sakeName: String,
+            hasSakeImage: Boolean,
             overallReviewLabels: Map<String, String>,
         ) {
             reviewRepository
@@ -121,6 +123,7 @@ class ReviewListViewModel
                             isLoading = false,
                             sakeId = sakeId,
                             sakeName = sakeName,
+                            hasSakeImage = hasSakeImage,
                             overallReviewLabels = overallReviewLabels,
                             error =
                                 UiError(
@@ -136,6 +139,7 @@ class ReviewListViewModel
                             error = null,
                             sakeId = sakeId,
                             sakeName = sakeName,
+                            hasSakeImage = hasSakeImage,
                             reviews = reviews,
                             overallReviewLabels = overallReviewLabels,
                             isSakeMissing = false,

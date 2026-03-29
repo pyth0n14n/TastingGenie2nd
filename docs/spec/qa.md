@@ -66,7 +66,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Merge backups with conflicting IDs; ensure logical deduplication.
 
 ### Problem: Exports non-portable image URIs, breaking restores.
-- **Example**: Imported reviews have broken image links on new devices.
+- **Example**: Imported sake records have broken image links on new devices.
 - **Root Cause**: From commit `771110e` (fix(import-export): address PR6 review findings) - Serialized content:// URIs directly.
 - **Preventive Measure**: Omit image URIs from backups; inform users images are not portable.
 - **Test Coverage**:
@@ -90,7 +90,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - From review list, tap image action; verify navigates to S5 and back to S2.
 
 ### Problem: Null imageUri treated as error instead of empty state.
-- **Example**: S5 shows error_load_review for valid null imageUri.
+- **Example**: S5 shows error_load_review for a review whose parent sake has no image.
 - **Root Cause**: From commit `1f6ba2e` (Fix edit mode lock when review seed load fails) - Threw on null without checking validity.
 - **Preventive Measure**: Treat nullable fields as valid empty states; only error on actual load failures.
 - **Test Coverage**:
@@ -234,6 +234,8 @@ This document captures common issues from Codex reviews to prevent regressions. 
 ## General Preventive Measures
 
 - Always validate imports against UI validation rules.
+- Keep image ownership on `Sake`; review flows may display that image but must not persist their own image URI.
+- Delete only app-managed image URIs; never assume arbitrary external URIs are safe to remove.
 - Use transactions for multi-table operations.
 - Run I/O off main thread.
 - Scope ViewModels minimally; reset state explicitly.
