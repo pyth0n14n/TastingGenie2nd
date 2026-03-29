@@ -56,6 +56,7 @@
     <string name="label_alcohol">アルコール度数</string>
     <string name="label_yeast">酵母</string>
     <string name="label_water">水</string>
+    <string name="label_sake_image">画像</string>
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
@@ -66,11 +67,17 @@
     <string name="message_no_reviews">登録されたレビューがありません</string>
     <string name="message_no_image">画像が登録されていません</string>
     <string name="message_review_count">%1$d件選択済み</string>
+    <string name="message_confirm_delete_sake_image">この酒の画像を削除しますか？</string>
     <string name="message_saving">保存中...</string>
     <string name="message_processing_transfer">読み書き中...</string>
     <string name="message_export_success">JSONを書き出しました</string>
     <string name="message_import_success">JSONを読み込みました</string>
     <string name="content_review_image">レビュー画像</string>
+    <string name="content_sake_image">酒画像</string>
+    <string name="title_delete_sake_image">画像を削除</string>
+    <string name="action_select_sake_image">画像を選択</string>
+    <string name="action_replace_sake_image">画像を差し替え</string>
+    <string name="action_delete_sake_image">画像を削除</string>
     <string name="help_intro">用語の意味を確認しながら記録できるよう、主要な観点をまとめています。</string>
     <string name="help_color">色: 透明感や黄みの強さなど、見た目の印象です。</string>
     <string name="help_aroma">香り: 上立ち香、基調香、含み香の3段階で整理します。</string>
