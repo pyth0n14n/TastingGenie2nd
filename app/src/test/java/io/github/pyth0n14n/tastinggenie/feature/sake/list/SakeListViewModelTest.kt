@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -9,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +43,12 @@ class SakeListViewModelTest {
                             ),
                         ),
                 )
-            val viewModel = SakeListViewModel(repository, FakeMasterDataRepository())
+            val viewModel =
+                SakeListViewModel(
+                    repository,
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -49,6 +56,7 @@ class SakeListViewModelTest {
             assertEquals(1, state.sakes.size)
             assertEquals("テスト銘柄", state.sakes.first().name)
             assertEquals("純米", state.gradeLabels[SakeGrade.JUNMAI.name])
+            assertEquals(true, state.showImagePreview)
             assertEquals(null, state.error)
         }
 
@@ -56,13 +64,36 @@ class SakeListViewModelTest {
     fun uiState_setsErrorWhenRepositoryFails() =
         runTest {
             val repository = FailingObserveSakeRepository()
-            val viewModel = SakeListViewModel(repository, FakeMasterDataRepository())
+            val viewModel =
+                SakeListViewModel(
+                    repository,
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
             assertNotNull(state.error)
             assertEquals(R.string.error_load_sakes, state.error?.messageResId)
+        }
+
+    @Test
+    fun uiState_updatesWhenImagePreviewSettingChanges() =
+        runTest {
+            val settingsRepository = FakeSettingsRepository()
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = emptyList()),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            settingsRepository.updateShowImagePreview(enabled = false)
+            advanceUntilIdle()
+
+            assertEquals(false, viewModel.uiState.value.showImagePreview)
         }
 }
 
@@ -115,4 +146,18 @@ private class FakeMasterDataRepository : MasterDataRepository {
             overallReviews = emptyList(),
             aromaCategories = emptyList(),
         )
+}
+
+private class FakeSettingsRepository : SettingsRepository {
+    private val stream = MutableStateFlow(AppSettings())
+
+    override fun observeSettings(): Flow<AppSettings> = stream
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) {
+        stream.value = stream.value.copy(showHelpHints = enabled)
+    }
+
+    override suspend fun updateShowImagePreview(enabled: Boolean) {
+        stream.value = stream.value.copy(showImagePreview = enabled)
+    }
 }

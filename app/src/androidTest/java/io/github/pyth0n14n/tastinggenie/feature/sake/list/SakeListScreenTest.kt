@@ -1,8 +1,10 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -27,8 +29,11 @@ class SakeListScreenTest {
                         sakes = emptyList(),
                     ),
                 onCreateSake = { called = true },
-                onOpenSake = {},
-                onEditSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                    ),
                 topBarActions =
                     SakeListTopBarActions(
                         onOpenHelp = {},
@@ -60,8 +65,11 @@ class SakeListScreenTest {
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
                     ),
                 onCreateSake = {},
-                onOpenSake = { openedId = it },
-                onEditSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = { openedId = it },
+                        onEditSake = {},
+                    ),
                 topBarActions =
                     SakeListTopBarActions(
                         onOpenHelp = {},
@@ -83,8 +91,11 @@ class SakeListScreenTest {
             SakeListScreen(
                 state = SakeListUiState(isLoading = false),
                 onCreateSake = {},
-                onOpenSake = {},
-                onEditSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                    ),
                 topBarActions =
                     SakeListTopBarActions(
                         onOpenHelp = { helpOpened = true },
@@ -99,5 +110,78 @@ class SakeListScreenTest {
             assertTrue(helpOpened)
             assertTrue(settingsOpened)
         }
+    }
+
+    @Test
+    fun showImagePreview_displaysPlaceholderWhenImageMissing() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                Sake(
+                                    id = 7L,
+                                    name = "夏酒",
+                                    grade = SakeGrade.JUNMAI,
+                                    imageUri = null,
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
+                        showImagePreview = true,
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("画像が登録されていません").assertExists()
+    }
+
+    @Test
+    fun showImagePreview_falseHidesCardImageArea() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                Sake(
+                                    id = 8L,
+                                    name = "秋酒",
+                                    grade = SakeGrade.GINJO,
+                                    imageUri = "file:///images/sakes/autumn.jpg",
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
+                        showImagePreview = false,
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("酒画像").assertDoesNotExist()
+        composeRule.onNodeWithText("画像が登録されていません").assertDoesNotExist()
     }
 }
