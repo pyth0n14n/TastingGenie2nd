@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.settings
 
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
+import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupArchiveException
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceException
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
@@ -80,25 +81,25 @@ class SettingsViewModelTest {
     @Test
     fun exportBackup_successPublishesSuccessMessage() =
         runTest {
-            var writtenJson: String? = null
+            var writtenZip: ByteArray? = null
             val viewModel =
                 SettingsViewModel(
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportZip = SAMPLE_BACKUP_ZIP,
                         ),
                 )
             advanceUntilIdle()
 
-            viewModel.exportBackup { rawJson ->
-                writtenJson = rawJson
+            viewModel.exportBackup { rawZip ->
+                writtenZip = rawZip
                 Result.success(Unit)
             }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals("""{"schemaVersion":1}""", writtenJson)
+            Assert.assertArrayEquals(SAMPLE_BACKUP_ZIP, writtenZip)
             Assert.assertEquals(R.string.message_export_success, state.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
             Assert.assertNull(state.error)
@@ -157,11 +158,11 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals("""{"schemaVersion":1}""", repository.importedJson)
+            Assert.assertArrayEquals(SAMPLE_BACKUP_ZIP, repository.importedZip)
             Assert.assertEquals(R.string.message_import_success, state.messageResId)
             Assert.assertNull(state.error)
             Assert.assertFalse(state.isProcessingTransfer)
@@ -180,7 +181,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":99}""") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -201,7 +202,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("{not-json") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -222,11 +223,32 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             Assert.assertEquals(R.string.error_import_invalid_payload, state.error?.messageResId)
+            Assert.assertFalse(state.isProcessingTransfer)
+        }
+
+    @Test
+    fun importBackup_invalidArchiveMapsToSpecificError() =
+        runTest {
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = FakeSettingsRepository(),
+                    importExportRepository =
+                        FakeImportExportRepository(
+                            importFailure = InvalidBackupArchiveException("broken zip"),
+                        ),
+                )
+            advanceUntilIdle()
+
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            Assert.assertEquals(R.string.error_import_invalid_json, state.error?.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
         }
 
@@ -243,7 +265,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -277,7 +299,7 @@ class SettingsViewModelTest {
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportZip = SAMPLE_BACKUP_ZIP,
                         ),
                 )
             advanceUntilIdle()
@@ -337,7 +359,7 @@ class SettingsViewModelTest {
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportZip = SAMPLE_BACKUP_ZIP,
                         ),
                 )
             advanceUntilIdle()
@@ -369,7 +391,7 @@ class SettingsViewModelTest {
             advanceUntilIdle()
             viewModel.setSettingsVisible(visible = false)
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(SAMPLE_BACKUP_ZIP) }
             advanceUntilIdle()
             val initialState = viewModel.uiState.value
             val initialError = initialState.error?.messageResId
@@ -404,21 +426,21 @@ private class FakeSettingsRepository : SettingsRepository {
 }
 
 private class FakeImportExportRepository(
-    private val exportJson: String = """{"schemaVersion":1,"sakes":[],"reviews":[]}""",
+    private val exportZip: ByteArray = SAMPLE_BACKUP_ZIP,
     private val exportFailure: Throwable? = null,
     private val importFailure: Throwable? = null,
 ) : ImportExportRepository {
-    var importedJson: String? = null
+    var importedZip: ByteArray? = null
 
-    override suspend fun exportJson(): Result<String> =
+    override suspend fun exportBackup(): Result<ByteArray> =
         when (val failure = exportFailure) {
             is kotlinx.coroutines.CancellationException -> throw failure
-            null -> Result.success(exportJson)
+            null -> Result.success(exportZip)
             else -> Result.failure(failure)
         }
 
-    override suspend fun importJson(rawJson: String): Result<Unit> {
-        importedJson = rawJson
+    override suspend fun importBackup(rawZip: ByteArray): Result<Unit> {
+        importedZip = rawZip
         return when (val failure = importFailure) {
             is kotlinx.coroutines.CancellationException -> throw failure
             null -> Result.success(Unit)
@@ -438,3 +460,16 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
         error("settings write failed")
     }
 }
+
+private const val ZIP_HEADER_P: Byte = 0x50
+private const val ZIP_HEADER_K: Byte = 0x4B
+private const val ZIP_HEADER_LOCAL_FILE: Byte = 0x03
+private const val ZIP_HEADER_VERSION: Byte = 0x04
+
+private val SAMPLE_BACKUP_ZIP =
+    byteArrayOf(
+        ZIP_HEADER_P,
+        ZIP_HEADER_K,
+        ZIP_HEADER_LOCAL_FILE,
+        ZIP_HEADER_VERSION,
+    )
