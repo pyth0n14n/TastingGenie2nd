@@ -1,7 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.domain.repository
 
 interface ImportExportRepository {
-    suspend fun exportJson(): Result<String>
+    suspend fun exportBackup(): Result<ByteArray>
 
-    suspend fun importJson(rawJson: String): Result<Unit>
+    suspend fun importBackup(rawZip: ByteArray): Result<Unit>
 }
