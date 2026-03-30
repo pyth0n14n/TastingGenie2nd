@@ -72,6 +72,20 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Export/import round-trip; verify images are not restored (show message_no_image).
 
+### Problem: Replacing or deleting an image mutates persisted files before save, so cancel or save failure loses the old image.
+- **Example**: SakeEdit imports a new image immediately and deletes the old managed file before the form save succeeds.
+- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import/delete during save. On save failure, clean up any newly imported managed image.
+- **Test Coverage**:
+  - Pick a replacement image and cancel edit; verify the persisted image is unchanged.
+  - Simulate save failure after image import; verify the newly imported managed image is deleted.
+  - Delete an existing image and save; verify the old managed image is removed only after the save succeeds.
+### Problem: Post-save image cleanup failure is treated as a save failure even after the DB commit succeeded.
+- **Example**: SakeEdit saves a replacement image, then `deleteImage(oldUri)` throws and the screen reports `error_save_sake` while the DB already points at the new image.
+- **Preventive Measure**: Mark the DB write as committed before old-image cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
+- **Test Coverage**:
+  - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
+  - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
+
 ## 3. Navigation and Settings Application
 
 ### Problem: Settings not applied to UI, misleading users.
@@ -167,6 +181,14 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Open sake/review selector fields and verify the menu is attached to the field.
   - Select an option and confirm the same field reflects the chosen label.
+
+### Problem: Destructive image actions fire immediately from the form, making accidental taps expensive.
+- **Example**: A user taps image delete while editing a sake and the image disappears without confirmation.
+- **Preventive Measure**: Gate image deletion behind a confirmation dialog, and keep the delete control disabled while save is in progress.
+- **Test Coverage**:
+  - Open SakeEdit with an existing image, tap delete, and verify a confirmation dialog appears.
+  - Cancel the dialog and verify the image preview remains.
+  - Confirm the dialog and verify the form reflects a pending image removal.
 
 ### Problem: Grouped masters get flattened in UI, making spec-defined hierarchy and optional clears disappear.
 - **Example**: Sake classification loses its category structure, or prefecture selection cannot be cleared once chosen.
