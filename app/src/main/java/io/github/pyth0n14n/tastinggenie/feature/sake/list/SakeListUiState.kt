@@ -8,4 +8,5 @@ data class SakeListUiState(
     val error: UiError? = null,
     val sakes: List<Sake> = emptyList(),
     val gradeLabels: Map<String, String> = emptyMap(),
+    val showImagePreview: Boolean = true,
 )

@@ -1,17 +1,14 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,15 +21,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 
-private const val LIST_SPACING = 8
+private const val LIST_SPACING = 12
+private const val LIST_COLUMNS = 2
 
 data class SakeListTopBarActions(
     val onOpenHelp: () -> Unit,
     val onOpenSettings: () -> Unit,
+)
+
+data class SakeListItemActions(
+    val onOpenSake: (Long) -> Unit,
+    val onEditSake: (Long) -> Unit,
 )
 
 /**
@@ -53,8 +55,11 @@ fun SakeListRoute(
     SakeListScreen(
         state = uiState,
         onCreateSake = onCreateSake,
-        onOpenSake = onOpenSake,
-        onEditSake = onEditSake,
+        itemActions =
+            SakeListItemActions(
+                onOpenSake = onOpenSake,
+                onEditSake = onEditSake,
+            ),
         topBarActions = topBarActions,
     )
 }
@@ -64,8 +69,7 @@ fun SakeListRoute(
 fun SakeListScreen(
     state: SakeListUiState,
     onCreateSake: () -> Unit,
-    onOpenSake: (Long) -> Unit,
-    onEditSake: (Long) -> Unit,
+    itemActions: SakeListItemActions,
     topBarActions: SakeListTopBarActions,
 ) {
     Scaffold(
@@ -94,10 +98,8 @@ fun SakeListScreen(
             state.sakes.isEmpty() -> MessageContent(text = stringResource(R.string.message_no_sakes))
             else ->
                 SakeList(
-                    items = state.sakes,
-                    gradeLabels = state.gradeLabels,
-                    onOpenSake = onOpenSake,
-                    onEditSake = onEditSake,
+                    state = state,
+                    itemActions = itemActions,
                     modifier = Modifier.padding(padding),
                 )
         }
@@ -106,35 +108,23 @@ fun SakeListScreen(
 
 @Composable
 private fun SakeList(
-    items: List<Sake>,
-    gradeLabels: Map<String, String>,
-    onOpenSake: (Long) -> Unit,
-    onEditSake: (Long) -> Unit,
+    state: SakeListUiState,
+    itemActions: SakeListItemActions,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(LIST_COLUMNS),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(LIST_SPACING.dp),
         verticalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
+        horizontalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
     ) {
-        items(items = items, key = { sake -> sake.id }) { sake ->
-            ListItem(
-                headlineContent = { Text(sake.name) },
-                supportingContent = {
-                    Text(
-                        text = gradeLabels[sake.grade.name] ?: sake.grade.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                },
-                trailingContent = {
-                    TextButton(onClick = { onEditSake(sake.id) }) {
-                        Text(text = stringResource(R.string.action_edit))
-                    }
-                },
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenSake(sake.id) },
+        items(items = state.sakes, key = { sake -> sake.id }) { sake ->
+            SakeListCard(
+                sake = sake,
+                gradeLabel = state.gradeLabels[sake.grade.name] ?: sake.grade.name,
+                showImagePreview = state.showImagePreview,
+                itemActions = itemActions,
             )
         }
     }
