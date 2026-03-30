@@ -3,19 +3,20 @@
 ## 1. 実装時期
 
 - 第2マイルストーン（M2）で実装する
-- 形式は JSON のみ
+- 形式は ZIP とする
 
 ---
 
 ## 2. 形式
 
-- UTF-8
-- 拡張子: `.json`
-- 1ファイルに `sakes` と `reviews` を含める
+- 拡張子: `.zip`
+- ZIP 直下に `backup.json` を持つ
+- 画像がある場合は `images/sakes/...` に格納する
+- `backup.json` は UTF-8 JSON とする
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "sakes": [],
   "reviews": []
 }
@@ -27,7 +28,9 @@
 
 - `schemaVersion` 必須
 - 未対応バージョンは読み込み失敗としてUIに表示
-- JSON破損時は読み込み失敗としてUIに表示
+- `backup.json` 欠損時は読み込み失敗としてUIに表示
+- ZIP破損時は読み込み失敗としてUIに表示
+- `backup.json` 破損時は読み込み失敗としてUIに表示
 
 ---
 
@@ -43,7 +46,8 @@
 
 ## 5. 画像の扱い
 
-- 現行の JSON backup は画像バイト列を含めない
-- `Sake.imageUri` はアプリ専用領域の URI を指すため、端末やインストール状態をまたいで復元可能な値ではない
-- そのため、画像は export/import 対象にしない
-- 画像付き backup の扱いは ZIP 化を行う後続 PR で定義する
+- `Sake.imageUri` は backup manifest に直接書かない
+- 画像がある酒は `SerializableSake.imagePath` に ZIP 内相対パスを書き込む
+- 実画像は `images/sakes/...` にバイト列として格納する
+- import 時に `imagePath` があるのに ZIP 内画像が欠けている場合は失敗扱い
+- review は画像を持たない

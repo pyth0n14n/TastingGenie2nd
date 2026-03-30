@@ -68,9 +68,9 @@ This document captures common issues from Codex reviews to prevent regressions. 
 ### Problem: Exports non-portable image URIs, breaking restores.
 - **Example**: Imported sake records have broken image links on new devices.
 - **Root Cause**: From commit `771110e` (fix(import-export): address PR6 review findings) - Serialized content:// URIs directly.
-- **Preventive Measure**: Omit image URIs from backups; inform users images are not portable.
+- **Preventive Measure**: Never serialize `Sake.imageUri` directly. Put image bytes in ZIP entries and reference them from `backup.json` via relative `imagePath`.
 - **Test Coverage**:
-  - Export/import round-trip; verify images are not restored (show message_no_image).
+  - Export/import round-trip; verify sake images are restored from ZIP entries.
 
 ### Problem: Replacing or deleting an image mutates persisted files before save, so cancel or save failure loses the old image.
 - **Example**: SakeEdit imports a new image immediately and deletes the old managed file before the form save succeeds.
@@ -85,6 +85,14 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
   - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
+
+### Problem: ZIP backup manifest and image entries drift apart, causing partial restores or hidden image loss.
+- **Example**: `backup.json` references `images/sakes/...` but that ZIP entry is missing, or the archive contains no `backup.json` at all.
+- **Preventive Measure**: Treat backup ZIPs as a single contract: require `backup.json`, reject missing referenced image entries, and keep schema validation on the manifest before import.
+- **Test Coverage**:
+  - Import a ZIP without `backup.json`; verify the UI reports invalid backup content.
+  - Import a ZIP whose `imagePath` entry is missing; verify the import fails without creating partial rows.
+  - Export a sake with an image and verify both the manifest path and ZIP image entry exist.
 
 ## 3. Navigation and Settings Application
 
