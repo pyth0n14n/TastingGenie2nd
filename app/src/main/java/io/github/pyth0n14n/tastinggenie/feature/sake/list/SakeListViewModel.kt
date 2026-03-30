@@ -7,10 +7,12 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +23,7 @@ class SakeListViewModel
     constructor(
         private val sakeRepository: SakeRepository,
         private val masterDataRepository: MasterDataRepository,
+        private val settingsRepository: SettingsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SakeListUiState())
         val uiState: StateFlow<SakeListUiState> = _uiState.asStateFlow()
@@ -54,7 +57,15 @@ class SakeListViewModel
                 // DB監視結果をそのままUiStateへ反映し、一覧再表示を自動化する。
                 sakeRepository
                     .observeSakes()
-                    .catch { throwable ->
+                    .combine(settingsRepository.observeSettings()) { sakes, settings ->
+                        SakeListUiState(
+                            isLoading = false,
+                            error = null,
+                            sakes = sakes,
+                            gradeLabels = gradeLabels,
+                            showImagePreview = settings.showImagePreview,
+                        )
+                    }.catch { throwable ->
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -65,15 +76,8 @@ class SakeListViewModel
                                     ),
                             )
                         }
-                    }.collect { list ->
-                        _uiState.update { current ->
-                            current.copy(
-                                isLoading = false,
-                                error = null,
-                                sakes = list,
-                                gradeLabels = gradeLabels,
-                            )
-                        }
+                    }.collect { state ->
+                        _uiState.value = state
                     }
             }
         }

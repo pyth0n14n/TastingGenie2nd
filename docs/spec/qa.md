@@ -190,6 +190,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Cancel the dialog and verify the image preview remains.
   - Confirm the dialog and verify the form reflects a pending image removal.
 
+### Problem: Sake list preview cards ignore the image-preview setting or collapse missing images into blank space.
+- **Example**: S0 keeps rendering thumbnails after `setting_image_preview` is disabled, or cards with no image show an empty top area with no placeholder.
+- **Preventive Measure**: Make SakeList observe `showImagePreview` reactively. Render the image area only when the setting is enabled, and show a clear placeholder when previews are enabled but a sake has no image.
+- **Test Coverage**:
+  - Disable image preview and verify SakeList cards render without thumbnails or placeholders.
+  - Leave image preview enabled and verify image-less sakes show the placeholder text instead of a blank region.
+
 ### Problem: Grouped masters get flattened in UI, making spec-defined hierarchy and optional clears disappear.
 - **Example**: Sake classification loses its category structure, or prefecture selection cannot be cleared once chosen.
 - **Preventive Measure**: When a master spec defines category or region groupings, keep that grouping in the selector UI and preserve null/clear flows for optional single-select fields.
