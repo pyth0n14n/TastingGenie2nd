@@ -100,6 +100,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Import the same ZIP twice and verify sake/review counts do not increase on the second import.
   - Import a backup whose sake matches an existing row but whose review is new; verify the existing sake is reused and only the new review is inserted.
+  - Import a backup whose `imagePath` entry is missing even though an equivalent local sake already exists; verify the import still fails.
 
 ## 3. Navigation and Settings Application
 
