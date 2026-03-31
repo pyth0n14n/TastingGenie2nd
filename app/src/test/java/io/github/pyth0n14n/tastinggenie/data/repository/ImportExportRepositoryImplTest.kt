@@ -266,6 +266,26 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importBackup_missingImageEntryFailsEvenWhenEquivalentSakeExistsLocally() =
+        runTest {
+            val repository = createRepository()
+            val existingImageUri = createManagedImageUri(content = "existing-image")
+            database.sakeDao().insert(sampleSakeEntity(imageUri = existingImageUri))
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake(imagePath = SAMPLE_IMAGE_ENTRY)),
+                    reviews = emptyList(),
+                )
+
+            val result = repository.importBackup(createBackupZip(payload = payload))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+            assertEquals(1, database.sakeDao().getAllOnce().size)
+        }
+
+    @Test
     fun importBackup_existingLocalIdsDoNotOverwriteUnrelatedRows() =
         runTest {
             val repository = createRepository()
