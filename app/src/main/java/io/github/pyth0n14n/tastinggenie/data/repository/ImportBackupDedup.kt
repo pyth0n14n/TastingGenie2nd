@@ -14,6 +14,10 @@ internal suspend fun resolveOrInsertSake(
     knownSakes: MutableList<SakeEntity>,
     context: ImportDedupContext,
 ): Long {
+    validateImageEntryIfReferenced(
+        imagePath = sake.imagePath,
+        imageEntries = context.imageEntries,
+    )
     val targetKey = sake.toImportKey()
     knownSakes.firstOrNull { existing -> existing.toImportKey() == targetKey }?.let { existing ->
         return existing.id
@@ -44,6 +48,18 @@ internal suspend fun insertReviewIfNeeded(
     knownReviews += importedEntity.copy(id = localId)
 }
 
+private fun validateImageEntryIfReferenced(
+    imagePath: String?,
+    imageEntries: Map<String, ByteArray>,
+) {
+    if (imagePath.isNullOrBlank()) {
+        return
+    }
+    require(imageEntries.containsKey(imagePath)) {
+        "Backup archive is missing image entry: $imagePath"
+    }
+}
+
 private suspend fun importSakeImage(
     imagePath: String?,
     context: ImportDedupContext,
@@ -51,10 +67,7 @@ private suspend fun importSakeImage(
     if (imagePath.isNullOrBlank()) {
         return null
     }
-    val imageBytes =
-        requireNotNull(context.imageEntries[imagePath]) {
-            "Backup archive is missing image entry: $imagePath"
-        }
+    val imageBytes = checkNotNull(context.imageEntries[imagePath])
     val importedImageUri =
         context.sakeImageRepository.importImageBytes(
             filenameHint = imagePath.substringAfterLast('/'),
