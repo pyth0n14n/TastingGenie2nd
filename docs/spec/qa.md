@@ -88,10 +88,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ### Problem: ZIP backup manifest and image entries drift apart, causing partial restores or hidden image loss.
 - **Example**: `backup.json` references `images/sakes/...` but that ZIP entry is missing, or the archive contains no `backup.json` at all.
-- **Preventive Measure**: Treat backup ZIPs as a single contract: require `backup.json`, reject missing referenced image entries, and keep schema validation on the manifest before import.
+- **Preventive Measure**: Treat backup ZIPs as a single contract: require `backup.json`, reject missing referenced image entries, normalize truncated/corrupted ZIP read failures as invalid archives, and keep schema validation on the manifest before import. If import fails after managed images are created, surface rollback cleanup failures instead of swallowing them.
 - **Test Coverage**:
   - Import a ZIP without `backup.json`; verify the UI reports invalid backup content.
+  - Import a truncated ZIP; verify the UI reports invalid backup content instead of a generic import error.
   - Import a ZIP whose `imagePath` entry is missing; verify the import fails without creating partial rows.
+  - Force rollback image cleanup to fail after an import error; verify the returned failure exposes both the import failure and the cleanup failure.
   - Export a sake with an image and verify both the manifest path and ZIP image entry exist.
 
 ### Problem: Re-importing the same backup duplicates rows because import always inserts new local IDs.
