@@ -94,6 +94,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Import a ZIP whose `imagePath` entry is missing; verify the import fails without creating partial rows.
   - Export a sake with an image and verify both the manifest path and ZIP image entry exist.
 
+### Problem: Re-importing the same backup duplicates rows because import always inserts new local IDs.
+- **Example**: A user restores the same backup twice and SakeList / ReviewList show duplicate entries even though the payload is unchanged.
+- **Preventive Measure**: During import, resolve existing equivalent rows before inserting. Compare all non-image fields, treat image comparison as `あり/なし` only, and defer any actual image import until no equivalent sake exists.
+- **Test Coverage**:
+  - Import the same ZIP twice and verify sake/review counts do not increase on the second import.
+  - Import a backup whose sake matches an existing row but whose review is new; verify the existing sake is reused and only the new review is inserted.
+
 ## 3. Navigation and Settings Application
 
 ### Problem: Settings not applied to UI, misleading users.
