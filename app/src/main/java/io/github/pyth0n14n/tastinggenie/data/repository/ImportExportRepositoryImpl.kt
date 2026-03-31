@@ -21,6 +21,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.util.zip.ZipException
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -28,6 +29,7 @@ import javax.inject.Inject
 
 private const val BACKUP_MANIFEST_ENTRY = "backup.json"
 private const val BACKUP_IMAGE_DIRECTORY = "images/sakes"
+private const val ROLLBACK_CLEANUP_FAILURE_MESSAGE = "Rollback image cleanup failed"
 
 class ImportExportRepositoryImpl
     @Inject
@@ -92,12 +94,12 @@ class ImportExportRepositoryImpl
             )
         }
 
+        @Suppress("TooGenericExceptionCaught")
         private suspend fun importArchive(
             payload: BackupPayload,
             imageEntries: Map<String, ByteArray>,
         ) {
             val importedImageUris = mutableListOf<String>()
-            var isCommitted = false
             try {
                 database.withTransaction {
                     val knownSakes = database.sakeDao().getAllOnce().toMutableList()
@@ -131,13 +133,47 @@ class ImportExportRepositoryImpl
                         )
                     }
                 }
-                isCommitted = true
-            } finally {
-                if (!isCommitted) {
-                    importedImageUris.forEach { imageUri ->
-                        runCatching { sakeImageRepository.deleteImage(imageUri) }
-                    }
+            } catch (cancellationException: CancellationException) {
+                cleanupImportedImages(importedImageUris)?.let(cancellationException::addSuppressed)
+                throw cancellationException
+            } catch (exception: Exception) {
+                throw wrapImportFailureWithCleanup(
+                    importFailure = exception,
+                    cleanupFailure = cleanupImportedImages(importedImageUris),
+                )
+            }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
+        private suspend fun cleanupImportedImages(importedImageUris: List<String>): IllegalStateException? {
+            if (importedImageUris.isEmpty()) {
+                return null
+            }
+            var aggregatedFailure: IllegalStateException? = null
+            importedImageUris.forEach { imageUri ->
+                try {
+                    sakeImageRepository.deleteImage(imageUri)
+                } catch (cancellationException: CancellationException) {
+                    throw cancellationException
+                } catch (exception: Exception) {
+                    aggregatedFailure = aggregatedFailure.appendCleanupFailure(imageUri, exception)
                 }
+            }
+            return aggregatedFailure
+        }
+
+        private fun wrapImportFailureWithCleanup(
+            importFailure: Exception,
+            cleanupFailure: IllegalStateException?,
+        ): Exception {
+            if (cleanupFailure == null) {
+                return importFailure
+            }
+            return IllegalStateException(
+                "Import failed and rollback image cleanup also failed",
+                importFailure,
+            ).apply {
+                addSuppressed(cleanupFailure)
             }
         }
 
@@ -223,9 +259,21 @@ private fun readZipEntries(rawZip: ByteArray): LinkedHashMap<String, ByteArray> 
         }
     } catch (zipException: ZipException) {
         throw InvalidBackupArchiveException("Backup archive is not a valid ZIP file", zipException)
+    } catch (ioException: IOException) {
+        throw InvalidBackupArchiveException("Backup archive could not be read", ioException)
     }
     return entries
 }
+
+private fun IllegalStateException?.appendCleanupFailure(
+    imageUri: String,
+    exception: Exception,
+): IllegalStateException =
+    (this ?: IllegalStateException(ROLLBACK_CLEANUP_FAILURE_MESSAGE)).apply {
+        addSuppressed(
+            IllegalStateException("Failed to delete imported rollback image: $imageUri", exception),
+        )
+    }
 
 private fun requireEntryName(entryName: String): String =
     entryName.takeIf { name -> name.isNotBlank() }
