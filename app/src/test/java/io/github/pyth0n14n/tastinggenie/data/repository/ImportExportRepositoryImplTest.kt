@@ -130,6 +130,62 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importBackup_reimportSameArchiveSkipsDuplicateRows() =
+        runTest {
+            val repository = createRepository()
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake(imagePath = SAMPLE_IMAGE_ENTRY)),
+                    reviews = listOf(sampleSerializableReview()),
+                )
+            val archive =
+                createBackupZip(
+                    payload = payload,
+                    imageEntries = mapOf(SAMPLE_IMAGE_ENTRY to "same-image".encodeToByteArray()),
+                )
+
+            repository.importBackup(archive).getOrThrow()
+            repository.importBackup(archive).getOrThrow()
+
+            assertEquals(1, database.sakeDao().getAllOnce().size)
+            assertEquals(1, database.reviewDao().getAllOnce().size)
+        }
+
+    @Test
+    fun importBackup_reusesEquivalentSakeAndAddsOnlyNewReview() =
+        runTest {
+            val repository = createRepository()
+            val existingImageUri = createManagedImageUri(content = "existing-image")
+            val existingSakeId = database.sakeDao().insert(sampleSakeEntity(imageUri = existingImageUri))
+            database.reviewDao().insert(sampleReviewEntity().copy(sakeId = existingSakeId))
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake(imagePath = SAMPLE_IMAGE_ENTRY)),
+                    reviews =
+                        listOf(
+                            sampleSerializableReview().copy(comment = "new-comment"),
+                        ),
+                )
+
+            repository
+                .importBackup(
+                    createBackupZip(
+                        payload = payload,
+                        imageEntries = mapOf(SAMPLE_IMAGE_ENTRY to "existing-image".encodeToByteArray()),
+                    ),
+                ).getOrThrow()
+
+            val storedSakes = database.sakeDao().getAllOnce()
+            val storedReviews = database.reviewDao().getAllOnce()
+            assertEquals(1, storedSakes.size)
+            assertEquals(2, storedReviews.size)
+            assertTrue(storedReviews.any { review -> review.comment == null })
+            assertTrue(storedReviews.any { review -> review.comment == "new-comment" })
+        }
+
+    @Test
     fun importBackup_unsupportedSchemaVersion_returnsFailure() =
         runTest {
             val repository = createRepository()
