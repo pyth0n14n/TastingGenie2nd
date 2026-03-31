@@ -4,7 +4,6 @@ import androidx.room.withTransaction
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
-import io.github.pyth0n14n.tastinggenie.data.mapper.toImportedEntity
 import io.github.pyth0n14n.tastinggenie.data.mapper.toSerializable
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
 import io.github.pyth0n14n.tastinggenie.domain.model.BackupPayload
@@ -101,22 +100,35 @@ class ImportExportRepositoryImpl
             var isCommitted = false
             try {
                 database.withTransaction {
+                    val knownSakes = database.sakeDao().getAllOnce().toMutableList()
+                    val knownReviews = database.reviewDao().getAllOnce().toMutableList()
+                    val dedupContext =
+                        ImportDedupContext(
+                            database = database,
+                            sakeImageRepository = sakeImageRepository,
+                            imageEntries = imageEntries,
+                            importedImageUris = importedImageUris,
+                        )
                     val importedSakeIds =
                         payload.sakes.associate { sake ->
-                            val imageUri =
-                                importSakeImage(
-                                    imagePath = sake.imagePath,
-                                    imageEntries = imageEntries,
-                                    importedImageUris = importedImageUris,
+                            sake.id to
+                                resolveOrInsertSake(
+                                    sake = sake,
+                                    knownSakes = knownSakes,
+                                    context = dedupContext,
                                 )
-                            sake.id to database.sakeDao().insert(sake.toImportedEntity(imageUri = imageUri))
                         }
                     payload.reviews.forEach { review ->
                         val importedSakeId =
                             checkNotNull(importedSakeIds[review.sakeId]) {
                                 "Review references unknown backup sakeId: ${review.sakeId}"
                             }
-                        database.reviewDao().insert(review.toImportedEntity(sakeId = importedSakeId))
+                        insertReviewIfNeeded(
+                            review = review,
+                            sakeId = importedSakeId,
+                            knownReviews = knownReviews,
+                            database = database,
+                        )
                     }
                 }
                 isCommitted = true
@@ -127,27 +139,6 @@ class ImportExportRepositoryImpl
                     }
                 }
             }
-        }
-
-        private suspend fun importSakeImage(
-            imagePath: String?,
-            imageEntries: Map<String, ByteArray>,
-            importedImageUris: MutableList<String>,
-        ): String? {
-            if (imagePath.isNullOrBlank()) {
-                return null
-            }
-            val imageBytes =
-                requireNotNull(imageEntries[imagePath]) {
-                    "Backup archive is missing image entry: $imagePath"
-                }
-            val importedImageUri =
-                sakeImageRepository.importImageBytes(
-                    filenameHint = imagePath.substringAfterLast('/'),
-                    bytes = imageBytes,
-                )
-            importedImageUris += importedImageUri
-            return importedImageUri
         }
 
         private suspend fun validateReviewReferences(payload: BackupPayload) {
