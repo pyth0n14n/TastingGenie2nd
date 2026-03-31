@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.BackupPayload
 import io.github.pyth0n14n.tastinggenie.domain.model.CURRENT_SCHEMA_VERSION
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupArchiveException
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceException
+import io.github.pyth0n14n.tastinggenie.domain.model.ManagedSakeImage
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableReview
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
@@ -21,6 +22,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -214,6 +216,27 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importBackup_truncatedArchive_returnsInvalidArchiveFailure() =
+        runTest {
+            val repository = createRepository()
+            val rawZip =
+                createBackupZip(
+                    payload =
+                        BackupPayload(
+                            schemaVersion = CURRENT_SCHEMA_VERSION,
+                            sakes = emptyList(),
+                            reviews = emptyList(),
+                        ),
+                )
+            val truncatedZip = rawZip.copyOf(rawZip.size / 2)
+
+            val result = repository.importBackup(truncatedZip)
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is InvalidBackupArchiveException)
+        }
+
+    @Test
     fun importBackup_brokenManifest_returnsFailure() =
         runTest {
             val repository = createRepository()
@@ -352,6 +375,36 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importBackup_cleanupFailureIsSurfacedWhenRollbackDeleteFails() =
+        runTest {
+            val leakingRepository =
+                ThrowingDeleteSakeImageRepository(
+                    importedImageUri = "managed://rollback-image",
+                    deleteFailure = IllegalStateException("delete failed"),
+                )
+            val repository = createRepository(sakeImageRepository = leakingRepository)
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake(imagePath = SAMPLE_IMAGE_ENTRY)),
+                    reviews = listOf(sampleSerializableReview().copy(viscosity = 4)),
+                )
+
+            val result =
+                repository.importBackup(
+                    createBackupZip(
+                        payload = payload,
+                        imageEntries = mapOf(SAMPLE_IMAGE_ENTRY to "import-image".encodeToByteArray()),
+                    ),
+                )
+
+            assertTrue(result.isFailure)
+            val exception = result.exceptionOrNull()
+            assertEquals("Import failed and rollback image cleanup also failed", exception?.message)
+            assertTrue(exception?.cause != null)
+        }
+
+    @Test
     fun exportBackup_cancellationPropagates() =
         runTest {
             val repository = createRepository(ioDispatcher = CancellationDispatcher())
@@ -387,6 +440,7 @@ class ImportExportRepositoryImplTest {
         }
 
     private fun createRepository(
+        sakeImageRepository: SakeImageRepository = this.sakeImageRepository,
         ioDispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
     ): ImportExportRepositoryImpl =
         ImportExportRepositoryImpl(
@@ -525,4 +579,24 @@ private class CancellationDispatcher : CoroutineDispatcher() {
         context: kotlin.coroutines.CoroutineContext,
         block: Runnable,
     ) = throw CancellationException("cancelled")
+}
+
+private class ThrowingDeleteSakeImageRepository(
+    private val importedImageUri: String,
+    private val deleteFailure: Throwable,
+) : SakeImageRepository {
+    override suspend fun importImage(
+        sourceUri: String,
+        previousImageUri: String?,
+    ): String = importedImageUri
+
+    override suspend fun importImageBytes(
+        filenameHint: String,
+        bytes: ByteArray,
+        previousImageUri: String?,
+    ): String = importedImageUri
+
+    override suspend fun exportImage(imageUri: String?): ManagedSakeImage? = null
+
+    override suspend fun deleteImage(imageUri: String?): Unit = throw deleteFailure
 }
