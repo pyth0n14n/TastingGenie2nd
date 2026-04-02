@@ -91,6 +91,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Tap the review delete icon and verify no deletion happens until the confirmation button is pressed.
   - Force `deleteReview` to fail and verify the list remains visible while the delete error is shown.
+### Problem: Sake deletion can desynchronize related rows or show the wrong outcome when only image cleanup fails.
+- **Example**: `SakeList` deletes the parent row but leaves child reviews behind, or reports a full delete failure even though the DB delete committed and only the managed image cleanup failed.
+- **Preventive Measure**: Wrap sake + review deletion in a transaction, show the destructive action behind a confirmation dialog with the related review count, and expose post-commit image cleanup failures separately from the DB delete result. Do not convert `CancellationException` into a delete error.
+- **Test Coverage**:
+  - Delete a sake with reviews and verify the parent row and all child reviews disappear together.
+  - Force post-commit image cleanup to fail and verify the sake is still gone while an inline cleanup error is shown.
+  - Cancel the delete coroutine and verify no generic delete error is shown.
 
 ## 3. Navigation and Settings Application
 
