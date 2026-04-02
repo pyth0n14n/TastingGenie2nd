@@ -6,7 +6,16 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 data class SakeListUiState(
     val isLoading: Boolean = true,
     val error: UiError? = null,
+    val deleteError: UiError? = null,
+    val pendingDeleteSake: PendingDeleteSake? = null,
     val sakes: List<Sake> = emptyList(),
     val gradeLabels: Map<String, String> = emptyMap(),
     val showImagePreview: Boolean = true,
+)
+
+data class PendingDeleteSake(
+    val sakeId: Long,
+    val sakeName: String,
+    val reviewCount: Int,
+    val hasImage: Boolean,
 )

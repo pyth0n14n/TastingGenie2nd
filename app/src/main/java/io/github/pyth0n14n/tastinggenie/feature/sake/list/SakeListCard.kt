@@ -5,12 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,11 +76,20 @@ fun SakeListCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                TextButton(
-                    onClick = { itemActions.onEditSake(sake.id) },
+                Row(
                     modifier = Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(text = stringResource(R.string.action_edit))
+                    IconButton(onClick = { itemActions.onDeleteSake(sake.id) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.content_delete_sake),
+                        )
+                    }
+                    TextButton(onClick = { itemActions.onEditSake(sake.id) }) {
+                        Text(text = stringResource(R.string.action_edit))
+                    }
                 }
             }
         }
