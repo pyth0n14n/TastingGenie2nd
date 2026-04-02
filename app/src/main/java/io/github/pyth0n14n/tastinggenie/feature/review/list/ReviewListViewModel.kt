@@ -10,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -149,33 +150,36 @@ class ReviewListViewModel
                 }
         }
 
+        @Suppress("TooGenericExceptionCaught")
         fun deleteReview(reviewId: Long) {
             viewModelScope.launch {
                 _uiState.update { it.copy(deleteError = null) }
-                runCatching { reviewRepository.deleteReview(reviewId) }
-                    .onSuccess { deleted ->
-                        if (!deleted) {
-                            _uiState.update {
-                                it.copy(
-                                    deleteError =
-                                        UiError(
-                                            messageResId = R.string.error_delete_review,
-                                            causeKey = reviewId.toString(),
-                                        ),
-                                )
-                            }
-                        }
-                    }.onFailure { throwable ->
+                try {
+                    val deleted = reviewRepository.deleteReview(reviewId)
+                    if (!deleted) {
                         _uiState.update {
                             it.copy(
                                 deleteError =
                                     UiError(
                                         messageResId = R.string.error_delete_review,
-                                        causeKey = throwable.message,
+                                        causeKey = reviewId.toString(),
                                     ),
                             )
                         }
                     }
+                } catch (throwable: CancellationException) {
+                    throw throwable
+                } catch (throwable: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            deleteError =
+                                UiError(
+                                    messageResId = R.string.error_delete_review,
+                                    causeKey = throwable.message,
+                                ),
+                        )
+                    }
+                }
             }
         }
     }
