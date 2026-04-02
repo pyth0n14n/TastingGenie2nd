@@ -42,6 +42,15 @@ class FakeSakeDao : SakeDao {
         }
     }
 
+    override suspend fun deleteById(id: Long): Int {
+        val removed = entries.removeAll { it.id == id }
+        if (removed) {
+            emit()
+            return 1
+        }
+        return 0
+    }
+
     private fun emit() {
         stream.value = entries.toList()
     }
@@ -94,6 +103,15 @@ class FakeReviewDao : ReviewDao {
             return 1
         }
         return 0
+    }
+
+    override suspend fun deleteBySakeId(sakeId: Long): Int {
+        val removedCount = entries.count { it.sakeId == sakeId }
+        if (removedCount > 0) {
+            entries.removeAll { it.sakeId == sakeId }
+            emit()
+        }
+        return removedCount
     }
 
     private fun emit() {

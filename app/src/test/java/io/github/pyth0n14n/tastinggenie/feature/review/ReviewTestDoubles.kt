@@ -7,6 +7,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewId
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
@@ -53,6 +54,14 @@ internal class RecordingSakeRepository(
         mutable.add(mapped)
         stream.value = mutable
         return id
+    }
+
+    override suspend fun deleteSake(id: SakeId): SakeDeleteResult {
+        val removed = stream.value.any { sake -> sake.id == id }
+        if (removed) {
+            stream.value = stream.value.filterNot { sake -> sake.id == id }
+        }
+        return SakeDeleteResult(isDeleted = removed)
     }
 }
 

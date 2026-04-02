@@ -118,6 +118,54 @@ class AppDatabaseDaoTest {
             assertEquals(listOf(secondId), remaining.map { it.id })
         }
 
+    @Test
+    fun deleteBySakeId_removesAllChildReviews() =
+        runTest {
+            val firstSakeId = sakeDao.insert(createSake(name = "親1"))
+            val secondSakeId = sakeDao.insert(createSake(name = "親2"))
+            reviewDao.insert(
+                createReview(
+                    sakeId = firstSakeId,
+                    dateEpochDay = LocalDate.parse("2026-02-10").toEpochDay(),
+                    comment = "削除1",
+                ),
+            )
+            reviewDao.insert(
+                createReview(
+                    sakeId = firstSakeId,
+                    dateEpochDay = LocalDate.parse("2026-02-11").toEpochDay(),
+                    comment = "削除2",
+                ),
+            )
+            val survivingId =
+                reviewDao.insert(
+                    createReview(
+                        sakeId = secondSakeId,
+                        dateEpochDay = LocalDate.parse("2026-02-12").toEpochDay(),
+                        comment = "残る",
+                    ),
+                )
+
+            val deleted = reviewDao.deleteBySakeId(firstSakeId)
+            val remaining = reviewDao.getAllOnce()
+
+            assertEquals(2, deleted)
+            assertEquals(listOf(survivingId), remaining.map { it.id })
+        }
+
+    @Test
+    fun deleteSake_removesOnlyTargetRow() =
+        runTest {
+            val firstId = sakeDao.insert(createSake(name = "削除対象"))
+            val secondId = sakeDao.insert(createSake(name = "残る"))
+
+            val deleted = sakeDao.deleteById(firstId)
+            val remaining = sakeDao.getAllOnce()
+
+            assertEquals(1, deleted)
+            assertEquals(listOf(secondId), remaining.map { it.id })
+        }
+
     private fun createSake(name: String): SakeEntity =
         SakeEntity(
             name = name,
