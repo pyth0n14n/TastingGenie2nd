@@ -18,6 +18,7 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +30,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Rule
 import org.junit.Test
-import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SakeListViewModelTest {
@@ -135,7 +135,7 @@ class SakeListViewModelTest {
                                 testReview(
                                     id = SECOND_REVIEW_ID,
                                     sakeId = DELETE_SAKE_ID,
-                                    date = LocalDate.parse("2026-03-15"),
+                                    date = java.time.LocalDate.parse("2026-03-15"),
                                 ),
                             ),
                     ),
@@ -204,6 +204,7 @@ class SakeListViewModelTest {
                     deleteResult =
                         SakeDeleteResult(
                             isDeleted = true,
+                            hasImageCleanupError = true,
                             imageCleanupErrorCauseKey = "cleanup failed",
                         ),
                 )
@@ -258,6 +259,59 @@ class SakeListViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(null, state.deleteError)
             assertEquals(1, state.sakes.size)
+        }
+
+    @Test
+    fun requestDeleteSake_ignoresStaleResultWhenLaterTapFinishesFirst() =
+        runTest {
+            val firstSakeId = DELETE_SAKE_ID
+            val secondSakeId = DELETE_SAKE_ID + 1
+            val reviewRepository = SequencedReviewRepository()
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(
+                        initial =
+                            listOf(
+                                Sake(
+                                    id = firstSakeId,
+                                    name = "先行タップ",
+                                    grade = SakeGrade.JUNMAI,
+                                ),
+                                Sake(
+                                    id = secondSakeId,
+                                    name = "後勝ち",
+                                    grade = SakeGrade.GINJO,
+                                ),
+                            ),
+                    ),
+                    reviewRepository,
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.requestDeleteSake(firstSakeId)
+            viewModel.requestDeleteSake(secondSakeId)
+            advanceUntilIdle()
+
+            reviewRepository.complete(
+                secondSakeId,
+                listOf(testReview(id = SECOND_REVIEW_ID, sakeId = secondSakeId)),
+            )
+            advanceUntilIdle()
+            reviewRepository.complete(
+                firstSakeId,
+                listOf(
+                    testReview(id = 1L, sakeId = firstSakeId),
+                    testReview(id = SECOND_REVIEW_ID, sakeId = firstSakeId),
+                ),
+            )
+            advanceUntilIdle()
+
+            val pending = viewModel.uiState.value.pendingDeleteSake
+            assertEquals(secondSakeId, pending?.sakeId)
+            assertEquals("後勝ち", pending?.sakeName)
+            assertEquals(1, pending?.reviewCount)
         }
 }
 
@@ -323,6 +377,31 @@ private class FakeReviewRepository(
     override suspend fun deleteReview(id: ReviewId): Boolean = false
 }
 
+private class SequencedReviewRepository : ReviewRepository {
+    private val responses = mutableMapOf<SakeId, CompletableDeferred<List<Review>>>()
+
+    override fun observeReviews(sakeId: SakeId): Flow<List<Review>> =
+        flow {
+            emit(responseFor(sakeId).await())
+        }
+
+    override suspend fun getReview(id: ReviewId): Review? = null
+
+    override suspend fun upsertReview(input: ReviewInput): ReviewId = 1L
+
+    override suspend fun deleteReview(id: ReviewId): Boolean = false
+
+    fun complete(
+        sakeId: SakeId,
+        reviews: List<Review>,
+    ) {
+        responseFor(sakeId).complete(reviews)
+    }
+
+    private fun responseFor(sakeId: SakeId): CompletableDeferred<List<Review>> =
+        responses.getOrPut(sakeId) { CompletableDeferred() }
+}
+
 private class FakeMasterDataRepository : MasterDataRepository {
     override suspend fun getMasterData(): MasterDataBundle =
         MasterDataBundle(
@@ -359,7 +438,7 @@ private class FakeSettingsRepository : SettingsRepository {
 private fun testReview(
     id: Long,
     sakeId: Long,
-    date: LocalDate = LocalDate.parse("2026-03-14"),
+    date: java.time.LocalDate = java.time.LocalDate.parse("2026-03-14"),
 ): Review =
     Review(
         id = id,

@@ -125,12 +125,34 @@ class SakeRepositoryImplTest {
                         imageUri = imageUri,
                     ),
                 )
-            imageRepository.failOnDelete = imageUri
+            imageRepository.deleteFailure = IllegalStateException("cleanup failed")
 
             val result = repository.deleteSake(sakeId)
 
             assertEquals(true, result.isDeleted)
+            assertEquals(true, result.hasImageCleanupError)
             assertEquals("cleanup failed", result.imageCleanupErrorCauseKey)
+            assertEquals(emptyList<Long>(), database.sakeDao().getAllOnce().map { it.id })
+        }
+
+    @Test
+    fun deleteSake_marksCleanupFailureEvenWhenExceptionMessageIsNull() =
+        runTest {
+            val imageUri = "file:///images/sakes/fail-null-message.jpg"
+            val sakeId =
+                database.sakeDao().insert(
+                    createSake(
+                        name = "削除対象",
+                        imageUri = imageUri,
+                    ),
+                )
+            imageRepository.deleteFailure = IllegalStateException()
+
+            val result = repository.deleteSake(sakeId)
+
+            assertEquals(true, result.isDeleted)
+            assertEquals(true, result.hasImageCleanupError)
+            assertEquals(null, result.imageCleanupErrorCauseKey)
             assertEquals(emptyList<Long>(), database.sakeDao().getAllOnce().map { it.id })
         }
 
@@ -190,7 +212,7 @@ class SakeRepositoryImplTest {
 
 private class RecordingImageRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository {
     val deletedUris = mutableListOf<String>()
-    var failOnDelete: String? = null
+    var deleteFailure: Throwable? = null
 
     override suspend fun importImage(
         sourceUri: String,
@@ -200,9 +222,7 @@ private class RecordingImageRepository : io.github.pyth0n14n.tastinggenie.domain
     override suspend fun deleteImage(imageUri: String?) {
         imageUri?.let { uri ->
             deletedUris += uri
-            if (uri == failOnDelete) {
-                error("cleanup failed")
-            }
+            deleteFailure?.let { throw it }
         }
     }
 }
