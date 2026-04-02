@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -83,6 +84,27 @@ class SakeImageRepositoryImplTest {
 
             assertEquals("exported", exportedImage?.bytes?.decodeToString())
             assertTrue(exportedImage?.fileName?.endsWith(".jpg") == true)
+        }
+
+    @Test
+    fun deleteImage_throwsWhenManagedPathCannotBeDeleted() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val managedDirectory = File(context.filesDir, "images/sakes")
+            val undeletableDir =
+                File(managedDirectory, "non-empty-dir").apply {
+                    mkdirs()
+                    File(this, "child.txt").writeText("keep")
+                }
+
+            try {
+                repository.deleteImage(Uri.fromFile(undeletableDir).toString())
+                fail("Expected deleteImage to throw when deletion fails")
+            } catch (exception: IllegalStateException) {
+                assertTrue(exception.message?.contains("Failed to delete managed image") == true)
+            }
+            assertTrue(undeletableDir.exists())
         }
 
     private fun createSourceFile(

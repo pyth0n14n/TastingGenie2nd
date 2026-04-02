@@ -309,6 +309,30 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun importBackup_imagePathOutsideManagedBackupDirectory_returnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val payload =
+                BackupPayload(
+                    schemaVersion = CURRENT_SCHEMA_VERSION,
+                    sakes = listOf(sampleSerializableSake(imagePath = "notes/not-an-image.bin")),
+                    reviews = emptyList(),
+                )
+
+            val result =
+                repository.importBackup(
+                    createBackupZip(
+                        payload = payload,
+                        imageEntries = mapOf("notes/not-an-image.bin" to "not-an-image".encodeToByteArray()),
+                    ),
+                )
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+            assertTrue(database.sakeDao().getAllOnce().isEmpty())
+        }
+
+    @Test
     fun importBackup_existingLocalIdsDoNotOverwriteUnrelatedRows() =
         runTest {
             val repository = createRepository()

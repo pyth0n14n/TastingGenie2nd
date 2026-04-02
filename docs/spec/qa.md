@@ -81,17 +81,18 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Delete an existing image and save; verify the old managed image is removed only after the save succeeds.
 ### Problem: Post-save image cleanup failure is treated as a save failure even after the DB commit succeeded.
 - **Example**: SakeEdit saves a replacement image, then `deleteImage(oldUri)` throws and the screen reports `error_save_sake` while the DB already points at the new image.
-- **Preventive Measure**: Mark the DB write as committed before old-image cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
+- **Preventive Measure**: Mark the DB write as committed before old-image cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit. When deleting a managed file, treat both thrown exceptions and `File.delete() == false` as cleanup failures; do not silently ignore failed deletes.
 - **Test Coverage**:
   - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
   - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
 
 ### Problem: ZIP backup manifest and image entries drift apart, causing partial restores or hidden image loss.
 - **Example**: `backup.json` references `images/sakes/...` but that ZIP entry is missing, or the archive contains no `backup.json` at all.
-- **Preventive Measure**: Treat backup ZIPs as a single contract: require `backup.json`, reject missing referenced image entries, normalize truncated/corrupted ZIP read failures as invalid archives, and keep schema validation on the manifest before import. If import fails after managed images are created, surface rollback cleanup failures instead of swallowing them.
+- **Preventive Measure**: Treat backup ZIPs as a single contract: require `backup.json`, require referenced `imagePath` values to stay under `images/sakes/`, reject missing referenced image entries, normalize truncated/corrupted ZIP read failures as invalid archives, and keep schema validation on the manifest before import. If import fails after managed images are created, surface rollback cleanup failures instead of swallowing them.
 - **Test Coverage**:
   - Import a ZIP without `backup.json`; verify the UI reports invalid backup content.
   - Import a truncated ZIP; verify the UI reports invalid backup content instead of a generic import error.
+  - Import a ZIP whose `imagePath` points outside `images/sakes/`; verify the import is rejected as invalid payload.
   - Import a ZIP whose `imagePath` entry is missing; verify the import fails without creating partial rows.
   - Force rollback image cleanup to fail after an import error; verify the returned failure exposes both the import failure and the cleanup failure.
   - Export a sake with an image and verify both the manifest path and ZIP image entry exist.

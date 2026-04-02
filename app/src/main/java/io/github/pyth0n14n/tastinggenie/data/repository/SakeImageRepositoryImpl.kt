@@ -92,7 +92,7 @@ class SakeImageRepositoryImpl
         private fun deleteManagedImage(imageUri: String?) {
             val targetFile = imageUri?.toManagedFileOrNull() ?: return
             if (targetFile.exists()) {
-                targetFile.delete()
+                check(targetFile.delete()) { "Failed to delete managed image: $imageUri" }
             }
         }
 

@@ -9,6 +9,9 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import java.time.LocalDate
 
+private const val BACKUP_IMAGE_DIRECTORY = "images/sakes"
+private const val BACKUP_IMAGE_DIRECTORY_PREFIX = "$BACKUP_IMAGE_DIRECTORY/"
+
 internal suspend fun resolveOrInsertSake(
     sake: SerializableSake,
     knownSakes: MutableList<SakeEntity>,
@@ -54,6 +57,12 @@ private fun validateImageEntryIfReferenced(
 ) {
     if (imagePath.isNullOrBlank()) {
         return
+    }
+    require(imagePath.startsWith(BACKUP_IMAGE_DIRECTORY_PREFIX)) {
+        "Backup image path must be under $BACKUP_IMAGE_DIRECTORY: $imagePath"
+    }
+    require(imagePath.removePrefix(BACKUP_IMAGE_DIRECTORY_PREFIX).isNotBlank()) {
+        "Backup image path must include a file name: $imagePath"
     }
     require(imageEntries.containsKey(imagePath)) {
         "Backup archive is missing image entry: $imagePath"

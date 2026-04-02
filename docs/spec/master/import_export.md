@@ -53,5 +53,6 @@
 - `Sake.imageUri` は backup manifest に直接書かない
 - 画像がある酒は `SerializableSake.imagePath` に ZIP 内相対パスを書き込む
 - 実画像は `images/sakes/...` にバイト列として格納する
+- `imagePath` は `images/sakes/` 配下のみ有効とし、それ以外を指す backup は不正扱い
 - import 時に `imagePath` があるのに ZIP 内画像が欠けている場合は失敗扱い
 - review は画像を持たない
