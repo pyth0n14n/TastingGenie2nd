@@ -42,4 +42,9 @@ class ReviewRepositoryImpl
                     }
                 }
             }
+
+        override suspend fun deleteReview(id: ReviewId): Boolean =
+            withContext(ioDispatcher) {
+                reviewDao.deleteById(id) > 0
+            }
     }

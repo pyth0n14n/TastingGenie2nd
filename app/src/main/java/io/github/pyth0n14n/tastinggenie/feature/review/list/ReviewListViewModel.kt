@@ -42,7 +42,7 @@ class ReviewListViewModel
                         it.copy(
                             isLoading = false,
                             isSakeMissing = true,
-                            error = UiError(messageResId = R.string.error_load_sake),
+                            loadError = UiError(messageResId = R.string.error_load_sake),
                         )
                     }
                     return@launch
@@ -55,7 +55,7 @@ class ReviewListViewModel
                             it.copy(
                                 isLoading = false,
                                 sakeId = sakeId,
-                                error =
+                                loadError =
                                     UiError(
                                         messageResId = R.string.error_load_sake,
                                         causeKey = throwable.message,
@@ -70,7 +70,7 @@ class ReviewListViewModel
                             isLoading = false,
                             sakeId = sakeId,
                             isSakeMissing = true,
-                            error =
+                            loadError =
                                 UiError(
                                     messageResId = R.string.error_load_sake,
                                     causeKey = sakeId.toString(),
@@ -99,7 +99,7 @@ class ReviewListViewModel
                     it.copy(
                         isLoading = false,
                         sakeId = sakeId,
-                        error =
+                        loadError =
                             UiError(
                                 messageResId = R.string.error_load_reviews,
                                 causeKey = throwable.message,
@@ -125,7 +125,7 @@ class ReviewListViewModel
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
                             overallReviewLabels = overallReviewLabels,
-                            error =
+                            loadError =
                                 UiError(
                                     messageResId = R.string.error_load_reviews,
                                     causeKey = throwable.message,
@@ -136,7 +136,8 @@ class ReviewListViewModel
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = null,
+                            loadError = null,
+                            deleteError = null,
                             sakeId = sakeId,
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
@@ -146,6 +147,36 @@ class ReviewListViewModel
                         )
                     }
                 }
+        }
+
+        fun deleteReview(reviewId: Long) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(deleteError = null) }
+                runCatching { reviewRepository.deleteReview(reviewId) }
+                    .onSuccess { deleted ->
+                        if (!deleted) {
+                            _uiState.update {
+                                it.copy(
+                                    deleteError =
+                                        UiError(
+                                            messageResId = R.string.error_delete_review,
+                                            causeKey = reviewId.toString(),
+                                        ),
+                                )
+                            }
+                        }
+                    }.onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                deleteError =
+                                    UiError(
+                                        messageResId = R.string.error_delete_review,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }
+            }
         }
     }
 
