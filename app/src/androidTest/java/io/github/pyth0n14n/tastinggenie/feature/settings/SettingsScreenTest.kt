@@ -32,8 +32,8 @@ class SettingsScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("JSONを書き出す").performClick()
-        composeRule.onNodeWithText("JSONを読み込む").performClick()
+        composeRule.onNodeWithText("バックアップを書き出す").performClick()
+        composeRule.onNodeWithText("バックアップを読み込む").performClick()
 
         composeRule.runOnIdle {
             assertTrue(exportClicked)
@@ -63,7 +63,7 @@ class SettingsScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("JSONを読み込みました").assertIsDisplayed()
+        composeRule.onNodeWithText("バックアップを読み込みました").assertIsDisplayed()
         composeRule.onNodeWithText("閉じる").performClick()
         composeRule.runOnIdle { assertTrue(dismissCalled) }
     }

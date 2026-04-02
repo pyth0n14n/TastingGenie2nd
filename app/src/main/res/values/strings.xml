@@ -13,8 +13,8 @@
     <string name="action_back">戻る</string>
     <string name="action_edit">編集</string>
     <string name="action_view_image">画像</string>
-    <string name="action_export_json">JSONを書き出す</string>
-    <string name="action_import_json">JSONを読み込む</string>
+    <string name="action_export_json">バックアップを書き出す</string>
+    <string name="action_import_json">バックアップを読み込む</string>
     <string name="action_close_message">閉じる</string>
     <string name="action_confirm">確定</string>
     <string name="action_cancel">キャンセル</string>
@@ -70,8 +70,8 @@
     <string name="message_confirm_delete_sake_image">この酒の画像を削除しますか？</string>
     <string name="message_saving">保存中...</string>
     <string name="message_processing_transfer">読み書き中...</string>
-    <string name="message_export_success">JSONを書き出しました</string>
-    <string name="message_import_success">JSONを読み込みました</string>
+    <string name="message_export_success">バックアップを書き出しました</string>
+    <string name="message_import_success">バックアップを読み込みました</string>
     <string name="content_review_image">レビュー画像</string>
     <string name="content_sake_image">酒画像</string>
     <string name="title_delete_sake_image">画像を削除</string>
@@ -92,9 +92,9 @@
     <string name="error_save_sake">酒情報の保存に失敗しました</string>
     <string name="error_save_review">レビュー情報の保存に失敗しました</string>
     <string name="error_save_settings">設定の保存に失敗しました</string>
-    <string name="error_export_failed">JSONの書き出しに失敗しました</string>
-    <string name="error_import_failed">JSONの読み込みに失敗しました</string>
-    <string name="error_import_invalid_json">JSONが破損しています</string>
+    <string name="error_export_failed">バックアップの書き出しに失敗しました</string>
+    <string name="error_import_failed">バックアップの読み込みに失敗しました</string>
+    <string name="error_import_invalid_json">バックアップ内容が破損しています</string>
     <string name="error_import_unsupported_version">未対応のバックアップバージョンです</string>
     <string name="error_import_invalid_payload">JSONの内容が不正です</string>
     <string name="error_invalid_sake_grade">種別の選択値が不正です</string>

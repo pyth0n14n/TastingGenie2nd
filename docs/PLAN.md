@@ -54,7 +54,8 @@
 8. **PR-8: Backup ZIP 対応**
    - Settings の import/export を ZIP ベースに変更し、`backup.json + images/` の round-trip を実装する。
    - 画像は ZIP 内相対パスで管理する。
-   - 完了条件: 酒 + レビュー + 酒画像の export/import round-trip が成立する。
+   - import 時は同値データを重複作成しない。
+   - 完了条件: 酒 + レビュー + 酒画像の export/import round-trip が成立し、同じ backup を再 restore しても重複しない。
 
 9. **PR-9: レビュー削除 UI**
    - ReviewList にゴミ箱導線と確認ダイアログを追加する。
@@ -89,7 +90,7 @@
 - Toolchain: Android Studio sync、`./gradlew ciCheck`、必要なら `--warning-mode all` で deprecation 原因確認。
 - 酒フォーム: `OTHER` 選択時入力欄表示、prefecture 階層選択、数値項目保存/再編集、必須項目バリデーション。
 - 画像: pick -> 保存 -> 再起動後表示、差し替えで旧画像削除、画像削除確認、酒削除で画像も消える。
-- Backup: ZIP export/import round-trip、画像付き復元、破損 ZIP / schema 不一致 / 欠損画像で明示エラー。
+- Backup: ZIP export/import round-trip、画像付き復元、破損 ZIP / schema 不一致 / 欠損画像で明示エラー、同一 backup 再 restore 時の dedupe。
 - 削除: review 単体削除、sake cascade delete、確認キャンセル、削除失敗時 UI エラー。
 - レビュー UI: DatePicker 反映、段階選択の再編集、星評価ラベル表示、香りカテゴリ展開・複数選択。
 - Migration: `Review.imageUri` 削除後に既存テスト DB / schema / mapper / import-export が整合すること。
