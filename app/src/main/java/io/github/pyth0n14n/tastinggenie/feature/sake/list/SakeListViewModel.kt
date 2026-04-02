@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +33,8 @@ class SakeListViewModel
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SakeListUiState())
         val uiState: StateFlow<SakeListUiState> = _uiState.asStateFlow()
+        private var deleteRequestJob: Job? = null
+        private var latestDeleteRequestId: Long = 0L
 
         init {
             loadInitial()
@@ -89,31 +92,37 @@ class SakeListViewModel
         }
 
         fun requestDeleteSake(sakeId: Long) {
-            viewModelScope.launch {
-                _uiState.update { it.copy(deleteError = null) }
-                when (val target = loadSakeForDeletion(sakeId)) {
-                    DeleteTargetLoadResult.Failed -> return@launch
-                    DeleteTargetLoadResult.Missing -> {
-                        showDeleteError(causeKey = sakeId.toString())
-                        return@launch
-                    }
+            deleteRequestJob?.cancel()
+            val requestId = ++latestDeleteRequestId
+            deleteRequestJob =
+                viewModelScope.launch {
+                    _uiState.update { it.copy(deleteError = null, pendingDeleteSake = null) }
+                    when (val target = loadSakeForDeletion(sakeId)) {
+                        DeleteTargetLoadResult.Failed -> return@launch
+                        DeleteTargetLoadResult.Missing -> {
+                            showDeleteError(causeKey = sakeId.toString())
+                            return@launch
+                        }
 
-                    is DeleteTargetLoadResult.Loaded -> {
-                        val reviewCount = loadReviewCountForDeletion(sakeId) ?: return@launch
-                        _uiState.update {
-                            it.copy(
-                                pendingDeleteSake =
-                                    PendingDeleteSake(
-                                        sakeId = target.sake.id,
-                                        sakeName = target.sake.name,
-                                        reviewCount = reviewCount,
-                                        hasImage = !target.sake.imageUri.isNullOrBlank(),
-                                    ),
-                            )
+                        is DeleteTargetLoadResult.Loaded -> {
+                            val reviewCount = loadReviewCountForDeletion(sakeId) ?: return@launch
+                            if (!isLatestDeleteRequest(requestId)) {
+                                return@launch
+                            }
+                            _uiState.update {
+                                it.copy(
+                                    pendingDeleteSake =
+                                        PendingDeleteSake(
+                                            sakeId = target.sake.id,
+                                            sakeName = target.sake.name,
+                                            reviewCount = reviewCount,
+                                            hasImage = !target.sake.imageUri.isNullOrBlank(),
+                                        ),
+                                )
+                            }
                         }
                     }
                 }
-            }
         }
 
         fun dismissDeleteSakeDialog() {
@@ -188,6 +197,8 @@ class SakeListViewModel
                 )
             }
         }
+
+        private fun isLatestDeleteRequest(requestId: Long): Boolean = requestId == latestDeleteRequestId
     }
 
 private sealed interface DeleteTargetLoadResult {

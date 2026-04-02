@@ -72,6 +72,7 @@ class SakeRepositoryImpl
                     }
                 SakeDeleteResult(
                     isDeleted = true,
+                    hasImageCleanupError = cleanupFailure != null,
                     imageCleanupErrorCauseKey = cleanupFailure?.message,
                 )
             }
