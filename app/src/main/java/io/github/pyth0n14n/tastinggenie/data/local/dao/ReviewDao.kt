@@ -27,4 +27,7 @@ interface ReviewDao {
 
     @Update
     suspend fun update(entity: ReviewEntity): Int
+
+    @Query("DELETE FROM reviews WHERE id = :id")
+    suspend fun deleteById(id: Long): Int
 }

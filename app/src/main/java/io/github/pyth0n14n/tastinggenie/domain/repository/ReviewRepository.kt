@@ -15,4 +15,6 @@ interface ReviewRepository {
     suspend fun getReview(id: ReviewId): Review?
 
     suspend fun upsertReview(input: ReviewInput): ReviewId
+
+    suspend fun deleteReview(id: ReviewId): Boolean
 }

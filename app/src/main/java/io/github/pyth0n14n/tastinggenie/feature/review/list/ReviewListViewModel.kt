@@ -10,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +43,7 @@ class ReviewListViewModel
                         it.copy(
                             isLoading = false,
                             isSakeMissing = true,
-                            error = UiError(messageResId = R.string.error_load_sake),
+                            loadError = UiError(messageResId = R.string.error_load_sake),
                         )
                     }
                     return@launch
@@ -55,7 +56,7 @@ class ReviewListViewModel
                             it.copy(
                                 isLoading = false,
                                 sakeId = sakeId,
-                                error =
+                                loadError =
                                     UiError(
                                         messageResId = R.string.error_load_sake,
                                         causeKey = throwable.message,
@@ -70,7 +71,7 @@ class ReviewListViewModel
                             isLoading = false,
                             sakeId = sakeId,
                             isSakeMissing = true,
-                            error =
+                            loadError =
                                 UiError(
                                     messageResId = R.string.error_load_sake,
                                     causeKey = sakeId.toString(),
@@ -99,7 +100,7 @@ class ReviewListViewModel
                     it.copy(
                         isLoading = false,
                         sakeId = sakeId,
-                        error =
+                        loadError =
                             UiError(
                                 messageResId = R.string.error_load_reviews,
                                 causeKey = throwable.message,
@@ -125,7 +126,7 @@ class ReviewListViewModel
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
                             overallReviewLabels = overallReviewLabels,
-                            error =
+                            loadError =
                                 UiError(
                                     messageResId = R.string.error_load_reviews,
                                     causeKey = throwable.message,
@@ -136,7 +137,8 @@ class ReviewListViewModel
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = null,
+                            loadError = null,
+                            deleteError = null,
                             sakeId = sakeId,
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
@@ -146,6 +148,39 @@ class ReviewListViewModel
                         )
                     }
                 }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
+        fun deleteReview(reviewId: Long) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(deleteError = null) }
+                try {
+                    val deleted = reviewRepository.deleteReview(reviewId)
+                    if (!deleted) {
+                        _uiState.update {
+                            it.copy(
+                                deleteError =
+                                    UiError(
+                                        messageResId = R.string.error_delete_review,
+                                        causeKey = reviewId.toString(),
+                                    ),
+                            )
+                        }
+                    }
+                } catch (throwable: CancellationException) {
+                    throw throwable
+                } catch (throwable: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            deleteError =
+                                UiError(
+                                    messageResId = R.string.error_delete_review,
+                                    causeKey = throwable.message,
+                                ),
+                        )
+                    }
+                }
+            }
         }
     }
 

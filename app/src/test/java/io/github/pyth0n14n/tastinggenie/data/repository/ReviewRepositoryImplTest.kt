@@ -7,9 +7,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+
+private const val DELETE_TEST_SAKE_ID = 3L
+private const val MISSING_REVIEW_ID = 999L
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewRepositoryImplTest {
@@ -64,5 +69,38 @@ class ReviewRepositoryImplTest {
             assertEquals("更新後", loaded?.comment)
             assertEquals(LocalDate.parse("2026-02-21"), loaded?.date)
             assertEquals(OverallReview.VERY_GOOD, loaded?.review)
+        }
+
+    @Test
+    fun deleteReview_removesEntityFromRepository() =
+        runTest {
+            val dao = FakeReviewDao()
+            val repository = ReviewRepositoryImpl(dao, StandardTestDispatcher(testScheduler))
+            val reviewId =
+                repository.upsertReview(
+                    ReviewInput(
+                        sakeId = DELETE_TEST_SAKE_ID,
+                        date = LocalDate.parse("2026-02-23"),
+                        comment = "削除対象",
+                    ),
+                )
+
+            val deleted = repository.deleteReview(reviewId)
+            val observed = repository.observeReviews(DELETE_TEST_SAKE_ID).first()
+
+            assertEquals(true, deleted)
+            assertEquals(null, repository.getReview(reviewId))
+            assertTrue(observed.isEmpty())
+        }
+
+    @Test
+    fun deleteReview_returnsFalseWhenEntityDoesNotExist() =
+        runTest {
+            val dao = FakeReviewDao()
+            val repository = ReviewRepositoryImpl(dao, StandardTestDispatcher(testScheduler))
+
+            val deleted = repository.deleteReview(MISSING_REVIEW_ID)
+
+            assertFalse(deleted)
         }
 }
