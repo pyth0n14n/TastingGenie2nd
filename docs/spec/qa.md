@@ -85,6 +85,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
   - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
+### Problem: Review deletion is easy to mis-tap or hides the list when only the delete action failed.
+- **Example**: A user taps the trash icon by mistake, or `deleteReview` fails and ReviewList is replaced by a generic load error even though the existing rows are still valid.
+- **Preventive Measure**: Put review deletion behind a confirmation dialog, and keep delete failures separate from load failures so the list stays visible.
+- **Test Coverage**:
+  - Tap the review delete icon and verify no deletion happens until the confirmation button is pressed.
+  - Force `deleteReview` to fail and verify the list remains visible while the delete error is shown.
 
 ## 3. Navigation and Settings Application
 
