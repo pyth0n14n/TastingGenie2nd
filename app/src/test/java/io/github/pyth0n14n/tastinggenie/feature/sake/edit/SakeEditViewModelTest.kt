@@ -686,16 +686,6 @@ class RecordingSakeImageRepository(
         return importedUri
     }
 
-    override suspend fun importImageBytes(
-        filenameHint: String,
-        bytes: ByteArray,
-        previousImageUri: String?,
-    ): String = importedUri
-
-    override suspend fun exportImage(
-        imageUri: String?,
-    ): io.github.pyth0n14n.tastinggenie.domain.model.ManagedSakeImage? = null
-
     override suspend fun deleteImage(imageUri: String?) {
         imageUri?.let { uri ->
             deletedUris += uri

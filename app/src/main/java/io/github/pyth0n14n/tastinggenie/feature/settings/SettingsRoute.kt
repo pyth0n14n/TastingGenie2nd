@@ -34,10 +34,11 @@ import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.nio.charset.StandardCharsets
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
-private const val EXPORT_FILE_NAME = "tastinggenie-backup.zip"
+private const val EXPORT_FILE_NAME = "tastinggenie-backup.json"
 
 @Composable
 fun SettingsRoute(
@@ -56,12 +57,12 @@ fun SettingsRoute(
         }
     }
     val exportLauncher =
-        rememberLauncherForActivityResult(CreateDocument("application/zip")) { uri ->
+        rememberLauncherForActivityResult(CreateDocument("application/json")) { uri ->
             if (uri == null) {
                 return@rememberLauncherForActivityResult
             }
-            viewModel.exportBackup { rawZip ->
-                runRouteTransferCatching { writeBackupZip(context, uri, rawZip) }
+            viewModel.exportBackup { rawJson ->
+                runRouteTransferCatching { writeBackupJson(context, uri, rawJson) }
             }
         }
     val importLauncher =
@@ -70,7 +71,7 @@ fun SettingsRoute(
                 return@rememberLauncherForActivityResult
             }
             viewModel.importBackup {
-                runRouteTransferCatching { readBackupZip(context, uri) }
+                runRouteTransferCatching { readBackupJson(context, uri) }
             }
         }
     SettingsScreen(
@@ -81,7 +82,7 @@ fun SettingsRoute(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleImagePreview = viewModel::toggleImagePreview,
                 onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
-                onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/zip")) },
+                onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
                 onDismissMessage = viewModel::clearTransferFeedback,
             ),
     )
@@ -103,32 +104,32 @@ private suspend fun <T> runRouteTransferCatching(block: suspend () -> T): Result
         }
     }
 
-private suspend fun writeBackupZip(
+private suspend fun writeBackupJson(
     context: Context,
     uri: Uri,
-    rawZip: ByteArray,
+    rawJson: String,
 ) = withContext(Dispatchers.IO) {
-    // Export success depends on both backup generation and URI write completion.
+    // Export success depends on both JSON generation and URI write completion.
     val outputStream =
-        checkNotNull(context.contentResolver.openOutputStream(uri, "w")) {
+        checkNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
             "Failed to open output stream for export"
         }
-    outputStream.use { output ->
-        output.write(rawZip)
+    outputStream.writer(StandardCharsets.UTF_8).use { writer ->
+        writer.write(rawJson)
     }
 }
 
-private suspend fun readBackupZip(
+private suspend fun readBackupJson(
     context: Context,
     uri: Uri,
-): ByteArray =
+): String =
     withContext(Dispatchers.IO) {
         val inputStream =
             checkNotNull(context.contentResolver.openInputStream(uri)) {
                 "Failed to open input stream for import"
             }
-        inputStream.use { input ->
-            input.readBytes()
+        inputStream.reader(StandardCharsets.UTF_8).use { reader ->
+            reader.readText()
         }
     }
 

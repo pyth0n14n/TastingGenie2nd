@@ -2,7 +2,7 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 4
+const val CURRENT_SCHEMA_VERSION = 3
 
 @Serializable
 data class BackupPayload(
@@ -16,7 +16,6 @@ data class SerializableSake(
     val id: Long,
     val name: String,
     val grade: String,
-    val imagePath: String? = null,
     val gradeOther: String? = null,
     val type: List<String>,
     val typeOther: String? = null,
@@ -67,13 +66,3 @@ class UnsupportedSchemaVersionException(
 class InvalidBackupReferenceException(
     val sakeId: Long,
 ) : IllegalArgumentException("Review references unknown sakeId: $sakeId")
-
-data class ManagedSakeImage(
-    val fileName: String,
-    val bytes: ByteArray,
-)
-
-class InvalidBackupArchiveException(
-    message: String,
-    cause: Throwable? = null,
-) : IllegalArgumentException(message, cause)

@@ -18,12 +18,11 @@ import java.time.LocalDate
 private const val MIN_IMPORTED_VISCOSITY = 1
 private const val MAX_IMPORTED_VISCOSITY = 3
 
-fun SakeEntity.toSerializable(imagePath: String? = null): SerializableSake =
+fun SakeEntity.toSerializable(): SerializableSake =
     SerializableSake(
         id = id,
         name = name,
         grade = grade.name,
-        imagePath = imagePath,
         gradeOther = gradeOther,
         type = type.map { classification -> classification.name },
         typeOther = typeOther,
@@ -41,14 +40,14 @@ fun SakeEntity.toSerializable(imagePath: String? = null): SerializableSake =
         water = water,
     )
 
-fun SerializableSake.toImportedEntity(imageUri: String? = null): SakeEntity =
+fun SerializableSake.toImportedEntity(): SakeEntity =
     SakeEntity(
         name =
             name
                 .trim()
                 .also { trimmedName -> require(trimmedName.isNotEmpty()) { "Backup sake name must not be blank" } },
         grade = enumValueOf<SakeGrade>(grade),
-        imageUri = imageUri,
+        imageUri = null,
         gradeOther = gradeOther,
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
         typeOther = typeOther,

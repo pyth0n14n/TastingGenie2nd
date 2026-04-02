@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupArchiveException
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceException
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
@@ -45,13 +44,13 @@ class SettingsViewModel
             updateSetting { settingsRepository.updateShowImagePreview(enabled) }
         }
 
-        fun exportBackup(writeZip: suspend (ByteArray) -> Result<Unit>) {
+        fun exportBackup(writeJson: suspend (String) -> Result<Unit>) {
             hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
-                    val rawZip = exportBackupPayload() ?: return@launch
-                    writeZip(rawZip)
+                    val rawJson = exportJsonPayload() ?: return@launch
+                    writeJson(rawJson)
                         .onSuccess {
                             _uiState.update {
                                 it.copy(
@@ -81,13 +80,13 @@ class SettingsViewModel
             }
         }
 
-        fun importBackup(readZip: suspend () -> Result<ByteArray>) {
+        fun importBackup(readJson: suspend () -> Result<String>) {
             hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
-                    val rawZip =
-                        readZip().getOrElse { throwable ->
+                    val rawJson =
+                        readJson().getOrElse { throwable ->
                             _uiState.update {
                                 it.copy(
                                     isProcessingTransfer = false,
@@ -101,7 +100,7 @@ class SettingsViewModel
                             hasUnseenTransferFeedback = !isSettingsVisible
                             return@launch
                         }
-                    importBackupPayload(rawZip)
+                    importJsonPayload(rawJson)
                 } catch (throwable: CancellationException) {
                     _uiState.update { it.copy(isProcessingTransfer = false) }
                     throw throwable
@@ -137,9 +136,9 @@ class SettingsViewModel
             }
         }
 
-        private suspend fun exportBackupPayload(): ByteArray? =
+        private suspend fun exportJsonPayload(): String? =
             importExportRepository
-                .exportBackup()
+                .exportJson()
                 .onFailure { throwable ->
                     _uiState.update {
                         it.copy(
@@ -154,9 +153,9 @@ class SettingsViewModel
                     hasUnseenTransferFeedback = !isSettingsVisible
                 }.getOrNull()
 
-        private suspend fun importBackupPayload(rawZip: ByteArray) {
+        private suspend fun importJsonPayload(rawJson: String) {
             importExportRepository
-                .importBackup(rawZip)
+                .importJson(rawJson)
                 .onSuccess {
                     _uiState.update {
                         it.copy(
@@ -226,9 +225,7 @@ private fun mapImportError(throwable: Throwable): UiError {
     val messageResId =
         when (throwable) {
             is UnsupportedSchemaVersionException -> R.string.error_import_unsupported_version
-            is InvalidBackupArchiveException,
-            is SerializationException,
-            -> R.string.error_import_invalid_json
+            is SerializationException -> R.string.error_import_invalid_json
             is InvalidBackupReferenceException,
             is IllegalArgumentException,
             -> R.string.error_import_invalid_payload
