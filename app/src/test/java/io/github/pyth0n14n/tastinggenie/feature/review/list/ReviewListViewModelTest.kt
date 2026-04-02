@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import io.github.pyth0n14n.tastinggenie.feature.review.testSake
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -129,6 +130,30 @@ class ReviewListViewModelTest {
             val state = viewModel.uiState.value
             assertNotNull(state.deleteError)
             assertEquals(R.string.error_delete_review, state.deleteError?.messageResId)
+            assertEquals(1, state.reviews.size)
+        }
+
+    @Test
+    fun deleteReview_doesNotExposeCancellationAsDeleteError() =
+        runTest {
+            val reviewRepository =
+                RecordingReviewRepository(initial = listOf(testReview())).apply {
+                    deleteFailure = CancellationException("cancelled")
+                }
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = reviewRepository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.deleteReview(TEST_REVIEW_ID)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(null, state.deleteError)
             assertEquals(1, state.reviews.size)
         }
 }
