@@ -53,38 +53,6 @@ class SakeImageRepositoryImplTest {
             assertTrue(unmanagedFile.exists())
         }
 
-    @Test
-    fun importImageBytes_createsManagedImageUsingFilenameHint() =
-        runTest {
-            val context = ApplicationProvider.getApplicationContext<Context>()
-            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
-
-            val imageUri =
-                repository.importImageBytes(
-                    filenameHint = "backup-sake.png",
-                    bytes = "png-image".encodeToByteArray(),
-                )
-            val managedFile = requireNotNull(Uri.parse(imageUri).path).let(::File)
-
-            assertTrue(managedFile.exists())
-            assertTrue(managedFile.name.endsWith(".png"))
-            assertEquals("png-image", managedFile.readText())
-        }
-
-    @Test
-    fun exportImage_readsManagedImageBytes() =
-        runTest {
-            val context = ApplicationProvider.getApplicationContext<Context>()
-            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
-            val sourceFile = createSourceFile(context, name = "export.jpg", content = "exported")
-            val managedUri = repository.importImage(sourceUri = Uri.fromFile(sourceFile).toString())
-
-            val exportedImage = repository.exportImage(managedUri)
-
-            assertEquals("exported", exportedImage?.bytes?.decodeToString())
-            assertTrue(exportedImage?.fileName?.endsWith(".jpg") == true)
-        }
-
     private fun createSourceFile(
         context: Context,
         name: String,
