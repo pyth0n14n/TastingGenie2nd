@@ -87,6 +87,8 @@ private class FailingReviewDao : ReviewDao {
     override suspend fun insertAll(entities: List<ReviewEntity>): Unit = throw DaoFailureException("DAO failure")
 
     override suspend fun update(entity: ReviewEntity): Int = throw DaoFailureException("DAO failure")
+
+    override suspend fun deleteById(id: Long): Int = throw DaoFailureException("DAO failure")
 }
 
 private class DaoFailureException(

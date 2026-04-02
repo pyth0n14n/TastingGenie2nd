@@ -90,6 +90,34 @@ class AppDatabaseDaoTest {
             }
         }
 
+    @Test
+    fun deleteReview_removesRowById() =
+        runTest {
+            val sakeId = sakeDao.insert(createSake(name = "削除確認酒"))
+            val firstId =
+                reviewDao.insert(
+                    createReview(
+                        sakeId = sakeId,
+                        dateEpochDay = LocalDate.parse("2026-02-10").toEpochDay(),
+                        comment = "削除される",
+                    ),
+                )
+            val secondId =
+                reviewDao.insert(
+                    createReview(
+                        sakeId = sakeId,
+                        dateEpochDay = LocalDate.parse("2026-02-11").toEpochDay(),
+                        comment = "残る",
+                    ),
+                )
+
+            val deleted = reviewDao.deleteById(firstId)
+            val remaining = reviewDao.observeBySakeId(sakeId).first()
+
+            assertEquals(1, deleted)
+            assertEquals(listOf(secondId), remaining.map { it.id })
+        }
+
     private fun createSake(name: String): SakeEntity =
         SakeEntity(
             name = name,

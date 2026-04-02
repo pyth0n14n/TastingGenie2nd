@@ -61,6 +61,8 @@ internal class RecordingReviewRepository(
 ) : ReviewRepository {
     private val stream = MutableStateFlow(initial)
     val savedInputs = mutableListOf<ReviewInput>()
+    val deletedReviewIds = mutableListOf<ReviewId>()
+    var deleteFailure: Throwable? = null
 
     override fun observeReviews(sakeId: SakeId): Flow<List<Review>> =
         stream.map { reviews -> reviews.filter { it.sakeId == sakeId } }
@@ -99,6 +101,16 @@ internal class RecordingReviewRepository(
         mutable.add(mapped)
         stream.value = mutable
         return id
+    }
+
+    override suspend fun deleteReview(id: ReviewId): Boolean {
+        deleteFailure?.let { throw it }
+        val removed = stream.value.any { review -> review.id == id }
+        if (removed) {
+            deletedReviewIds += id
+            stream.value = stream.value.filterNot { review -> review.id == id }
+        }
+        return removed
     }
 }
 

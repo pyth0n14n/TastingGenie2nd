@@ -87,6 +87,15 @@ class FakeReviewDao : ReviewDao {
         }
     }
 
+    override suspend fun deleteById(id: Long): Int {
+        val removed = entries.removeAll { it.id == id }
+        if (removed) {
+            emit()
+            return 1
+        }
+        return 0
+    }
+
     private fun emit() {
         stream.value = entries.toList()
     }
