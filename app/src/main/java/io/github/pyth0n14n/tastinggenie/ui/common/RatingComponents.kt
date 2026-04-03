@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +31,7 @@ import kotlin.math.roundToInt
 private const val TWO_OPTIONS = 2
 private const val THREE_OPTIONS = 3
 private const val MIDPOINT_DIVISOR = 2
+private const val CLEAR_BUTTON_MIN_WIDTH = 72
 
 @Composable
 fun DiscreteSliderField(
@@ -41,6 +44,7 @@ fun DiscreteSliderField(
     require(options.size >= TWO_OPTIONS) { "DiscreteSliderField requires at least 2 options" }
     val selectedIndex = options.indexOfFirst { option -> option.value == selectedValue }.takeIf { it >= 0 }
     val fallbackIndex = defaultSliderIndex(options.size)
+    val isSelected = selectedValue != null
     var sliderValue by remember(selectedValue, options) {
         mutableFloatStateOf((selectedIndex ?: fallbackIndex).toFloat())
     }
@@ -54,6 +58,7 @@ fun DiscreteSliderField(
         Text(
             text = selectedLabel(options = options, selectedValue = selectedValue),
             style = MaterialTheme.typography.bodyMedium,
+            color = ratingValueColor(isSelected = isSelected),
         )
         Slider(
             value = sliderValue,
@@ -65,12 +70,14 @@ fun DiscreteSliderField(
             onValueChangeFinished = null,
             valueRange = 0f..options.lastIndex.toFloat(),
             steps = options.size - TWO_OPTIONS,
+            colors = sliderColors(isSelected = isSelected),
         )
         Row(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = options.first().label,
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodySmall,
+                color = ratingEndpointColor(isSelected = isSelected),
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
@@ -78,6 +85,7 @@ fun DiscreteSliderField(
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.End,
+                color = ratingEndpointColor(isSelected = isSelected),
             )
         }
     }
@@ -92,6 +100,7 @@ fun StarRatingField(
     modifier: Modifier = Modifier,
 ) {
     val selectedIndex = options.indexOfFirst { option -> option.value == selectedValue }
+    val isSelected = selectedValue != null
 
     Column(modifier = modifier.fillMaxWidth()) {
         RatingFieldHeader(
@@ -114,7 +123,7 @@ fun StarRatingField(
                             if (index <= selectedIndex) {
                                 MaterialTheme.colorScheme.primary
                             } else {
-                                MaterialTheme.colorScheme.outline
+                                starOutlineColor(isSelected = isSelected)
                             },
                     )
                 }
@@ -123,6 +132,7 @@ fun StarRatingField(
         Text(
             text = selectedLabel(options = options, selectedValue = selectedValue),
             style = MaterialTheme.typography.bodyMedium,
+            color = ratingValueColor(isSelected = isSelected),
         )
     }
 }
@@ -139,10 +149,12 @@ private fun RatingFieldHeader(
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
         )
-        if (isClearEnabled) {
-            TextButton(onClick = onClear) {
-                Text(text = stringResource(R.string.action_clear))
-            }
+        TextButton(
+            onClick = onClear,
+            enabled = isClearEnabled,
+            modifier = Modifier.width(CLEAR_BUTTON_MIN_WIDTH.dp),
+        ) {
+            Text(text = stringResource(R.string.action_clear))
         }
     }
 }
@@ -160,3 +172,41 @@ private fun selectedLabel(
     selectedValue: String?,
 ): String =
     options.firstOrNull { option -> option.value == selectedValue }?.label ?: stringResource(R.string.label_unselected)
+
+@Composable
+private fun sliderColors(isSelected: Boolean) =
+    if (isSelected) {
+        SliderDefaults.colors()
+    } else {
+        SliderDefaults.colors(
+            thumbColor = MaterialTheme.colorScheme.outline,
+            activeTrackColor = MaterialTheme.colorScheme.outline,
+            inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+            activeTickColor = MaterialTheme.colorScheme.surface,
+            inactiveTickColor = MaterialTheme.colorScheme.outline,
+        )
+    }
+
+@Composable
+private fun ratingValueColor(isSelected: Boolean): Color =
+    if (isSelected) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+
+@Composable
+private fun ratingEndpointColor(isSelected: Boolean): Color =
+    if (isSelected) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+
+@Composable
+private fun starOutlineColor(isSelected: Boolean): Color =
+    if (isSelected) {
+        MaterialTheme.colorScheme.outline
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
