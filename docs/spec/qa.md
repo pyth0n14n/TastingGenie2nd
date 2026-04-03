@@ -209,6 +209,8 @@ This document captures common issues from Codex reviews to prevent regressions. 
 ### Problem: Major review ratings still use popup selectors, making repeated scoring slow and hiding the meaning of the chosen value.
 - **Example**: `viscosity`, `intensity`, taste levels, or `overall review` still open dropdown menus instead of exposing the score directly in the form.
 - **Preventive Measure**: Use in-place staged controls for the major review ratings. `viscosity`, `intensity`, `sweet`, `sour`, `bitter`, `umami`, and `sharp` should use a discrete staged selector such as a stepped slider with a visible current label and clear action. `overall review` should use star selection plus a visible text label that explains the current star meaning.
+- **Layout Note**: Keep the clear-action slot stable even when the current value is `null`; avoid headers that grow later and push the slider or stars downward after selection.
+- **Visual Note**: Unselected staged controls should look visibly different from selected ones, for example by dimming the current-value text and using lower-contrast slider/star colors until the user picks a value.
 - **Test Coverage**:
   - Move each staged selector and verify the committed value is reflected in UI state.
   - Clear an optional staged selector and verify it returns to `null`.
