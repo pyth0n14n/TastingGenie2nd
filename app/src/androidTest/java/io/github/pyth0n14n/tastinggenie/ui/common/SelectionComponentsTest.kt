@@ -7,6 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetProgressAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -130,6 +132,7 @@ class SelectionComponentsTest {
     fun discreteSliderField_setsSelectedValue() {
         var selectedValue: String? = null
         composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
             DiscreteSliderField(
                 label = "香味強度",
                 options =
@@ -138,14 +141,19 @@ class SelectionComponentsTest {
                         DropdownOption(value = "MEDIUM", label = "中程度"),
                         DropdownOption(value = "HIGH", label = "強い"),
                     ),
-                selectedValue = null,
-                onValueChanged = { selectedValue = it },
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
             )
         }
 
         composeRule.onNodeWithText("香味強度").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsDisplayed().assertIsNotEnabled()
         composeRule.onNode(isSlider()).performSemanticsAction(SemanticsActions.SetProgress) { it(1f) }
         composeRule.runOnIdle { assertEquals("HIGH", selectedValue) }
+        composeRule.onNodeWithText("クリア").assertIsEnabled()
     }
 
     @Test
