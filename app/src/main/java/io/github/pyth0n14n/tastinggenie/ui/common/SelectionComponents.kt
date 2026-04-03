@@ -1,6 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -25,8 +27,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 
@@ -111,10 +116,7 @@ fun DatePickerField(
     OutlinedTextField(
         value = displayedValue,
         onValueChange = {},
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable(role = Role.Button) { isDialogOpen = true },
+        modifier = modifier.datePickerTrigger { isDialogOpen = true },
         label = { Text(text = label) },
         readOnly = true,
         singleLine = true,
@@ -148,6 +150,27 @@ fun DatePickerField(
         }
     }
 }
+
+private fun Modifier.datePickerTrigger(onOpen: () -> Unit): Modifier =
+    fillMaxWidth()
+        .pointerInput(Unit) {
+            awaitEachGesture {
+                awaitFirstDown(pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                val up =
+                    waitForUpOrCancellation(
+                        pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial,
+                    )
+                if (up != null) {
+                    onOpen()
+                }
+            }
+        }.semantics {
+            role = androidx.compose.ui.semantics.Role.Button
+            onClick {
+                onOpen()
+                true
+            }
+        }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
