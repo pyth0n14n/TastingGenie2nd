@@ -197,6 +197,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Open sake/review selector fields and verify the menu is attached to the field.
   - Select an option and confirm the same field reflects the chosen label.
 
+### Problem: Navigation briefly shows a white flash between screens.
+- **Example**: Moving between sake list, edit, detail, and settings shows a momentary white frame before the next screen draws.
+- **Preventive Measure**: Keep the activity `windowBackground`, the Compose root container, and the navigation host fill/background aligned to the same app background color. Do not leave the nav root transparent against the platform default window color. If the app uses dynamic color, also update the activity window background at runtime so Android 12+ devices do not flash a mismatched fallback color.
+- **Test Coverage**:
+  - Manually traverse `SakeList -> SakeEdit -> ReviewList -> ReviewEdit -> Settings` in both light and dark theme; verify no white flash appears during transitions.
+  - Repeat the same transition check on an Android 12+ device with dynamic color enabled; verify the flash does not change to a mismatched Monet color.
+
 ### Problem: Review date input allows free-form typing, causing invalid formats and unnecessary keyboard input.
 - **Example**: `ReviewEdit` opens a generic keyboard for the date field and relies on the user to type `YYYY-MM-DD` exactly.
 - **Preventive Measure**: Use a date picker for review dates and let the UI generate the persisted `YYYY-MM-DD` text. New reviews should default the field to the current day. Do not require manual date-format entry for review forms.
