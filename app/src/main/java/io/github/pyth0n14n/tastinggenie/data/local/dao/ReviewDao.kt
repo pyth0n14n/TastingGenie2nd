@@ -30,4 +30,7 @@ interface ReviewDao {
 
     @Query("DELETE FROM reviews WHERE id = :id")
     suspend fun deleteById(id: Long): Int
+
+    @Query("DELETE FROM reviews WHERE sakeId = :sakeId")
+    suspend fun deleteBySakeId(sakeId: Long): Int
 }

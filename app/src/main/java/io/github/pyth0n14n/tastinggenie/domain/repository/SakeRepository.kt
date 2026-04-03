@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.domain.repository
 
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import kotlinx.coroutines.flow.Flow
@@ -14,4 +15,6 @@ interface SakeRepository {
     suspend fun getSake(id: SakeId): Sake?
 
     suspend fun upsertSake(input: SakeInput): SakeId
+
+    suspend fun deleteSake(id: SakeId): SakeDeleteResult
 }

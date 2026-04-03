@@ -27,4 +27,7 @@ interface SakeDao {
 
     @Update
     suspend fun update(entity: SakeEntity): Int
+
+    @Query("DELETE FROM sakes WHERE id = :id")
+    suspend fun deleteById(id: Long): Int
 }

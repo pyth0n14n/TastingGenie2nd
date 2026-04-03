@@ -1,5 +1,9 @@
 package io.github.pyth0n14n.tastinggenie.data.repository
 
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
@@ -10,15 +14,42 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class RepositoryFailureTest {
+    private lateinit var database: AppDatabase
+
+    @Before
+    fun setUp() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
+    }
+
     @Test
     fun sakeRepository_upsert_propagatesDaoFailure() =
         runTest {
             // Repository が例外を握りつぶさず呼び出し元へ伝播することを確認する。
-            val repository = SakeRepositoryImpl(FailingSakeDao(), StandardTestDispatcher(testScheduler))
+            val repository =
+                SakeRepositoryImpl(
+                    database = database,
+                    sakeDao = FailingSakeDao(),
+                    reviewDao = database.reviewDao(),
+                    sakeImageRepository = NoOpSakeImageRepository(),
+                    ioDispatcher = StandardTestDispatcher(testScheduler),
+                )
 
             try {
                 repository.upsertSake(
@@ -72,6 +103,8 @@ private class FailingSakeDao : SakeDao {
     override suspend fun insertAll(entities: List<SakeEntity>): Unit = throw DaoFailureException("DAO failure")
 
     override suspend fun update(entity: SakeEntity): Int = throw DaoFailureException("DAO failure")
+
+    override suspend fun deleteById(id: Long): Int = throw DaoFailureException("DAO failure")
 }
 
 private class FailingReviewDao : ReviewDao {
@@ -89,8 +122,19 @@ private class FailingReviewDao : ReviewDao {
     override suspend fun update(entity: ReviewEntity): Int = throw DaoFailureException("DAO failure")
 
     override suspend fun deleteById(id: Long): Int = throw DaoFailureException("DAO failure")
+
+    override suspend fun deleteBySakeId(sakeId: Long): Int = throw DaoFailureException("DAO failure")
 }
 
 private class DaoFailureException(
     message: String,
 ) : IllegalStateException(message)
+
+private class NoOpSakeImageRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository {
+    override suspend fun importImage(
+        sourceUri: String,
+        previousImageUri: String?,
+    ): String = sourceUri
+
+    override suspend fun deleteImage(imageUri: String?) = Unit
+}
