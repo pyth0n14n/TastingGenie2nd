@@ -49,7 +49,7 @@
 | volume | Int | 任意 |
 | temperature | Enum | 任意 |
 | color | Enum | 任意 |
-| viscosity | Int(1-3) | 任意 |
+| viscosity | Int(1-5) | 任意 |
 | intensity | Enum | 任意 |
 | scentTop | List<Enum> | 任意 |
 | scentBase | List<Enum> | 任意 |

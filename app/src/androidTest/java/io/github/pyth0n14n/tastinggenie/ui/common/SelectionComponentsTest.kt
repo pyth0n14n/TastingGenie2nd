@@ -1,11 +1,21 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasSetProgressAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -117,4 +127,106 @@ class SelectionComponentsTest {
         composeRule.onNodeWithText("選択").assertIsDisplayed()
         composeRule.onNodeWithText("キャンセル").assertIsDisplayed()
     }
+
+    @Test
+    fun discreteSliderField_setsSelectedValue() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
+            DiscreteSliderField(
+                label = "香味強度",
+                options =
+                    listOf(
+                        DropdownOption(value = "LOW", label = "弱い"),
+                        DropdownOption(value = "MEDIUM", label = "中程度"),
+                        DropdownOption(value = "HIGH", label = "強い"),
+                    ),
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNodeWithText("香味強度").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsDisplayed().assertIsNotEnabled()
+        composeRule.onNode(isSlider()).performSemanticsAction(SemanticsActions.SetProgress) { it(1f) }
+        composeRule.runOnIdle { assertEquals("HIGH", selectedValue) }
+        composeRule.onNodeWithText("クリア").assertIsEnabled()
+    }
+
+    @Test
+    fun discreteSliderField_clearRestoresUnselectedState() {
+        var selectedValue: String? = "HIGH"
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(selectedValue) }
+            DiscreteSliderField(
+                label = "香味強度",
+                options =
+                    listOf(
+                        DropdownOption(value = "LOW", label = "弱い"),
+                        DropdownOption(value = "MEDIUM", label = "中程度"),
+                        DropdownOption(value = "HIGH", label = "強い"),
+                    ),
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNodeWithText("クリア").performClick()
+        composeRule.runOnIdle { assertEquals(null, selectedValue) }
+        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsNotEnabled()
+    }
+
+    @Test
+    fun discreteSliderField_withNoOptions_doesNotCrash() {
+        composeRule.setContent {
+            DiscreteSliderField(
+                label = "香味強度",
+                options = emptyList(),
+                selectedValue = null,
+                onValueChanged = {},
+            )
+        }
+
+        composeRule.onNodeWithText("香味強度").assertIsDisplayed()
+        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsNotEnabled()
+    }
+
+    @Test
+    fun starRatingField_setsAndClearsSelection() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
+            StarRatingField(
+                label = "総合評価",
+                options =
+                    listOf(
+                        DropdownOption(value = "VERY_BAD", label = "嫌い"),
+                        DropdownOption(value = "BAD", label = "そうでもない"),
+                        DropdownOption(value = "NEUTRAL", label = "普通"),
+                        DropdownOption(value = "GOOD", label = "好き"),
+                        DropdownOption(value = "VERY_GOOD", label = "大好き"),
+                    ),
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("総合評価 5").performClick()
+        composeRule.runOnIdle { assertEquals("VERY_GOOD", selectedValue) }
+        composeRule.onNodeWithText("クリア").performClick()
+        composeRule.runOnIdle { assertEquals(null, selectedValue) }
+    }
 }
+
+private fun isSlider() = hasSetProgressAction()

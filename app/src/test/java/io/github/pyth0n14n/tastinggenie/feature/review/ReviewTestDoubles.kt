@@ -145,18 +145,27 @@ internal class ReviewFakeMasterDataRepository : MasterDataRepository {
             prefectures = emptyList(),
             intensityLevels =
                 listOf(
+                    MasterOption(value = IntensityLevel.VERY_WEAK.name, label = "とても弱い"),
                     MasterOption(value = IntensityLevel.WEAK.name, label = "弱い"),
+                    MasterOption(value = IntensityLevel.MEDIUM.name, label = "中程度"),
                     MasterOption(value = IntensityLevel.STRONG.name, label = "強い"),
+                    MasterOption(value = IntensityLevel.VERY_STRONG.name, label = "とても強い"),
                 ),
             tasteLevels =
                 listOf(
+                    MasterOption(value = TasteLevel.VERY_WEAK.name, label = "とても弱い"),
                     MasterOption(value = TasteLevel.WEAK.name, label = "弱い"),
+                    MasterOption(value = TasteLevel.MEDIUM.name, label = "中程度"),
                     MasterOption(value = TasteLevel.STRONG.name, label = "強い"),
+                    MasterOption(value = TasteLevel.VERY_STRONG.name, label = "とても強い"),
                 ),
             overallReviews =
                 listOf(
-                    MasterOption(value = OverallReview.GOOD.name, label = "好き"),
+                    MasterOption(value = OverallReview.VERY_BAD.name, label = "嫌い"),
+                    MasterOption(value = OverallReview.BAD.name, label = "そうでもない"),
                     MasterOption(value = OverallReview.NEUTRAL.name, label = "普通"),
+                    MasterOption(value = OverallReview.GOOD.name, label = "好き"),
+                    MasterOption(value = OverallReview.VERY_GOOD.name, label = "大好き"),
                 ),
             aromaCategories =
                 listOf(
