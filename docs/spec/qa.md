@@ -55,7 +55,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Preventive Measure**: Validate all imported data against the same rules as UI input; reject invalid payloads with clear error.
 - **Test Coverage**:
   - Import JSON with blank sake name; verify rejection with error_import_invalid_payload.
-  - Import JSON with viscosity=0 or 4; verify rejection.
+  - Import JSON with viscosity=0 or 6; verify rejection.
 
 ### Problem: Uses auto-generated IDs as merge keys, causing data corruption on import.
 - **Example**: Importing backup overwrites unrelated records due to ID collision.

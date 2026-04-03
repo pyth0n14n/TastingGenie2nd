@@ -12,7 +12,7 @@
 - `SakeRepository` に `deleteSake(id)`、`ReviewRepository` に `deleteReview(id)` を追加する。
 - Backup I/O は `.json` 単体から `.zip` に変更し、ZIP 内に `backup.json` と `images/...` を持つ構成へ変更する。
 - `prefecture` は地方 -> 都道府県の階層選択 UI を前提化し、`classification` は `OTHER` 時に自由記述欄を必須表示にする。
-- `viscosity` は値域は現行どおり `1..3` を維持し、表示ラベルだけ `弱い / 中程度 / 強い` に変更する。
+- `viscosity` は他の段階評価に合わせて `1..5` に統一する。
 
 ## PR Plan
 1. **PR-1: Toolchain compatibility spike**
@@ -98,6 +98,6 @@
 ## Assumptions / Defaults
 - 未 launch のため後方互換は不要とし、`Review.imageUri` は互換保持なしで削除してよい。
 - 各 PR は docs 更新込みで完結させ、巨大な先行 docs-only PR は作らない。
-- `viscosity` は 3 段階のまま維持し、意味ラベルだけ改善する。
+- `viscosity` は他の段階評価と同じ 5 段階で扱う。
 - 旧 JSON backup は読み捨てではなく、互換が重ければ「非対応化を明記して終了」でよい。無理な後方互換は入れない。
 - 仕様差分が出たら同一 PR で `docs/spec` と `docs/spec/qa.md` を更新する。
