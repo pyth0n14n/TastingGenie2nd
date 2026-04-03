@@ -206,6 +206,14 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Select a review date from the picker and verify the field shows the generated `YYYY-MM-DD` value.
   - Save a review after picker selection and verify the stored `LocalDate` matches the chosen day.
 
+### Problem: Major review ratings still use popup selectors, making repeated scoring slow and hiding the meaning of the chosen value.
+- **Example**: `viscosity`, `intensity`, taste levels, or `overall review` still open dropdown menus instead of exposing the score directly in the form.
+- **Preventive Measure**: Use in-place staged controls for the major review ratings. `viscosity`, `intensity`, `sweet`, `sour`, `bitter`, `umami`, and `sharp` should use a discrete staged selector such as a stepped slider with a visible current label and clear action. `overall review` should use star selection plus a visible text label that explains the current star meaning.
+- **Test Coverage**:
+  - Move each staged selector and verify the committed value is reflected in UI state.
+  - Clear an optional staged selector and verify it returns to `null`.
+  - Select a star rating and verify both the stored enum and the visible meaning label update together.
+
 ### Problem: Destructive image actions fire immediately from the form, making accidental taps expensive.
 - **Example**: A user taps image delete while editing a sake and the image disappears without confirmation.
 - **Preventive Measure**: Gate image deletion behind a confirmation dialog, and keep the delete control disabled while save is in progress.
