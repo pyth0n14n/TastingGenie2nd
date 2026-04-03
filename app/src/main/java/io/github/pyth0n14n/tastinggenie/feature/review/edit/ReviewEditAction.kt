@@ -1,6 +1,10 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 sealed interface ReviewEditAction {
+    data class DateSelected(
+        val epochMillis: Long,
+    ) : ReviewEditAction
+
     data class TextChanged(
         val field: ReviewTextField,
         val value: String,

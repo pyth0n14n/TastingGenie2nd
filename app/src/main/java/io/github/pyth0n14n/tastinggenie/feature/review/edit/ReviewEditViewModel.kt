@@ -37,6 +37,7 @@ class ReviewEditViewModel
         fun onAction(action: ReviewEditAction) {
             _uiState.updateEditable { current ->
                 when (action) {
+                    is ReviewEditAction.DateSelected -> current.withDateSelected(action.epochMillis)
                     is ReviewEditAction.TextChanged -> current.withText(action.field, action.value)
                     is ReviewEditAction.SelectionChanged -> current.withSelection(action.field, action.value)
                     is ReviewEditAction.AromaToggled -> current.withAromaToggled(action.field, action.value)

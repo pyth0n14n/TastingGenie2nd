@@ -71,18 +71,10 @@ private fun LazyListScope.addBasicFields(
             style = MaterialTheme.typography.titleMedium,
         )
     }
-    textField(
-        labelRes = R.string.label_review_date,
+    dateField(
         value = state.date,
-        field = ReviewTextField.DATE,
         onAction = onAction,
     )
-    item {
-        Text(
-            text = reviewTextResource(R.string.label_date_format_hint),
-            style = MaterialTheme.typography.bodySmall,
-        )
-    }
     textField(
         labelRes = R.string.label_bar,
         value = state.bar,
@@ -197,6 +189,22 @@ private fun LazyListScope.addNoteFields(
         field = ReviewSelectionField.OVERALL_REVIEW,
         onAction = onAction,
     )
+}
+
+private fun LazyListScope.dateField(
+    value: String,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    item {
+        io.github.pyth0n14n.tastinggenie.ui.common.DatePickerField(
+            label = reviewTextResource(R.string.label_review_date),
+            value = value,
+            onDateSelected = { epochMillis ->
+                onAction(ReviewEditAction.DateSelected(epochMillis = epochMillis))
+            },
+            initialSelectedDateMillis = value.toDatePickerInitialMillisOrNull(),
+        )
+    }
 }
 
 private fun LazyListScope.textField(
