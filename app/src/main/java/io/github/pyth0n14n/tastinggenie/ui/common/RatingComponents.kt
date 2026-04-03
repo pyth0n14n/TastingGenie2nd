@@ -182,10 +182,10 @@ private fun sliderColors(isSelected: Boolean) =
         SliderDefaults.colors()
     } else {
         SliderDefaults.colors(
-            thumbColor = Color.Transparent,
-            activeTrackColor = MaterialTheme.colorScheme.outlineVariant,
+            thumbColor = MaterialTheme.colorScheme.outline,
+            activeTrackColor = MaterialTheme.colorScheme.outline,
             inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
-            activeTickColor = MaterialTheme.colorScheme.outline,
+            activeTickColor = MaterialTheme.colorScheme.surface,
             inactiveTickColor = MaterialTheme.colorScheme.outline,
         )
     }
