@@ -157,6 +157,49 @@ class SelectionComponentsTest {
     }
 
     @Test
+    fun discreteSliderField_clearRestoresUnselectedState() {
+        var selectedValue: String? = "HIGH"
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(selectedValue) }
+            DiscreteSliderField(
+                label = "香味強度",
+                options =
+                    listOf(
+                        DropdownOption(value = "LOW", label = "弱い"),
+                        DropdownOption(value = "MEDIUM", label = "中程度"),
+                        DropdownOption(value = "HIGH", label = "強い"),
+                    ),
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNodeWithText("クリア").performClick()
+        composeRule.runOnIdle { assertEquals(null, selectedValue) }
+        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsNotEnabled()
+    }
+
+    @Test
+    fun discreteSliderField_withNoOptions_doesNotCrash() {
+        composeRule.setContent {
+            DiscreteSliderField(
+                label = "香味強度",
+                options = emptyList(),
+                selectedValue = null,
+                onValueChanged = {},
+            )
+        }
+
+        composeRule.onNodeWithText("香味強度").assertIsDisplayed()
+        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        composeRule.onNodeWithText("クリア").assertIsNotEnabled()
+    }
+
+    @Test
     fun starRatingField_setsAndClearsSelection() {
         var selectedValue: String? = null
         composeRule.setContent {
