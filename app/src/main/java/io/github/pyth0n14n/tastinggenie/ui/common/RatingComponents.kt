@@ -41,7 +41,6 @@ fun DiscreteSliderField(
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    require(options.size >= TWO_OPTIONS) { "DiscreteSliderField requires at least 2 options" }
     val selectedIndex = options.indexOfFirst { option -> option.value == selectedValue }.takeIf { it >= 0 }
     val fallbackIndex = defaultSliderIndex(options.size)
     val isSelected = selectedValue != null
@@ -60,6 +59,9 @@ fun DiscreteSliderField(
             style = MaterialTheme.typography.bodyMedium,
             color = ratingValueColor(isSelected = isSelected),
         )
+        if (options.size < TWO_OPTIONS) {
+            return@Column
+        }
         Slider(
             value = sliderValue,
             onValueChange = { next ->
@@ -161,6 +163,7 @@ private fun RatingFieldHeader(
 
 private fun defaultSliderIndex(optionCount: Int): Int =
     when (optionCount) {
+        0 -> 0
         TWO_OPTIONS -> 0
         THREE_OPTIONS -> 1
         else -> optionCount / MIDPOINT_DIVISOR
@@ -179,10 +182,10 @@ private fun sliderColors(isSelected: Boolean) =
         SliderDefaults.colors()
     } else {
         SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.outline,
-            activeTrackColor = MaterialTheme.colorScheme.outline,
+            thumbColor = Color.Transparent,
+            activeTrackColor = MaterialTheme.colorScheme.outlineVariant,
             inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
-            activeTickColor = MaterialTheme.colorScheme.surface,
+            activeTickColor = MaterialTheme.colorScheme.outline,
             inactiveTickColor = MaterialTheme.colorScheme.outline,
         )
     }
