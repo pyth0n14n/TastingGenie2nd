@@ -2,6 +2,8 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
@@ -172,6 +174,49 @@ class ReviewEditViewModelTest {
             assertNotNull(state.error)
             assertEquals(R.string.error_invalid_review_selection, state.error?.messageResId)
             assertEquals("BROKEN_VALUE", state.error?.causeKey)
+        }
+
+    @Test
+    fun blankSelection_clearsOptionalReviewRatings() =
+        runTest {
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.SWEET,
+                    value = TasteLevel.STRONG.name,
+                ),
+            )
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.OVERALL_REVIEW,
+                    value = OverallReview.GOOD.name,
+                ),
+            )
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.SWEET,
+                    value = "",
+                ),
+            )
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.OVERALL_REVIEW,
+                    value = "",
+                ),
+            )
+
+            val state = viewModel.uiState.value
+            assertEquals(null, state.sweet)
+            assertEquals(null, state.review)
+            assertEquals(null, state.error)
         }
 
     @Test
