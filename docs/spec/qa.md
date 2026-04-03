@@ -211,9 +211,11 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Preventive Measure**: Use in-place staged controls for the major review ratings. `viscosity`, `intensity`, `sweet`, `sour`, `bitter`, `umami`, and `sharp` should use a discrete staged selector such as a stepped slider with a visible current label and clear action. `overall review` should use star selection plus a visible text label that explains the current star meaning.
 - **Layout Note**: Keep the clear-action slot stable even when the current value is `null`; avoid headers that grow later and push the slider or stars downward after selection.
 - **Visual Note**: Unselected staged controls should look visibly different from selected ones, for example by dimming the current-value text and using lower-contrast slider/star colors until the user picks a value.
+- **Failure Note**: Staged controls must tolerate empty option lists during load-failure rendering. Error states may still compose the screen shell, so the control should degrade safely instead of throwing when master data failed to load.
 - **Test Coverage**:
   - Move each staged selector and verify the committed value is reflected in UI state.
   - Clear an optional staged selector and verify it returns to `null`.
+  - Render the edit screen with a load error and empty staged-option lists; verify the error is shown and composition does not crash.
   - Select a star rating and verify both the stored enum and the visible meaning label update together.
 
 ### Problem: Destructive image actions fire immediately from the form, making accidental taps expensive.
