@@ -22,7 +22,7 @@ data class ReviewEditUiState(
     val sakeId: SakeId? = null,
     val reviewId: ReviewId? = null,
     val sakeName: String = "",
-    val date: String = "",
+    val date: String = defaultReviewDateText(),
     val bar: String = "",
     val price: String = "",
     val volume: String = "",

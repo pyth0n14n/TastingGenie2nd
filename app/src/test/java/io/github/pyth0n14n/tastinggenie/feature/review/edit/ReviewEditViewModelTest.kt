@@ -22,6 +22,8 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewEditViewModelTest {
@@ -44,6 +46,7 @@ class ReviewEditViewModelTest {
             assertFalse(state.isLoading)
             assertEquals(TEST_SAKE_ID, state.sakeId)
             assertEquals("テスト銘柄", state.sakeName)
+            assertEquals(expectedDefaultDateText(), state.date)
             assertEquals(2, state.temperatureOptions.size)
         }
 
@@ -82,7 +85,7 @@ class ReviewEditViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.DATE, value = "2026-03-14"))
+            viewModel.onAction(ReviewEditAction.DateSelected(epochMillis = testDateMillis()))
             viewModel.onAction(
                 ReviewEditAction.SelectionChanged(
                     field = ReviewSelectionField.TEMPERATURE,
@@ -97,6 +100,52 @@ class ReviewEditViewModelTest {
             assertEquals(1, repository.savedInputs.size)
             assertEquals(TEST_SAKE_ID, repository.savedInputs.first().sakeId)
             assertEquals(Temperature.JOON, repository.savedInputs.first().temperature)
+        }
+
+    @Test
+    fun onDateSelected_formatsReviewDateText() =
+        runTest {
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(ReviewEditAction.DateSelected(epochMillis = testDateMillis()))
+
+            val state = viewModel.uiState.value
+            assertEquals("2026-03-14", state.date)
+            assertEquals(null, state.error)
+        }
+
+    @Test
+    fun save_withoutChangingDate_usesTodayByDefault() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = repository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.TEMPERATURE,
+                    value = Temperature.JOON.name,
+                ),
+            )
+            viewModel.save()
+            advanceUntilIdle()
+
+            val savedInput = repository.savedInputs.single()
+            val savedDate = savedInput.date.toString()
+            assertEquals(expectedDefaultDateText(), savedDate)
         }
 
     @Test
@@ -188,3 +237,13 @@ class ReviewEditViewModelTest {
 private class ThrowingMasterDataRepository : MasterDataRepository {
     override suspend fun getMasterData() = error("seed load failure")
 }
+
+private fun testDateMillis(): Long {
+    val localDate = LocalDate.parse("2026-03-14")
+    return localDate
+        .atStartOfDay(ZoneOffset.UTC)
+        .toInstant()
+        .toEpochMilli()
+}
+
+private fun expectedDefaultDateText(): String = defaultReviewDateText()

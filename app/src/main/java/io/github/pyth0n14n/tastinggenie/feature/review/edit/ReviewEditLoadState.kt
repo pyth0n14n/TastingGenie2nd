@@ -105,7 +105,7 @@ private fun ReviewEditUiState.toEditableLoadedState(
         sakeId = sakeId,
         reviewId = review?.id,
         sakeName = sakeName,
-        date = review?.date?.toString().orEmpty(),
+        date = review?.date?.toString() ?: defaultReviewDateText(),
         bar = review?.bar.orEmpty(),
         price = review?.price?.toString().orEmpty(),
         volume = review?.volume?.toString().orEmpty(),

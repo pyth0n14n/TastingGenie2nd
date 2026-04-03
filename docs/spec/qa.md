@@ -197,6 +197,15 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Open sake/review selector fields and verify the menu is attached to the field.
   - Select an option and confirm the same field reflects the chosen label.
 
+### Problem: Review date input allows free-form typing, causing invalid formats and unnecessary keyboard input.
+- **Example**: `ReviewEdit` opens a generic keyboard for the date field and relies on the user to type `YYYY-MM-DD` exactly.
+- **Preventive Measure**: Use a date picker for review dates and let the UI generate the persisted `YYYY-MM-DD` text. New reviews should default the field to the current day. Do not require manual date-format entry for review forms.
+- **Test Coverage**:
+  - Trigger the picker with a touch-style Compose test interaction, not only a semantics `performClick()`, so text-field gesture regressions are caught.
+  - Open a new review form and verify the date field is prefilled with the current day.
+  - Select a review date from the picker and verify the field shows the generated `YYYY-MM-DD` value.
+  - Save a review after picker selection and verify the stored `LocalDate` matches the chosen day.
+
 ### Problem: Destructive image actions fire immediately from the form, making accidental taps expensive.
 - **Example**: A user taps image delete while editing a sake and the image disappears without confirmation.
 - **Preventive Measure**: Gate image deletion behind a confirmation dialog, and keep the delete control disabled while save is in progress.
