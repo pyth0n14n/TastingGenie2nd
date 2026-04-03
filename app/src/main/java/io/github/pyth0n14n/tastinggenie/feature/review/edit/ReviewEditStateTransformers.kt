@@ -15,7 +15,7 @@ import java.time.format.DateTimeParseException
 
 const val INVALID_NUMBER = Int.MIN_VALUE
 private const val MIN_VISCOSITY = 1
-private const val MAX_VISCOSITY = 3
+private const val MAX_VISCOSITY = 5
 
 fun MutableStateFlow<ReviewEditUiState>.updateEditable(transform: (ReviewEditUiState) -> ReviewEditUiState) {
     update { current ->

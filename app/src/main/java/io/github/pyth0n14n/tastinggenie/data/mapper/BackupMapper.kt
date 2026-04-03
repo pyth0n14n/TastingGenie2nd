@@ -16,7 +16,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import java.time.LocalDate
 
 private const val MIN_IMPORTED_VISCOSITY = 1
-private const val MAX_IMPORTED_VISCOSITY = 3
+private const val MAX_IMPORTED_VISCOSITY = 5
 
 fun SakeEntity.toSerializable(): SerializableSake =
     SerializableSake(

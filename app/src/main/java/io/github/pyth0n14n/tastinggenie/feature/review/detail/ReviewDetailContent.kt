@@ -17,9 +17,11 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
-private const val VISCOSITY_WEAK = 1
-private const val VISCOSITY_MEDIUM = 2
-private const val VISCOSITY_STRONG = 3
+private const val VISCOSITY_VERY_WEAK = 1
+private const val VISCOSITY_WEAK = 2
+private const val VISCOSITY_MEDIUM = 3
+private const val VISCOSITY_STRONG = 4
+private const val VISCOSITY_VERY_STRONG = 5
 
 @Composable
 fun ReviewDetailContent(
@@ -54,9 +56,11 @@ fun ReviewDetailContent(
         )
     val viscosityLabels =
         mapOf(
-            VISCOSITY_WEAK to stringResource(R.string.label_viscosity_1),
-            VISCOSITY_MEDIUM to stringResource(R.string.label_viscosity_2),
-            VISCOSITY_STRONG to stringResource(R.string.label_viscosity_3),
+            VISCOSITY_VERY_WEAK to stringResource(R.string.label_viscosity_1),
+            VISCOSITY_WEAK to stringResource(R.string.label_viscosity_2),
+            VISCOSITY_MEDIUM to stringResource(R.string.label_viscosity_3),
+            VISCOSITY_STRONG to stringResource(R.string.label_viscosity_4),
+            VISCOSITY_VERY_STRONG to stringResource(R.string.label_viscosity_5),
         )
     val rows =
         buildList {

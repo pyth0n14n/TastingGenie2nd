@@ -62,9 +62,11 @@
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
-    <string name="label_viscosity_1">弱い</string>
-    <string name="label_viscosity_2">中程度</string>
-    <string name="label_viscosity_3">強い</string>
+    <string name="label_viscosity_1">とても弱い</string>
+    <string name="label_viscosity_2">弱い</string>
+    <string name="label_viscosity_3">中程度</string>
+    <string name="label_viscosity_4">強い</string>
+    <string name="label_viscosity_5">とても強い</string>
     <string name="message_no_sakes">登録された酒がありません</string>
     <string name="message_no_reviews">登録されたレビューがありません</string>
     <string name="message_no_image">画像が登録されていません</string>

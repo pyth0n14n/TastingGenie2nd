@@ -100,6 +100,8 @@ private fun viscosityOptions(): List<DropdownOption> =
         DropdownOption(value = "1", label = stringResource(R.string.label_viscosity_1)),
         DropdownOption(value = "2", label = stringResource(R.string.label_viscosity_2)),
         DropdownOption(value = "3", label = stringResource(R.string.label_viscosity_3)),
+        DropdownOption(value = "4", label = stringResource(R.string.label_viscosity_4)),
+        DropdownOption(value = "5", label = stringResource(R.string.label_viscosity_5)),
     )
 
 @Composable
