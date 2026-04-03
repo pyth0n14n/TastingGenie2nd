@@ -199,8 +199,10 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ### Problem: Review date input allows free-form typing, causing invalid formats and unnecessary keyboard input.
 - **Example**: `ReviewEdit` opens a generic keyboard for the date field and relies on the user to type `YYYY-MM-DD` exactly.
-- **Preventive Measure**: Use a date picker for review dates and let the UI generate the persisted `YYYY-MM-DD` text. Do not require manual date-format entry for review forms.
+- **Preventive Measure**: Use a date picker for review dates and let the UI generate the persisted `YYYY-MM-DD` text. New reviews should default the field to the current day. Do not require manual date-format entry for review forms.
 - **Test Coverage**:
+  - Trigger the picker with a touch-style Compose test interaction, not only a semantics `performClick()`, so text-field gesture regressions are caught.
+  - Open a new review form and verify the date field is prefilled with the current day.
   - Select a review date from the picker and verify the field shows the generated `YYYY-MM-DD` value.
   - Save a review after picker selection and verify the stored `LocalDate` matches the chosen day.
 
