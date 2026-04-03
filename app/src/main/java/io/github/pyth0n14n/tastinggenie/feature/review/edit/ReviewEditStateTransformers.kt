@@ -45,47 +45,51 @@ fun ReviewEditUiState.withSelection(
     field: ReviewSelectionField,
     value: String,
 ): ReviewEditUiState =
-    when (field) {
-        ReviewSelectionField.TEMPERATURE ->
-            copySelection(value, Temperature.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(temperature = selected)
-            }
-        ReviewSelectionField.COLOR ->
-            copySelection(value, SakeColor.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(color = selected)
-            }
-        ReviewSelectionField.INTENSITY ->
-            copySelection(value, IntensityLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(intensity = selected)
-            }
-        ReviewSelectionField.SWEET ->
-            copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(sweet = selected)
-            }
-        ReviewSelectionField.SOUR ->
-            copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(sour = selected)
-            }
-        ReviewSelectionField.BITTER ->
-            copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(bitter = selected)
-            }
-        ReviewSelectionField.UMAMI ->
-            copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(umami = selected)
-            }
-        ReviewSelectionField.SHARP ->
-            copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(sharp = selected)
-            }
-        ReviewSelectionField.OVERALL_REVIEW ->
-            copySelection(
-                value,
-                OverallReview.entries.firstOrNull { it.name == value },
-            ) { state, selected ->
-                state.copy(review = selected)
-            }
-        ReviewSelectionField.VISCOSITY -> withViscosity(value)
+    if (value.isBlank()) {
+        clearSelection(field)
+    } else {
+        when (field) {
+            ReviewSelectionField.TEMPERATURE ->
+                copySelection(value, Temperature.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(temperature = selected)
+                }
+            ReviewSelectionField.COLOR ->
+                copySelection(value, SakeColor.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(color = selected)
+                }
+            ReviewSelectionField.INTENSITY ->
+                copySelection(value, IntensityLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(intensity = selected)
+                }
+            ReviewSelectionField.SWEET ->
+                copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(sweet = selected)
+                }
+            ReviewSelectionField.SOUR ->
+                copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(sour = selected)
+                }
+            ReviewSelectionField.BITTER ->
+                copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(bitter = selected)
+                }
+            ReviewSelectionField.UMAMI ->
+                copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(umami = selected)
+                }
+            ReviewSelectionField.SHARP ->
+                copySelection(value, TasteLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                    state.copy(sharp = selected)
+                }
+            ReviewSelectionField.OVERALL_REVIEW ->
+                copySelection(
+                    value,
+                    OverallReview.entries.firstOrNull { it.name == value },
+                ) { state, selected ->
+                    state.copy(review = selected)
+                }
+            ReviewSelectionField.VISCOSITY -> withViscosity(value)
+        }
     }
 
 fun ReviewEditUiState.withAromaToggled(

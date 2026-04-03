@@ -20,6 +20,7 @@
     <string name="action_confirm">確定</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_select">選択</string>
+    <string name="action_clear">クリア</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_review_date">日付</string>
     <string name="label_bar">店名</string>
@@ -61,9 +62,9 @@
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
-    <string name="label_viscosity_1">1</string>
-    <string name="label_viscosity_2">2</string>
-    <string name="label_viscosity_3">3</string>
+    <string name="label_viscosity_1">弱い</string>
+    <string name="label_viscosity_2">中程度</string>
+    <string name="label_viscosity_3">強い</string>
     <string name="message_no_sakes">登録された酒がありません</string>
     <string name="message_no_reviews">登録されたレビューがありません</string>
     <string name="message_no_image">画像が登録されていません</string>
@@ -80,6 +81,7 @@
     <string name="content_sake_image">酒画像</string>
     <string name="content_delete_sake">酒を削除</string>
     <string name="content_delete_review">レビューを削除</string>
+    <string name="content_star_rating_option">%1$s %2$d</string>
     <string name="title_delete_sake">酒を削除</string>
     <string name="title_delete_sake_image">画像を削除</string>
     <string name="title_delete_review">レビューを削除</string>

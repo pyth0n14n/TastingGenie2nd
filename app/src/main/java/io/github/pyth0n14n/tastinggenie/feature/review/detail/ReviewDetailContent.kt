@@ -17,6 +17,9 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
+private const val VISCOSITY_WEAK = 1
+private const val VISCOSITY_MEDIUM = 2
+private const val VISCOSITY_STRONG = 3
 
 @Composable
 fun ReviewDetailContent(
@@ -49,9 +52,21 @@ fun ReviewDetailContent(
             comment = stringResource(R.string.label_comment),
             overallReview = stringResource(R.string.label_overall_review),
         )
+    val viscosityLabels =
+        mapOf(
+            VISCOSITY_WEAK to stringResource(R.string.label_viscosity_1),
+            VISCOSITY_MEDIUM to stringResource(R.string.label_viscosity_2),
+            VISCOSITY_STRONG to stringResource(R.string.label_viscosity_3),
+        )
     val rows =
         buildList {
-            addGeneralRows(review = review, sakeName = sakeName, labels = labels, textLabels = textLabels)
+            addGeneralRows(
+                review = review,
+                sakeName = sakeName,
+                labels = labels,
+                textLabels = textLabels,
+                viscosityLabels = viscosityLabels,
+            )
             addAromaRows(review = review, labels = labels, textLabels = textLabels)
             addTasteRows(review = review, labels = labels, textLabels = textLabels)
             addTextRows(review = review, labels = labels, textLabels = textLabels)
@@ -92,6 +107,7 @@ private fun MutableList<DetailRow>.addGeneralRows(
     sakeName: String,
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
+    viscosityLabels: Map<Int, String>,
 ) {
     add(DetailRow(label = textLabels.sake, value = sakeName))
     add(DetailRow(label = textLabels.reviewDate, value = review.date.toString()))
@@ -106,7 +122,10 @@ private fun MutableList<DetailRow>.addGeneralRows(
         label = textLabels.color,
         value = review.color?.let { labels.color[it.name] ?: it.name },
     )
-    addIfNotBlank(label = textLabels.viscosity, value = review.viscosity?.toString())
+    addIfNotBlank(
+        label = textLabels.viscosity,
+        value = review.viscosity?.let { viscosity -> viscosityLabels[viscosity] ?: viscosity.toString() },
+    )
     addIfNotBlank(
         label = textLabels.intensity,
         value = review.intensity?.let { labels.intensity[it.name] ?: it.name },

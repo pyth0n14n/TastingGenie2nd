@@ -23,35 +23,35 @@ fun LazyListScope.reviewEditFormContent(
         onAction = onAction,
     )
     addAromaFields(state = state, aromaUiData = uiData.aromaUiData, onAction = onAction)
-    dropdownField(
+    steppedField(
         labelRes = R.string.label_sweet,
         selectedValue = state.sweet?.name,
         options = uiData.tasteOptions,
         field = ReviewSelectionField.SWEET,
         onAction = onAction,
     )
-    dropdownField(
+    steppedField(
         labelRes = R.string.label_sour,
         selectedValue = state.sour?.name,
         options = uiData.tasteOptions,
         field = ReviewSelectionField.SOUR,
         onAction = onAction,
     )
-    dropdownField(
+    steppedField(
         labelRes = R.string.label_bitter,
         selectedValue = state.bitter?.name,
         options = uiData.tasteOptions,
         field = ReviewSelectionField.BITTER,
         onAction = onAction,
     )
-    dropdownField(
+    steppedField(
         labelRes = R.string.label_umami,
         selectedValue = state.umami?.name,
         options = uiData.tasteOptions,
         field = ReviewSelectionField.UMAMI,
         onAction = onAction,
     )
-    dropdownField(
+    steppedField(
         labelRes = R.string.label_sharp,
         selectedValue = state.sharp?.name,
         options = uiData.tasteOptions,
@@ -114,14 +114,14 @@ private fun LazyListScope.addChoiceFields(
         ReviewSelectionField.COLOR,
         onAction,
     )
-    dropdownField(
+    steppedField(
         R.string.label_viscosity,
         state.viscosity?.toString(),
         uiData.viscosityOptions,
         ReviewSelectionField.VISCOSITY,
         onAction,
     )
-    dropdownField(
+    steppedField(
         R.string.label_intensity,
         state.intensity?.name,
         uiData.intensityOptions,
@@ -182,11 +182,9 @@ private fun LazyListScope.addNoteFields(
         onAction = onAction,
         singleLine = false,
     )
-    dropdownField(
-        labelRes = R.string.label_overall_review,
+    overallReviewField(
         selectedValue = state.review?.name,
         options = overallReviewOptions,
-        field = ReviewSelectionField.OVERALL_REVIEW,
         onAction = onAction,
     )
 }
