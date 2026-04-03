@@ -46,6 +46,7 @@ class ReviewEditViewModelTest {
             assertFalse(state.isLoading)
             assertEquals(TEST_SAKE_ID, state.sakeId)
             assertEquals("テスト銘柄", state.sakeName)
+            assertEquals(expectedDefaultDateText(), state.date)
             assertEquals(2, state.temperatureOptions.size)
         }
 
@@ -118,6 +119,33 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertEquals("2026-03-14", state.date)
             assertEquals(null, state.error)
+        }
+
+    @Test
+    fun save_withoutChangingDate_usesTodayByDefault() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = repository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.TEMPERATURE,
+                    value = Temperature.JOON.name,
+                ),
+            )
+            viewModel.save()
+            advanceUntilIdle()
+
+            val savedInput = repository.savedInputs.single()
+            val savedDate = savedInput.date.toString()
+            assertEquals(expectedDefaultDateText(), savedDate)
         }
 
     @Test
@@ -210,9 +238,12 @@ private class ThrowingMasterDataRepository : MasterDataRepository {
     override suspend fun getMasterData() = error("seed load failure")
 }
 
-private fun testDateMillis(): Long =
-    LocalDate
-        .parse("2026-03-14")
+private fun testDateMillis(): Long {
+    val localDate = LocalDate.parse("2026-03-14")
+    return localDate
         .atStartOfDay(ZoneOffset.UTC)
         .toInstant()
         .toEpochMilli()
+}
+
+private fun expectedDefaultDateText(): String = defaultReviewDateText()

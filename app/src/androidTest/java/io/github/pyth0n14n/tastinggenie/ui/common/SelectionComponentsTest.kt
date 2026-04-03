@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -112,7 +113,7 @@ class SelectionComponentsTest {
             )
         }
 
-        composeRule.onNodeWithText("未選択").performClick()
+        composeRule.onNodeWithText("未選択", useUnmergedTree = true).performTouchInput { click() }
         composeRule.onNodeWithText("選択").assertIsDisplayed()
         composeRule.onNodeWithText("キャンセル").assertIsDisplayed()
     }
