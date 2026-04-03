@@ -27,6 +27,8 @@ import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneOffset
 
+private const val MAX_FIVE_STEP_VISCOSITY = 5
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewEditViewModelTest {
     @get:Rule
@@ -216,6 +218,30 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(null, state.sweet)
             assertEquals(null, state.review)
+            assertEquals(null, state.error)
+        }
+
+    @Test
+    fun viscosity_acceptsFiveStepMaximum() =
+        runTest {
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.VISCOSITY,
+                    value = MAX_FIVE_STEP_VISCOSITY.toString(),
+                ),
+            )
+
+            val state = viewModel.uiState.value
+            assertEquals(MAX_FIVE_STEP_VISCOSITY, state.viscosity)
             assertEquals(null, state.error)
         }
 

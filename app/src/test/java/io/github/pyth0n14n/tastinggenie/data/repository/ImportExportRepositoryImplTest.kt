@@ -220,7 +220,7 @@ class ImportExportRepositoryImplTest {
                 BackupPayload(
                     schemaVersion = CURRENT_SCHEMA_VERSION,
                     sakes = listOf(sampleSerializableSake()),
-                    reviews = listOf(sampleSerializableReview().copy(viscosity = 4)),
+                    reviews = listOf(sampleSerializableReview().copy(viscosity = 6)),
                 )
 
             val result = repository.importJson(json.encodeToString(payload))
