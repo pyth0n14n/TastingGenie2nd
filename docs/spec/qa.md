@@ -9,6 +9,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - [ ] **Data Consistency**: Use transactions for multi-table ops; run I/O on Dispatchers.IO.
 - [ ] **UI Thread**: Never block main thread with I/O; distinguish cancellation from errors.
 - [ ] **Edit/Reload**: Keep load timing and update timing aligned; reload data after mutations and lock edits on load failures.
+- [ ] **Review-v2 Structure**: Keep `appearance/aroma/taste/other` ownership explicit in type names, DB columns, backup fields, and UI state.
 - [ ] **UI Display**: Map enums to localized labels; parse enums safely.
 - [ ] **Spec Feasibility**: Ensure specs use valid identifiers; test implementation constraints.
 
@@ -180,6 +181,20 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Select value, then clear; verify can set back to null.
 
+### Problem: Review-v2 fields drift across layers, so values land in the wrong tab or the wrong backup key.
+- **Example**: `aromaIntensity` is saved under a legacy `intensity` field while detail UI expects the prefixed field, or `tasteInPalateAroma` is rendered in the aroma tab because old naming leaked through.
+- **Preventive Measure**: Keep the same `appearanceXxx / aromaXxx / tasteXxx / otherXxx` names across domain model, Room entity, backup schema, and UI state. Do not reintroduce legacy unprefixed review field names after the migration PR.
+- **Test Coverage**:
+  - Save and reload one populated review covering every prefix group; verify all values return to the same tab/section.
+  - Export and import the same review; verify the backup keys round-trip without renaming drift.
+
+### Problem: Legacy aroma fields are migrated inconsistently, leaving removed fields or misfiled examples behind.
+- **Example**: `scentBase` remains in the DB after the review-v2 migration, or old `scentMouth` data is still shown in the aroma tab instead of the taste tab.
+- **Preventive Measure**: Remove `scentBase` completely during the review-v2 schema change. Migrate old `scentTop` to `aromaExamples`, `scentMouth` to `tasteInPalateAroma`, `sharp` to `tasteAftertaste`, and `comment` to `otherCautions`.
+- **Test Coverage**:
+  - Migrate a pre-v2 database and verify `scentBase` no longer exists.
+  - Verify migrated `scentTop`, `scentMouth`, `sharp`, and `comment` appear in the intended new fields.
+
 ## 7. UI Display and Localization
 
 ### Problem: Displays raw enum constants instead of localized labels, confusing users.
@@ -214,8 +229,8 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Save a review after picker selection and verify the stored `LocalDate` matches the chosen day.
 
 ### Problem: Major review ratings still use popup selectors, making repeated scoring slow and hiding the meaning of the chosen value.
-- **Example**: `viscosity`, `intensity`, taste levels, or `overall review` still open dropdown menus instead of exposing the score directly in the form.
-- **Preventive Measure**: Use in-place staged controls for the major review ratings. `viscosity`, `intensity`, `sweet`, `sour`, `bitter`, `umami`, and `sharp` should use a discrete staged selector such as a stepped slider with a visible current label and clear action. `overall review` should use star selection plus a visible text label that explains the current star meaning.
+- **Example**: `appearanceViscosity`, `aromaIntensity`, taste levels, or `otherOverallReview` still open dropdown menus instead of exposing the score directly in the form.
+- **Preventive Measure**: Use in-place staged controls for the major review ratings. `appearanceViscosity`, `aromaIntensity`, `tasteSweetness`, `tasteSourness`, `tasteBitterness`, `tasteUmami`, and `tasteAftertaste` should use a discrete staged selector such as a stepped slider with a visible current label and clear action. `otherOverallReview` should use star selection plus a visible text label that explains the current star meaning.
 - **Layout Note**: Keep the clear-action slot stable even when the current value is `null`; avoid headers that grow later and push the slider or stars downward after selection.
 - **Visual Note**: Unselected staged controls should look visibly different from selected ones, for example by dimming the current-value text and using lower-contrast slider/star colors until the user picks a value.
 - **Failure Note**: Staged controls must tolerate empty option lists during load-failure rendering. Error states may still compose the screen shell, so the control should degrade safely instead of throwing when master data failed to load.
@@ -224,6 +239,21 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Clear an optional staged selector and verify it returns to `null`.
   - Render the edit screen with a load error and empty staged-option lists; verify the error is shown and composition does not crash.
   - Select a star rating and verify both the stored enum and the visible meaning label update together.
+
+### Problem: Hidden soundness fields leak nulls or stale values instead of defaulting to healthy.
+- **Example**: A review saved while `showReviewSoundness` is off stores `null` for one section, or an old `UNSOUND` value remains hidden and surprises the user after re-enabling the setting.
+- **Preventive Measure**: Treat `appearanceSoundness`, `aromaSoundness`, and `tasteSoundness` as non-null review fields with a default of `SOUND`. Hiding the UI changes visibility only; it must not create null state or skip persistence.
+- **Test Coverage**:
+  - Save a review with soundness hidden and verify all three persisted values are `SOUND`.
+  - Toggle the setting off and on around edit flows; verify the restored values are deterministic and non-null.
+
+### Problem: Derived flavor-profile classification gets persisted separately and drifts away from the source axes.
+- **Example**: The 4-type `薫酒/爽酒/熟酒/醇酒` badge still shows the old type after `aromaIntensity` or `tasteComplexity` changed because a stale field was stored independently.
+- **Preventive Measure**: Keep the flavor-profile type derived from `aromaIntensity` and `tasteComplexity`. Grid taps should update those source fields, and source-field edits should update the grid. Do not persist a separate flavor-profile column.
+- **Test Coverage**:
+  - Change `aromaIntensity` or `tasteComplexity` directly and verify the grid position and type label update.
+  - Tap a grid cell and verify both source fields update to the expected values.
+  - Verify the center line (`MEDIUM`) is still classified deterministically and no cell is left unlabeled.
 
 ### Problem: Destructive image actions fire immediately from the form, making accidental taps expensive.
 - **Example**: A user taps image delete while editing a sake and the image disappears without confirmation.

@@ -4,6 +4,9 @@
 - カテゴリごとに複数選択可
 - 任意入力
 - 保存形式：List<Enum>
+- 対象項目は `aromaExamples` と `tasteInPalateAroma`
+- `aromaExamples` は香りタブの具体例、`tasteInPalateAroma` は味わいタブの含み香として使う
+- 旧 `scentBase` は使用しない
 
 ---
 

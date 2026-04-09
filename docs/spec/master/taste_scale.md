@@ -1,11 +1,11 @@
-# 味覚評価マスタ
+# 味わい評価マスタ
 
 ## 対象項目
-- `sweet`
-- `sour`
-- `bitter`
-- `umami`
-- `sharp`
+- `tasteSweetness`
+- `tasteSourness`
+- `tasteBitterness`
+- `tasteUmami`
+- `tasteAftertaste`
 
 ## 選択方式
 - 各項目ごとに5段階の段階選択 UI
