@@ -13,25 +13,52 @@ fun LazyListScope.textFieldItem(
     state: SakeEditUiState,
     callbacks: SakeEditCallbacks,
     ui: SakeTextFieldUi,
+    itemKey: Any? = null,
 ) {
-    item {
-        val label = stringResource(labelRes)
-        LabeledTextField(
-            label = label,
-            value = ui.value,
-            onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
-            fieldState =
-                FormFieldState(
-                    required = ui.presentation.required,
-                    errorText =
-                        ui.presentation.validationField?.let { validationField ->
-                            state.validationErrors[validationField]?.let { error ->
-                                validationErrorText(label = label, error = error)
-                            }
-                        },
-                ),
-        )
+    if (itemKey == null) {
+        item {
+            SakeTextFieldContent(
+                labelRes = labelRes,
+                state = state,
+                callbacks = callbacks,
+                ui = ui,
+            )
+        }
+    } else {
+        item(key = itemKey) {
+            SakeTextFieldContent(
+                labelRes = labelRes,
+                state = state,
+                callbacks = callbacks,
+                ui = ui,
+            )
+        }
     }
+}
+
+@androidx.compose.runtime.Composable
+private fun SakeTextFieldContent(
+    @StringRes labelRes: Int,
+    state: SakeEditUiState,
+    callbacks: SakeEditCallbacks,
+    ui: SakeTextFieldUi,
+) {
+    val label = stringResource(labelRes)
+    LabeledTextField(
+        label = label,
+        value = ui.value,
+        onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
+        fieldState =
+            FormFieldState(
+                required = ui.presentation.required,
+                errorText =
+                    ui.presentation.validationField?.let { validationField ->
+                        state.validationErrors[validationField]?.let { error ->
+                            validationErrorText(label = label, error = error)
+                        }
+                    },
+            ),
+    )
 }
 
 data class SakeFieldPresentation(
@@ -74,6 +101,7 @@ private fun LazyListScope.numericValueFields(
             field = SakeTextField.SAKE_DEGREE,
             presentation = SakeFieldPresentation(validationField = SakeValidationField.SAKE_DEGREE),
         ),
+        itemKey = SAKE_ROW_SAKE_DEGREE,
     )
     textFieldItem(
         R.string.label_acidity,
@@ -84,6 +112,7 @@ private fun LazyListScope.numericValueFields(
             field = SakeTextField.ACIDITY,
             presentation = SakeFieldPresentation(validationField = SakeValidationField.ACIDITY),
         ),
+        itemKey = SAKE_ROW_ACIDITY,
     )
     textFieldItem(
         R.string.label_alcohol,
@@ -94,6 +123,7 @@ private fun LazyListScope.numericValueFields(
             field = SakeTextField.ALCOHOL,
             presentation = SakeFieldPresentation(validationField = SakeValidationField.ALCOHOL),
         ),
+        itemKey = SAKE_ROW_ALCOHOL,
     )
 }
 
@@ -106,6 +136,7 @@ private fun LazyListScope.riceMetadataFields(
         state,
         callbacks,
         SakeTextFieldUi(value = state.kojiMai, field = SakeTextField.KOJI_MAI),
+        itemKey = SAKE_ROW_KOJI_MAI,
     )
     textFieldItem(
         R.string.label_koji_polish,
@@ -116,12 +147,14 @@ private fun LazyListScope.riceMetadataFields(
             field = SakeTextField.KOJI_POLISH,
             presentation = SakeFieldPresentation(validationField = SakeValidationField.KOJI_POLISH),
         ),
+        itemKey = SAKE_ROW_KOJI_POLISH,
     )
     textFieldItem(
         R.string.label_kake_mai,
         state,
         callbacks,
         SakeTextFieldUi(value = state.kakeMai, field = SakeTextField.KAKE_MAI),
+        itemKey = SAKE_ROW_KAKE_MAI,
     )
     textFieldItem(
         R.string.label_kake_polish,
@@ -132,6 +165,7 @@ private fun LazyListScope.riceMetadataFields(
             field = SakeTextField.KAKE_POLISH,
             presentation = SakeFieldPresentation(validationField = SakeValidationField.KAKE_POLISH),
         ),
+        itemKey = SAKE_ROW_KAKE_POLISH,
     )
 }
 
@@ -144,11 +178,13 @@ private fun LazyListScope.sourceMetadataFields(
         state,
         callbacks,
         SakeTextFieldUi(value = state.yeast, field = SakeTextField.YEAST),
+        itemKey = SAKE_ROW_YEAST,
     )
     textFieldItem(
         R.string.label_water,
         state,
         callbacks,
         SakeTextFieldUi(value = state.water, field = SakeTextField.WATER),
+        itemKey = SAKE_ROW_WATER,
     )
 }

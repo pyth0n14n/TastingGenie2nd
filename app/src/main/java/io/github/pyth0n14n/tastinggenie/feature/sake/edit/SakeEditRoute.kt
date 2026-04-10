@@ -41,19 +41,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
-private const val NAME_FIELD_INDEX = 1
-private const val GRADE_FIELD_INDEX = 2
-private const val SAKE_DEGREE_FIELD_INDEX = 9
-private const val ACIDITY_FIELD_INDEX = 10
-private const val KOJI_POLISH_FIELD_INDEX = 12
-private const val KAKE_POLISH_FIELD_INDEX = 14
-private const val ALCOHOL_FIELD_INDEX = 15
 
-/**
- * Route for sake edit/create screen.
- *
- * Collects state from [SakeEditViewModel] and delegates rendering to [SakeEditScreen].
- */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SakeEditRoute(
@@ -153,29 +141,8 @@ fun SakeEditScreen(
     }
 }
 
-private fun SakeEditUiState.firstInvalidFieldIndex(): Int? {
-    if (validationErrors.isEmpty()) {
-        return null
-    }
-    return invalidFieldIndexCandidates()
-        .firstOrNull { (_, field) ->
-            validationErrors.containsKey(field)
-        }?.first
-}
-
-private fun SakeEditUiState.invalidFieldIndexCandidates(): List<Pair<Int, SakeValidationField>> =
-    buildList {
-        add(NAME_FIELD_INDEX to SakeValidationField.NAME)
-        add(GRADE_FIELD_INDEX to SakeValidationField.GRADE)
-        add(SAKE_DEGREE_FIELD_INDEX to SakeValidationField.SAKE_DEGREE)
-        add(ACIDITY_FIELD_INDEX to SakeValidationField.ACIDITY)
-        add(KOJI_POLISH_FIELD_INDEX to SakeValidationField.KOJI_POLISH)
-        add(KAKE_POLISH_FIELD_INDEX to SakeValidationField.KAKE_POLISH)
-        add(ALCOHOL_FIELD_INDEX to SakeValidationField.ALCOHOL)
-    }
-
 private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditHeaderItems() {
-    item(key = "required_hint", contentType = "hint") {
+    item(key = SAKE_ROW_REQUIRED_HINT, contentType = "hint") {
         RequiredFieldHint()
     }
 }
@@ -184,7 +151,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditFooterItems(
     state: SakeEditUiState,
     onSave: () -> Unit,
 ) {
-    item(key = "error", contentType = "error") {
+    item(key = SAKE_ROW_ERROR, contentType = "error") {
         if (state.error != null) {
             Text(
                 text = stringResource(state.error.messageResId),
@@ -193,7 +160,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditFooterItems(
             )
         }
     }
-    item(key = "save", contentType = "save") {
+    item(key = SAKE_ROW_SAVE, contentType = "save") {
         SaveButton(
             isSaving = state.isSaving,
             isEnabled = !state.isEditTargetMissing,
@@ -234,8 +201,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
                 field = SakeTextField.NAME,
                 presentation = SakeFieldPresentation(validationField = SakeValidationField.NAME, required = true),
             ),
+        itemKey = SAKE_ROW_NAME,
     )
-    item {
+    item(key = SAKE_ROW_GRADE) {
         val label = stringResource(R.string.label_grade)
         SimpleDropdown(
             label = label,
@@ -252,7 +220,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
                 ),
         )
     }
-    item {
+    item(key = SAKE_ROW_IMAGE) {
         SakeImageField(
             imageUri = state.imagePreviewUri,
             isSaving = state.isSaving,
@@ -266,6 +234,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
             state = state,
             callbacks = callbacks,
             ui = SakeTextFieldUi(value = state.gradeOther, field = SakeTextField.GRADE_OTHER),
+            itemKey = SAKE_ROW_GRADE_OTHER,
         )
     }
 }
@@ -275,7 +244,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
 ) {
-    item {
+    item(key = SAKE_ROW_CLASSIFICATION) {
         GroupedMultiSelectDropdown(
             label = stringResource(R.string.label_classification),
             groups = uiData.classificationGroups,
@@ -289,6 +258,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
             state = state,
             callbacks = callbacks,
             ui = SakeTextFieldUi(value = state.typeOther, field = SakeTextField.TYPE_OTHER),
+            itemKey = SAKE_ROW_CLASSIFICATION_OTHER,
         )
     }
     textFieldItem(
@@ -296,8 +266,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
         state = state,
         callbacks = callbacks,
         ui = SakeTextFieldUi(value = state.maker, field = SakeTextField.MAKER),
+        itemKey = SAKE_ROW_MAKER,
     )
-    item {
+    item(key = SAKE_ROW_PREFECTURE) {
         GroupedSingleSelectDropdown(
             label = stringResource(R.string.label_prefecture),
             groups = uiData.prefectureGroups,
