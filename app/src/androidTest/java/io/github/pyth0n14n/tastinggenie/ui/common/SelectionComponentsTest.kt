@@ -9,6 +9,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -149,8 +151,11 @@ class SelectionComponentsTest {
 
         composeRule.onNodeWithText("香味強度").assertIsDisplayed()
         composeRule.onNodeWithText("クリア").assertIsDisplayed().assertIsNotEnabled()
+        composeRule.onNodeWithText("強い").assertIsNotSelected()
         composeRule.onNodeWithText("強い").performClick()
         composeRule.runOnIdle { assertEquals("HIGH", selectedValue) }
+        composeRule.onNodeWithText("強い").assertIsSelected()
+        composeRule.onNodeWithText("弱い").assertIsNotSelected()
         composeRule.onNodeWithText("クリア").assertIsEnabled()
     }
 
@@ -177,7 +182,32 @@ class SelectionComponentsTest {
 
         composeRule.onNodeWithText("中程度").performClick()
         composeRule.runOnIdle { assertEquals("MEDIUM", selectedValue) }
+        composeRule.onNodeWithText("中程度").assertIsSelected()
         composeRule.onNodeWithText("中程度").assertIsDisplayed()
+    }
+
+    @Test
+    fun discreteSliderField_supportsLongerScales() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
+            DiscreteSliderField(
+                label = "温度",
+                options =
+                    (1..10).map { index ->
+                        DropdownOption(value = "LEVEL_$index", label = "温度$index")
+                    },
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNodeWithText("温度10").assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals("LEVEL_10", selectedValue) }
+        composeRule.onNodeWithText("温度10").assertIsSelected()
     }
 
     @Test

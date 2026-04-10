@@ -1,16 +1,18 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -26,6 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
@@ -34,10 +40,12 @@ private const val TWO_OPTIONS = 2
 private const val CLEAR_BUTTON_MIN_WIDTH = 72
 private const val STEP_CHOICE_SPACING = 8
 private const val STEP_CHOICE_MIN_HEIGHT = 44
+private const val STEP_CHOICE_MIN_WIDTH = 72
 private const val STEP_CHOICE_CORNER_RADIUS = 12
 private const val STEP_LABEL_MAX_LINES = 2
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun DiscreteSliderField(
     label: String,
     options: List<DropdownOption>,
@@ -61,16 +69,28 @@ fun DiscreteSliderField(
         if (options.size < TWO_OPTIONS) {
             return@Column
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp)) {
+        FlowRow(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+            verticalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+        ) {
             options.forEach { option ->
                 val isCurrentOption = option.value == selectedValue
                 val stepColors = stepChoiceColors(isSelected = isCurrentOption, hasSelection = isSelected)
                 Surface(
                     modifier =
                         Modifier
-                            .weight(1f)
+                            .widthIn(min = STEP_CHOICE_MIN_WIDTH.dp)
                             .heightIn(min = STEP_CHOICE_MIN_HEIGHT.dp)
-                            .clickable { onValueChanged(option.value) },
+                            .selectable(
+                                selected = isCurrentOption,
+                                onClick = { onValueChanged(option.value) },
+                                role = Role.RadioButton,
+                            )
+                            .semantics(mergeDescendants = true) {},
                     shape = RoundedCornerShape(STEP_CHOICE_CORNER_RADIUS.dp),
                     color = stepColors.container,
                     contentColor = stepColors.content,
