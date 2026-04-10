@@ -29,6 +29,7 @@ fun ReviewEditUiState.toMissingSakeState(): ReviewEditUiState =
     copy(
         isLoading = false,
         isSakeMissing = true,
+        validationErrors = emptyMap(),
         error = UiError(messageResId = R.string.error_load_sake),
     )
 
@@ -87,6 +88,7 @@ private fun ReviewEditUiState.toMissingReviewState(
         tasteOptions = master.tasteLevels,
         overallReviewOptions = master.overallReviews,
         aromaCategories = master.aromaCategories,
+        validationErrors = emptyMap(),
         error =
             UiError(
                 messageResId = R.string.error_load_review,
@@ -133,4 +135,5 @@ private fun ReviewEditUiState.toEditableLoadedState(
         aromaCategories = master.aromaCategories,
         isSakeMissing = false,
         isEditTargetMissing = false,
+        validationErrors = emptyMap(),
     )

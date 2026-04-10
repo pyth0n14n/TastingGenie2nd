@@ -15,6 +15,7 @@ import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import io.github.pyth0n14n.tastinggenie.feature.review.testSake
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
+import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -72,7 +73,38 @@ class ReviewEditViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(R.string.error_invalid_review_input, state.error?.messageResId)
+            assertEquals(null, state.error)
+            assertEquals(FieldValidationError.INVALID_DATE, state.validationErrors[ReviewValidationField.DATE])
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
+    fun save_withInvalidNumericFields_setsFieldValidationErrors() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = repository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.PRICE, value = "100円"))
+            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.VOLUME, value = "一合"))
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(
+                FieldValidationError.INVALID_NUMBER,
+                state.validationErrors[ReviewValidationField.PRICE],
+            )
+            assertEquals(
+                FieldValidationError.INVALID_NUMBER,
+                state.validationErrors[ReviewValidationField.VOLUME],
+            )
             assertTrue(repository.savedInputs.isEmpty())
         }
 
