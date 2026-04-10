@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -30,8 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
@@ -69,49 +69,78 @@ fun DiscreteSliderField(
         if (options.size < TWO_OPTIONS) {
             return@Column
         }
-        FlowRow(
+        StepChoiceGroup(
+            options = options,
+            selectedValue = selectedValue,
+            hasSelection = isSelected,
+            onValueChanged = onValueChanged,
+        )
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun StepChoiceGroup(
+    options: List<DropdownOption>,
+    selectedValue: String?,
+    hasSelection: Boolean,
+    onValueChanged: (String?) -> Unit,
+) {
+    FlowRow(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+        verticalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+    ) {
+        options.forEach { option ->
+            StepChoice(
+                option = option,
+                isSelected = option.value == selectedValue,
+                hasSelection = hasSelection,
+                onClick = { onValueChanged(option.value) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun StepChoice(
+    option: DropdownOption,
+    isSelected: Boolean,
+    hasSelection: Boolean,
+    onClick: () -> Unit,
+) {
+    val stepColors = stepChoiceColors(isSelected = isSelected, hasSelection = hasSelection)
+    Surface(
+        modifier =
+            Modifier
+                .widthIn(min = STEP_CHOICE_MIN_WIDTH.dp)
+                .heightIn(min = STEP_CHOICE_MIN_HEIGHT.dp)
+                .selectable(
+                    selected = isSelected,
+                    onClick = onClick,
+                    role = Role.RadioButton,
+                ).semantics(mergeDescendants = true) {},
+        shape = RoundedCornerShape(STEP_CHOICE_CORNER_RADIUS.dp),
+        color = stepColors.container,
+        contentColor = stepColors.content,
+        border = BorderStroke(width = 1.dp, color = stepColors.border),
+    ) {
+        Box(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .selectableGroup(),
-            horizontalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
-            verticalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+                    .fillMaxSize()
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            options.forEach { option ->
-                val isCurrentOption = option.value == selectedValue
-                val stepColors = stepChoiceColors(isSelected = isCurrentOption, hasSelection = isSelected)
-                Surface(
-                    modifier =
-                        Modifier
-                            .widthIn(min = STEP_CHOICE_MIN_WIDTH.dp)
-                            .heightIn(min = STEP_CHOICE_MIN_HEIGHT.dp)
-                            .selectable(
-                                selected = isCurrentOption,
-                                onClick = { onValueChanged(option.value) },
-                                role = Role.RadioButton,
-                            )
-                            .semantics(mergeDescendants = true) {},
-                    shape = RoundedCornerShape(STEP_CHOICE_CORNER_RADIUS.dp),
-                    color = stepColors.container,
-                    contentColor = stepColors.content,
-                    border = BorderStroke(width = 1.dp, color = stepColors.border),
-                ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 4.dp, vertical = 6.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = option.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            maxLines = STEP_LABEL_MAX_LINES,
-                        )
-                    }
-                }
-            }
+            Text(
+                text = option.label,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = STEP_LABEL_MAX_LINES,
+            )
         }
     }
 }
