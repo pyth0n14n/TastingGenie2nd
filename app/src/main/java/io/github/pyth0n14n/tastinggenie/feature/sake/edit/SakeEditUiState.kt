@@ -14,6 +14,7 @@ data class SakeEditUiState(
     val isEditTargetMissing: Boolean = false,
     val error: UiError? = null,
     val validationErrors: Map<SakeValidationField, FieldValidationError> = emptyMap(),
+    val validationFailureCount: Int = 0,
     val sakeId: Long? = null,
     val name: String = "",
     val grade: SakeGrade? = null,

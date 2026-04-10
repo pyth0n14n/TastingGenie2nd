@@ -21,6 +21,7 @@ data class ReviewEditUiState(
     val isEditTargetMissing: Boolean = false,
     val error: UiError? = null,
     val validationErrors: Map<ReviewValidationField, FieldValidationError> = emptyMap(),
+    val validationFailureCount: Int = 0,
     val sakeId: SakeId? = null,
     val reviewId: ReviewId? = null,
     val sakeName: String = "",

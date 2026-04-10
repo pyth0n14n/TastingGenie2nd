@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -112,11 +113,22 @@ private fun ReviewEditBody(
     viscosityOptions: List<DropdownOption>,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(state.validationFailureCount) {
+        val targetIndex = state.firstInvalidFieldIndex()
+        if (targetIndex != null) {
+            listState.animateScrollToItem(index = targetIndex)
+        }
+    }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
+        item {
+            RequiredFieldHint()
+        }
         val formUiData =
             ReviewEditFormUiData(
                 singleChoiceUiData =
@@ -164,4 +176,25 @@ private fun ReviewEditBody(
             }
         }
     }
+}
+
+private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
+    if (validationErrors.isEmpty()) {
+        return null
+    }
+    return when {
+        validationErrors.containsKey(ReviewValidationField.DATE) -> 2
+        validationErrors.containsKey(ReviewValidationField.PRICE) -> 4
+        validationErrors.containsKey(ReviewValidationField.VOLUME) -> 5
+        else -> null
+    }
+}
+
+@Composable
+private fun RequiredFieldHint() {
+    Text(
+        text = stringResource(R.string.message_required_field_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }

@@ -210,6 +210,7 @@ class SakeEditScreenTest {
         composeRule.onNodeWithText("アルコール度数").assertIsDisplayed()
         composeRule.onNodeWithText("酵母").assertIsDisplayed()
         composeRule.onNodeWithText("水").assertIsDisplayed()
+        composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
     }
 
     @Test

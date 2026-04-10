@@ -51,6 +51,7 @@ fun ReviewEditUiState.withValidationFailure(snapshot: ReviewEditUiState): Review
                 null
             },
         validationErrors = validationErrors,
+        validationFailureCount = validationFailureCount + 1,
     )
 }
 

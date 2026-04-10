@@ -198,6 +198,7 @@ class SakeEditViewModel
                                 null
                             },
                         validationErrors = validationErrors,
+                        validationFailureCount = state.validationFailureCount + 1,
                     )
                 }
                 return

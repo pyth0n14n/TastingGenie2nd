@@ -122,4 +122,5 @@
     <string name="error_invalid_number_field">%1$sは数値で入力してください</string>
     <string name="error_invalid_percentage_field">%1$sは0〜100の整数で入力してください</string>
     <string name="error_invalid_date_field">%1$sを確認してください</string>
+    <string name="message_required_field_hint">* は必須項目です</string>
 </resources>

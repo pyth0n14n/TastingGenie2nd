@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -94,9 +95,16 @@ fun SakeEditScreen(
         return
     }
     var isDeleteImageDialogVisible by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
     val gradeOptions = state.gradeOptions.toOptions()
     val classificationGroups = state.classificationOptions.toClassificationGroups()
     val prefectureGroups = state.prefectureOptions.toPrefectureGroups()
+    LaunchedEffect(state.validationFailureCount) {
+        val targetIndex = state.firstInvalidFieldIndex()
+        if (targetIndex != null) {
+            listState.animateScrollToItem(index = targetIndex)
+        }
+    }
     Scaffold(
         topBar = { SakeEditTopBar(onBack = onBack) },
     ) { padding ->
@@ -113,9 +121,13 @@ fun SakeEditScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(padding),
+            state = listState,
             contentPadding = PaddingValues(SCREEN_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
         ) {
+            item {
+                RequiredFieldHint()
+            }
             formFields(
                 state = state,
                 uiData =
@@ -145,6 +157,48 @@ fun SakeEditScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RequiredFieldHint() {
+    Text(
+        text = stringResource(R.string.message_required_field_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+private fun SakeEditUiState.firstInvalidFieldIndex(): Int? {
+    if (validationErrors.isEmpty()) {
+        return null
+    }
+    var index = 0
+    index += 1 // required field hint
+    if (validationErrors.containsKey(SakeValidationField.NAME)) return index
+    index += 1 // name
+    if (validationErrors.containsKey(SakeValidationField.GRADE)) return index
+    index += 1 // grade
+    index += 1 // image
+    if (grade == SakeGrade.OTHER) {
+        index += 1
+    }
+    index += 1 // classification
+    if (classifications.contains(SakeClassification.OTHER)) {
+        index += 1
+    }
+    index += 1 // maker
+    index += 1 // prefecture
+    if (validationErrors.containsKey(SakeValidationField.SAKE_DEGREE)) return index
+    index += 1
+    if (validationErrors.containsKey(SakeValidationField.ACIDITY)) return index
+    index += 1
+    index += 1 // kojiMai
+    if (validationErrors.containsKey(SakeValidationField.KOJI_POLISH)) return index
+    index += 1
+    index += 1 // kakeMai
+    if (validationErrors.containsKey(SakeValidationField.KAKE_POLISH)) return index
+    index += 1
+    return if (validationErrors.containsKey(SakeValidationField.ALCOHOL)) index else null
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.formFields(

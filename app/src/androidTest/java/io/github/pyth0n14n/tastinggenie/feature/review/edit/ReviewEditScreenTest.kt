@@ -31,6 +31,7 @@ class ReviewEditScreenTest {
         }
 
         composeRule.onNodeWithText("レビュー登録/編集").assertIsDisplayed()
+        composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
         composeRule.onNodeWithText("レビュー情報の読み込みに失敗しました").assertIsDisplayed()
         composeRule.onNodeWithText("保存").assertIsNotEnabled()
     }
