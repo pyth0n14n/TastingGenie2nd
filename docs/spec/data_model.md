@@ -51,8 +51,8 @@
 | sakeId | Long | FK |
 | date | LocalDate | 必須 |
 | bar | String | 任意 |
-| price | Int | 任意 |
-| volume | Int(mL) | 任意 |
+| price | Int (1..1,000,000) | 任意 |
+| volume | Int(mL, 1..25,000) | 任意 |
 | temperature | Enum | 任意 |
 | scene | String | 任意 |
 | dish | String | 任意 |
