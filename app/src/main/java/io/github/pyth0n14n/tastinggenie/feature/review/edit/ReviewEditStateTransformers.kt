@@ -32,10 +32,11 @@ fun ReviewEditUiState.withText(
     value: String,
 ): ReviewEditUiState =
     when (field) {
-        ReviewTextField.DATE -> copy(date = value, error = null)
+        ReviewTextField.DATE -> copy(date = value, error = null).clearValidationError(ReviewValidationField.DATE)
         ReviewTextField.BAR -> copy(bar = value, error = null)
-        ReviewTextField.PRICE -> copy(price = value, error = null)
-        ReviewTextField.VOLUME -> copy(volume = value, error = null)
+        ReviewTextField.PRICE -> copy(price = value, error = null).clearValidationError(ReviewValidationField.PRICE)
+        ReviewTextField.VOLUME ->
+            copy(volume = value, error = null).clearValidationError(ReviewValidationField.VOLUME)
         ReviewTextField.SCENE -> copy(scene = value, error = null)
         ReviewTextField.DISH -> copy(dish = value, error = null)
         ReviewTextField.COMMENT -> copy(comment = value, error = null)

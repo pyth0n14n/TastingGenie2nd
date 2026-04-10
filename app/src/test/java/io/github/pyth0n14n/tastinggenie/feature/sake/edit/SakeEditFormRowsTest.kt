@@ -1,0 +1,57 @@
+package io.github.pyth0n14n.tastinggenie.feature.sake.edit
+
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+
+class SakeEditFormRowsTest {
+    companion object {
+        private const val ALCOHOL_INDEX_WITHOUT_OPTIONAL_ROWS = 9
+        private const val KAKE_POLISH_INDEX_WITH_OPTIONAL_ROWS = 15
+        private const val FIRST_INVALID_INDEX_WITHOUT_OPTIONAL_ROWS = 9
+    }
+
+    @Test
+    fun firstInvalidFieldIndex_withoutOptionalRows_tracksCurrentMetadataOrder() {
+        val state =
+            SakeEditUiState(
+                validationErrors = mapOf(SakeValidationField.ALCOHOL to FieldValidationError.INVALID_NUMBER),
+            )
+
+        assertEquals(ALCOHOL_INDEX_WITHOUT_OPTIONAL_ROWS, state.firstInvalidFieldIndex())
+    }
+
+    @Test
+    fun firstInvalidFieldIndex_withOptionalRows_accountsForInsertedItems() {
+        val state =
+            SakeEditUiState(
+                grade = SakeGrade.OTHER,
+                classifications = listOf(SakeClassification.OTHER),
+                validationErrors = mapOf(SakeValidationField.KAKE_POLISH to FieldValidationError.INVALID_PERCENTAGE),
+            )
+
+        assertEquals(KAKE_POLISH_INDEX_WITH_OPTIONAL_ROWS, state.firstInvalidFieldIndex())
+    }
+
+    @Test
+    fun firstInvalidFieldIndex_prefersFirstVisibleInvalidField() {
+        val state =
+            SakeEditUiState(
+                validationErrors =
+                    linkedMapOf(
+                        SakeValidationField.KOJI_POLISH to FieldValidationError.INVALID_PERCENTAGE,
+                        SakeValidationField.ALCOHOL to FieldValidationError.INVALID_NUMBER,
+                    ),
+            )
+
+        assertEquals(FIRST_INVALID_INDEX_WITHOUT_OPTIONAL_ROWS, state.firstInvalidFieldIndex())
+    }
+
+    @Test
+    fun firstInvalidFieldIndex_withoutValidationErrors_returnsNull() {
+        assertNull(SakeEditUiState().firstInvalidFieldIndex())
+    }
+}

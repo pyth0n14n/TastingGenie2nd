@@ -11,6 +11,7 @@ fun ReviewEditUiState.withDateSelected(epochMillis: Long): ReviewEditUiState =
     copy(
         date = epochMillis.toReviewDateText(),
         error = null,
+        validationErrors = validationErrors - ReviewValidationField.DATE,
     )
 
 fun String.toDatePickerInitialMillisOrNull(): Long? =

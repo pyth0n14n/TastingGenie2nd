@@ -5,6 +5,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,15 +23,17 @@ fun LabeledTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
     singleLine: Boolean = true,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(text = label) },
-        modifier = modifier.fillMaxWidth(),
+        label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
+        modifier = Modifier.fillMaxWidth(),
         singleLine = singleLine,
+        isError = fieldState.isError,
+        supportingText = supportingTextContent(fieldState.errorText),
     )
 }
 
@@ -41,7 +44,7 @@ fun SimpleDropdown(
     selectedLabel: String,
     options: List<DropdownOption>,
     onSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     val displayedLabel =
@@ -54,7 +57,7 @@ fun SimpleDropdown(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
             value = displayedLabel,
@@ -63,9 +66,11 @@ fun SimpleDropdown(
                 Modifier
                     .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth(),
-            label = { Text(text = label) },
+            label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
             readOnly = true,
             singleLine = true,
+            isError = fieldState.isError,
+            supportingText = supportingTextContent(fieldState.errorText),
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
@@ -86,4 +91,13 @@ fun SimpleDropdown(
             }
         }
     }
+}
+
+@Composable
+fun RequiredFieldHint() {
+    Text(
+        text = stringResource(R.string.message_required_field_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }

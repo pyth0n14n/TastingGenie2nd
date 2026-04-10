@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 
 data class ReviewEditUiState(
     val isLoading: Boolean = true,
@@ -19,6 +20,8 @@ data class ReviewEditUiState(
     val isSakeMissing: Boolean = false,
     val isEditTargetMissing: Boolean = false,
     val error: UiError? = null,
+    val validationErrors: Map<ReviewValidationField, FieldValidationError> = emptyMap(),
+    val validationFailureCount: Int = 0,
     val sakeId: SakeId? = null,
     val reviewId: ReviewId? = null,
     val sakeName: String = "",

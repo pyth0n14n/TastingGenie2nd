@@ -7,9 +7,11 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
+import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
+import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 fun LazyListScope.reviewEditFormContent(
     state: ReviewEditUiState,
@@ -72,26 +74,37 @@ private fun LazyListScope.addBasicFields(
         )
     }
     dateField(
+        state = state,
         value = state.date,
         onAction = onAction,
     )
     textField(
+        state = state,
         labelRes = R.string.label_bar,
-        value = state.bar,
-        field = ReviewTextField.BAR,
         onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.bar, field = ReviewTextField.BAR),
     )
     textField(
+        state = state,
         labelRes = R.string.label_price,
-        value = state.price,
-        field = ReviewTextField.PRICE,
         onAction = onAction,
+        ui =
+            ReviewTextFieldUi(
+                value = state.price,
+                field = ReviewTextField.PRICE,
+                validationField = ReviewValidationField.PRICE,
+            ),
     )
     textField(
+        state = state,
         labelRes = R.string.label_volume,
-        value = state.volume,
-        field = ReviewTextField.VOLUME,
         onAction = onAction,
+        ui =
+            ReviewTextFieldUi(
+                value = state.volume,
+                field = ReviewTextField.VOLUME,
+                validationField = ReviewValidationField.VOLUME,
+            ),
     )
 }
 
@@ -164,24 +177,27 @@ private fun LazyListScope.addNoteFields(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     textField(
+        state = state,
         labelRes = R.string.label_scene,
-        value = state.scene,
-        field = ReviewTextField.SCENE,
         onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
     )
     textField(
+        state = state,
         labelRes = R.string.label_dish,
-        value = state.dish,
-        field = ReviewTextField.DISH,
         onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
     )
-    textField(
-        labelRes = R.string.label_comment,
-        value = state.comment,
-        field = ReviewTextField.COMMENT,
-        onAction = onAction,
-        singleLine = false,
-    )
+    item {
+        LabeledTextField(
+            label = reviewTextResource(R.string.label_comment),
+            value = state.comment,
+            onValueChange = { next ->
+                onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COMMENT, value = next))
+            },
+            singleLine = false,
+        )
+    }
     overallReviewField(
         selectedValue = state.review?.name,
         options = overallReviewOptions,
@@ -190,36 +206,60 @@ private fun LazyListScope.addNoteFields(
 }
 
 private fun LazyListScope.dateField(
+    state: ReviewEditUiState,
     value: String,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     item {
+        val label = reviewTextResource(R.string.label_review_date)
         io.github.pyth0n14n.tastinggenie.ui.common.DatePickerField(
-            label = reviewTextResource(R.string.label_review_date),
+            label = label,
             value = value,
             onDateSelected = { epochMillis ->
                 onAction(ReviewEditAction.DateSelected(epochMillis = epochMillis))
             },
             initialSelectedDateMillis = value.toDatePickerInitialMillisOrNull(),
+            fieldState =
+                FormFieldState(
+                    required = true,
+                    errorText =
+                        state.validationErrors[ReviewValidationField.DATE]?.let { error ->
+                            validationErrorText(label = label, error = error)
+                        },
+                ),
         )
     }
 }
 
 private fun LazyListScope.textField(
+    state: ReviewEditUiState,
     labelRes: Int,
-    value: String,
-    field: ReviewTextField,
     onAction: (ReviewEditAction) -> Unit,
-    singleLine: Boolean = true,
+    ui: ReviewTextFieldUi,
 ) {
     item {
+        val label = reviewTextResource(labelRes)
         LabeledTextField(
-            label = reviewTextResource(labelRes),
-            value = value,
+            label = label,
+            value = ui.value,
             onValueChange = { next ->
-                onAction(ReviewEditAction.TextChanged(field = field, value = next))
+                onAction(ReviewEditAction.TextChanged(field = ui.field, value = next))
             },
-            singleLine = singleLine,
+            fieldState =
+                FormFieldState(
+                    errorText =
+                        ui.validationField?.let { validationField ->
+                            state.validationErrors[validationField]?.let { error ->
+                                val range = reviewValidationRange(validationField)
+                                validationErrorText(
+                                    label = label,
+                                    error = error,
+                                    minValue = range?.first,
+                                    maxValue = range?.last,
+                                )
+                            }
+                        },
+                ),
         )
     }
 }
@@ -286,4 +326,10 @@ data class ReviewEditFormUiData(
     val tasteOptions: List<DropdownOption>,
     val overallReviewOptions: List<DropdownOption>,
     val aromaUiData: AromaUiData,
+)
+
+private data class ReviewTextFieldUi(
+    val value: String,
+    val field: ReviewTextField,
+    val validationField: ReviewValidationField? = null,
 )

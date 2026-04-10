@@ -294,6 +294,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Enter invalid numeric text in sake/review forms; verify save is blocked and an error is shown.
   - Reopen an existing item with valid numeric values; verify the exact formatted text is restored to the fields.
+  - Enter `0`, `-1`, or values above the agreed review bounds (`1,000,001` price / `25,001` mL volume); verify save is blocked and no crash occurs.
 
 ### Problem: Range-bounded numeric fields accept impossible values because only parsing is validated.
 - **Example**: 精米歩合に `101` を入れても整数として通ってしまう。

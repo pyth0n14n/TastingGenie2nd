@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
@@ -51,45 +50,16 @@ class ReviewEditViewModel
                 return
             }
 
-            val sakeId = snapshot.sakeId
-            val parsedDate = snapshot.date.toLocalDateOrNull()
-            val parsedPrice = snapshot.price.toOptionalInt()
-            val parsedVolume = snapshot.volume.toOptionalInt()
-            val hasInvalidNumber = parsedPrice == INVALID_NUMBER || parsedVolume == INVALID_NUMBER
-            if (sakeId == null || parsedDate == null || hasInvalidNumber) {
-                _uiState.update { it.copy(error = UiError(messageResId = R.string.error_invalid_review_input)) }
+            val input = snapshot.toValidatedInput()
+            if (input == null) {
+                _uiState.update { state -> state.withValidationFailure(snapshot = snapshot) }
                 return
             }
 
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null) }
+                _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
-                    reviewRepository.upsertReview(
-                        ReviewInput(
-                            id = snapshot.reviewId,
-                            sakeId = sakeId,
-                            date = parsedDate,
-                            bar = snapshot.bar.trimmedOrNull(),
-                            price = parsedPrice,
-                            volume = parsedVolume,
-                            temperature = snapshot.temperature,
-                            color = snapshot.color,
-                            viscosity = snapshot.viscosity,
-                            intensity = snapshot.intensity,
-                            scentTop = snapshot.scentTop,
-                            scentBase = snapshot.scentBase,
-                            scentMouth = snapshot.scentMouth,
-                            sweet = snapshot.sweet,
-                            sour = snapshot.sour,
-                            bitter = snapshot.bitter,
-                            umami = snapshot.umami,
-                            sharp = snapshot.sharp,
-                            scene = snapshot.scene.trimmedOrNull(),
-                            dish = snapshot.dish.trimmedOrNull(),
-                            comment = snapshot.comment.trimmedOrNull(),
-                            review = snapshot.review,
-                        ),
-                    )
+                    reviewRepository.upsertReview(input)
                 }.onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSaved = true) }
                 }.onFailure { throwable ->
@@ -148,5 +118,3 @@ class ReviewEditViewModel
                 review = args.reviewId?.let { reviewRepository.getReview(it) },
             )
     }
-
-private fun String.trimmedOrNull(): String? = trim().takeIf { it.isNotEmpty() }

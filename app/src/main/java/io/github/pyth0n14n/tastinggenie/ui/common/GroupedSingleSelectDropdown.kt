@@ -31,7 +31,7 @@ fun GroupedSingleSelectDropdown(
     groups: List<DropdownOptionGroup>,
     selectedValue: String?,
     onSelected: (String?) -> Unit,
-    modifier: Modifier = Modifier,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     var expandedGroups by remember(groups) { mutableStateOf(emptySet<String>()) }
@@ -71,7 +71,7 @@ fun GroupedSingleSelectDropdown(
                 expandedGroups = emptySet()
             }
         },
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
             value = summary,
@@ -80,9 +80,11 @@ fun GroupedSingleSelectDropdown(
                 Modifier
                     .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth(),
-            label = { Text(text = label) },
+            label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
             readOnly = true,
             singleLine = true,
+            isError = fieldState.isError,
+            supportingText = supportingTextContent(fieldState.errorText),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )
