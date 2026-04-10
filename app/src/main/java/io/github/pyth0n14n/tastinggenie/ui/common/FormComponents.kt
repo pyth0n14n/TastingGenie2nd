@@ -22,15 +22,17 @@ fun LabeledTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
     singleLine: Boolean = true,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(text = label) },
-        modifier = modifier.fillMaxWidth(),
+        label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
+        modifier = Modifier.fillMaxWidth(),
         singleLine = singleLine,
+        isError = fieldState.isError,
+        supportingText = supportingTextContent(fieldState.errorText),
     )
 }
 
@@ -41,7 +43,7 @@ fun SimpleDropdown(
     selectedLabel: String,
     options: List<DropdownOption>,
     onSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     val displayedLabel =
@@ -54,7 +56,7 @@ fun SimpleDropdown(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = !expanded },
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
             value = displayedLabel,
@@ -63,9 +65,11 @@ fun SimpleDropdown(
                 Modifier
                     .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth(),
-            label = { Text(text = label) },
+            label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
             readOnly = true,
             singleLine = true,
+            isError = fieldState.isError,
+            supportingText = supportingTextContent(fieldState.errorText),
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },

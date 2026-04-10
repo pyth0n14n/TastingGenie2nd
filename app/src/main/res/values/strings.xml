@@ -117,4 +117,9 @@
     <string name="error_invalid_sake_input">銘柄名・種別・数値項目を確認してください</string>
     <string name="error_invalid_review_selection">レビュー項目の選択値が不正です</string>
     <string name="error_invalid_review_input">日付と数値項目を確認してください</string>
+    <string name="error_required_field">%1$sを入力してください</string>
+    <string name="error_required_selection_field">%1$sを選択してください</string>
+    <string name="error_invalid_number_field">%1$sは数値で入力してください</string>
+    <string name="error_invalid_percentage_field">%1$sは0〜100の整数で入力してください</string>
+    <string name="error_invalid_date_field">%1$sを確認してください</string>
 </resources>

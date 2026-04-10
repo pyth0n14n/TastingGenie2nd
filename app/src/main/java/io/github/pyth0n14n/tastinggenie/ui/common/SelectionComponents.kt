@@ -102,8 +102,8 @@ fun DatePickerField(
     label: String,
     value: String,
     onDateSelected: (Long) -> Unit,
-    modifier: Modifier = Modifier,
     initialSelectedDateMillis: Long? = null,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     var isDialogOpen by remember { mutableStateOf(false) }
     val displayedValue =
@@ -116,10 +116,12 @@ fun DatePickerField(
     OutlinedTextField(
         value = displayedValue,
         onValueChange = {},
-        modifier = modifier.datePickerTrigger { isDialogOpen = true },
-        label = { Text(text = label) },
+        modifier = Modifier.datePickerTrigger { isDialogOpen = true },
+        label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
         readOnly = true,
         singleLine = true,
+        isError = fieldState.isError,
+        supportingText = supportingTextContent(fieldState.errorText),
     )
 
     if (isDialogOpen) {
@@ -179,7 +181,7 @@ fun GroupedMultiSelectDropdown(
     groups: List<DropdownOptionGroup>,
     selectedValues: Collection<String>,
     onToggle: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    fieldState: FormFieldState = FormFieldState(),
 ) {
     var expanded by remember { mutableStateOf(false) }
     var expandedGroups by remember(groups) { mutableStateOf(emptySet<String>()) }
@@ -193,7 +195,7 @@ fun GroupedMultiSelectDropdown(
                 expandedGroups = emptySet()
             }
         },
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         OutlinedTextField(
             value = summary,
@@ -202,9 +204,11 @@ fun GroupedMultiSelectDropdown(
                 Modifier
                     .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                     .fillMaxWidth(),
-            label = { Text(text = label) },
+            label = { Text(text = formFieldLabel(label = label, required = fieldState.required)) },
             readOnly = true,
             singleLine = true,
+            isError = fieldState.isError,
+            supportingText = supportingTextContent(fieldState.errorText),
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
