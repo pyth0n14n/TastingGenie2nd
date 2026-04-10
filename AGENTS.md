@@ -18,9 +18,11 @@ This project follows a specification-first workflow.
 
 All checks required by CI must pass before merging.
 
-- Local development: use `./gradlew localFix` for pre-commit verification and autofix.
+- Local development: `./gradlew localFix` is the default verification command. Use this first for pre-commit verification and autofix.
+- Do not replace `./gradlew localFix` in normal workflow with ad hoc partial commands such as a single compile task or a narrow test target unless you are diagnosing a specific blocker after `localFix`.
+- If `localFix` cannot be completed, state that explicitly and then list any supplemental commands you ran for diagnosis.
 - CI / pull request gate: `./gradlew ciCheck`.
-- Include expected scope of tests in PR description (unit/test/androidTest status, and any currently skipped tests).
+- Include expected scope of tests in PR description (unit/test/androidTest status, and any currently skipped tests). In `How to test`, list `./gradlew localFix` as the standard local verification step unless blocked.
 
 See:
 - `.github/workflows/`
@@ -44,6 +46,9 @@ Each PR must include:
 - Purpose
 - Related spec file(s)
 - How to test
+  - Default: `./gradlew localFix`
+  - If not run, explain why
+  - If supplemental commands were used, describe them as secondary diagnostics rather than the primary verification step
 - Risk / rollback notes
 
 ---

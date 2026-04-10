@@ -5,17 +5,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.hasSetProgressAction
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.click
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -151,9 +155,63 @@ class SelectionComponentsTest {
 
         composeRule.onNodeWithText("香味強度").assertIsDisplayed()
         composeRule.onNodeWithText("クリア").assertIsDisplayed().assertIsNotEnabled()
-        composeRule.onNode(isSlider()).performSemanticsAction(SemanticsActions.SetProgress) { it(1f) }
+        composeRule.onNode(selectableOption("強い")).assertIsNotSelected()
+        composeRule.onNode(selectableOption("強い")).performClick()
         composeRule.runOnIdle { assertEquals("HIGH", selectedValue) }
+        composeRule.onNode(selectableOption("強い")).assertIsSelected()
+        composeRule.onNode(selectableOption("弱い")).assertIsNotSelected()
         composeRule.onNodeWithText("クリア").assertIsEnabled()
+    }
+
+    @Test
+    fun discreteSliderField_selectsMiddleOptionWhenUnselected() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
+            DiscreteSliderField(
+                label = "香味強度",
+                options =
+                    listOf(
+                        DropdownOption(value = "LOW", label = "弱い"),
+                        DropdownOption(value = "MEDIUM", label = "中程度"),
+                        DropdownOption(value = "HIGH", label = "強い"),
+                    ),
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNode(selectableOption("中程度")).performClick()
+        composeRule.runOnIdle { assertEquals("MEDIUM", selectedValue) }
+        composeRule.onNode(selectableOption("中程度")).assertIsSelected()
+        composeRule.onNodeWithText("中程度").assertIsDisplayed()
+    }
+
+    @Test
+    fun discreteSliderField_supportsLongerScales() {
+        var selectedValue: String? = null
+        composeRule.setContent {
+            var currentSelection by remember { mutableStateOf<String?>(null) }
+            DiscreteSliderField(
+                label = "温度",
+                options =
+                    (1..10).map { index ->
+                        DropdownOption(value = "LEVEL_$index", label = "温度$index")
+                    },
+                selectedValue = currentSelection,
+                onValueChanged = {
+                    currentSelection = it
+                    selectedValue = it
+                },
+            )
+        }
+
+        composeRule.onNode(selectableOption("温度10")).assertIsDisplayed().performClick()
+        composeRule.runOnIdle { assertEquals("LEVEL_10", selectedValue) }
+        composeRule.onNode(selectableOption("温度10")).assertIsSelected()
     }
 
     @Test
@@ -229,4 +287,5 @@ class SelectionComponentsTest {
     }
 }
 
-private fun isSlider() = hasSetProgressAction()
+private fun selectableOption(label: String): SemanticsMatcher =
+    hasText(label) and SemanticsMatcher.keyIsDefined(SemanticsProperties.Selected)

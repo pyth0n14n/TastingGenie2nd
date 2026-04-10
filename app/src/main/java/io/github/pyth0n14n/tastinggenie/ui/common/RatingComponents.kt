@@ -1,39 +1,51 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
-import kotlin.math.roundToInt
 
 private const val TWO_OPTIONS = 2
-private const val THREE_OPTIONS = 3
-private const val MIDPOINT_DIVISOR = 2
 private const val CLEAR_BUTTON_MIN_WIDTH = 72
+private const val STEP_CHOICE_SPACING = 8
+private const val STEP_CHOICE_MIN_HEIGHT = 44
+private const val STEP_CHOICE_MIN_WIDTH = 72
+private const val STEP_CHOICE_CORNER_RADIUS = 12
+private const val STEP_LABEL_MAX_LINES = 2
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun DiscreteSliderField(
     label: String,
     options: List<DropdownOption>,
@@ -41,12 +53,7 @@ fun DiscreteSliderField(
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val selectedIndex = options.indexOfFirst { option -> option.value == selectedValue }.takeIf { it >= 0 }
-    val fallbackIndex = defaultSliderIndex(options.size)
     val isSelected = selectedValue != null
-    var sliderValue by remember(selectedValue, options) {
-        mutableFloatStateOf((selectedIndex ?: fallbackIndex).toFloat())
-    }
 
     Column(modifier = modifier.fillMaxWidth()) {
         RatingFieldHeader(
@@ -62,32 +69,77 @@ fun DiscreteSliderField(
         if (options.size < TWO_OPTIONS) {
             return@Column
         }
-        Slider(
-            value = sliderValue,
-            onValueChange = { next ->
-                val nextIndex = next.roundToInt().coerceIn(0, options.lastIndex)
-                sliderValue = nextIndex.toFloat()
-                onValueChanged(options[nextIndex].value)
-            },
-            onValueChangeFinished = null,
-            valueRange = 0f..options.lastIndex.toFloat(),
-            steps = options.size - TWO_OPTIONS,
-            colors = sliderColors(isSelected = isSelected),
+        StepChoiceGroup(
+            options = options,
+            selectedValue = selectedValue,
+            hasSelection = isSelected,
+            onValueChanged = onValueChanged,
         )
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = options.first().label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodySmall,
-                color = ratingEndpointColor(isSelected = isSelected),
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun StepChoiceGroup(
+    options: List<DropdownOption>,
+    selectedValue: String?,
+    hasSelection: Boolean,
+    onValueChanged: (String?) -> Unit,
+) {
+    FlowRow(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+        verticalArrangement = Arrangement.spacedBy(STEP_CHOICE_SPACING.dp),
+    ) {
+        options.forEach { option ->
+            StepChoice(
+                option = option,
+                isSelected = option.value == selectedValue,
+                hasSelection = hasSelection,
+                onClick = { onValueChanged(option.value) },
             )
-            Spacer(modifier = Modifier.width(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun StepChoice(
+    option: DropdownOption,
+    isSelected: Boolean,
+    hasSelection: Boolean,
+    onClick: () -> Unit,
+) {
+    val stepColors = stepChoiceColors(isSelected = isSelected, hasSelection = hasSelection)
+    Surface(
+        modifier =
+            Modifier
+                .widthIn(min = STEP_CHOICE_MIN_WIDTH.dp)
+                .heightIn(min = STEP_CHOICE_MIN_HEIGHT.dp)
+                .selectable(
+                    selected = isSelected,
+                    onClick = onClick,
+                    role = Role.RadioButton,
+                ).semantics(mergeDescendants = true) {},
+        shape = RoundedCornerShape(STEP_CHOICE_CORNER_RADIUS.dp),
+        color = stepColors.container,
+        contentColor = stepColors.content,
+        border = BorderStroke(width = 1.dp, color = stepColors.border),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 4.dp, vertical = 6.dp),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
-                text = options.last().label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodySmall,
-                textAlign = TextAlign.End,
-                color = ratingEndpointColor(isSelected = isSelected),
+                text = option.label,
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
+                maxLines = STEP_LABEL_MAX_LINES,
             )
         }
     }
@@ -161,34 +213,12 @@ private fun RatingFieldHeader(
     }
 }
 
-private fun defaultSliderIndex(optionCount: Int): Int =
-    when (optionCount) {
-        0 -> 0
-        TWO_OPTIONS -> 0
-        THREE_OPTIONS -> 1
-        else -> optionCount / MIDPOINT_DIVISOR
-    }
-
 @Composable
 private fun selectedLabel(
     options: List<DropdownOption>,
     selectedValue: String?,
 ): String =
     options.firstOrNull { option -> option.value == selectedValue }?.label ?: stringResource(R.string.label_unselected)
-
-@Composable
-private fun sliderColors(isSelected: Boolean) =
-    if (isSelected) {
-        SliderDefaults.colors()
-    } else {
-        SliderDefaults.colors(
-            thumbColor = MaterialTheme.colorScheme.outline,
-            activeTrackColor = MaterialTheme.colorScheme.outline,
-            inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
-            activeTickColor = MaterialTheme.colorScheme.surface,
-            inactiveTickColor = MaterialTheme.colorScheme.outline,
-        )
-    }
 
 @Composable
 private fun ratingValueColor(isSelected: Boolean): Color =
@@ -199,17 +229,40 @@ private fun ratingValueColor(isSelected: Boolean): Color =
     }
 
 @Composable
-private fun ratingEndpointColor(isSelected: Boolean): Color =
-    if (isSelected) {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    } else {
-        MaterialTheme.colorScheme.outline
-    }
-
-@Composable
 private fun starOutlineColor(isSelected: Boolean): Color =
     if (isSelected) {
         MaterialTheme.colorScheme.outline
     } else {
         MaterialTheme.colorScheme.outlineVariant
+    }
+
+private data class StepChoiceColors(
+    val container: Color,
+    val content: Color,
+    val border: Color,
+)
+
+@Composable
+private fun stepChoiceColors(
+    isSelected: Boolean,
+    hasSelection: Boolean,
+): StepChoiceColors =
+    if (isSelected) {
+        StepChoiceColors(
+            container = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer,
+            border = MaterialTheme.colorScheme.primary,
+        )
+    } else if (hasSelection) {
+        StepChoiceColors(
+            container = MaterialTheme.colorScheme.surfaceVariant,
+            content = MaterialTheme.colorScheme.onSurfaceVariant,
+            border = MaterialTheme.colorScheme.outlineVariant,
+        )
+    } else {
+        StepChoiceColors(
+            container = MaterialTheme.colorScheme.surface,
+            content = MaterialTheme.colorScheme.onSurfaceVariant,
+            border = MaterialTheme.colorScheme.outline,
+        )
     }
