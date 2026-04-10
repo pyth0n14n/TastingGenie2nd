@@ -109,6 +109,36 @@ class ReviewEditViewModelTest {
         }
 
     @Test
+    fun save_withOutOfRangeReviewNumbers_setsRangeValidationErrors() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                ReviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = repository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.PRICE, value = "1000001"))
+            viewModel.onAction(ReviewEditAction.TextChanged(field = ReviewTextField.VOLUME, value = "0"))
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(
+                FieldValidationError.INVALID_INTEGER_RANGE,
+                state.validationErrors[ReviewValidationField.PRICE],
+            )
+            assertEquals(
+                FieldValidationError.INVALID_INTEGER_RANGE,
+                state.validationErrors[ReviewValidationField.VOLUME],
+            )
+            assertTrue(repository.savedInputs.isEmpty())
+        }
+
+    @Test
     fun save_withValidInput_callsUpsertAndMarksSaved() =
         runTest {
             val repository = RecordingReviewRepository()

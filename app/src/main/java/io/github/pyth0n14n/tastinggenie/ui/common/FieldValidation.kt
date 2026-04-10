@@ -8,6 +8,7 @@ enum class FieldValidationError {
     REQUIRED,
     REQUIRED_SELECTION,
     INVALID_NUMBER,
+    INVALID_INTEGER_RANGE,
     INVALID_PERCENTAGE,
     INVALID_DATE,
 }
@@ -36,6 +37,8 @@ internal fun supportingTextContent(text: String?): (@Composable () -> Unit)? =
 fun validationErrorText(
     label: String,
     error: FieldValidationError,
+    minValue: Int? = null,
+    maxValue: Int? = null,
 ): String =
     when (error) {
         FieldValidationError.REQUIRED -> stringResource(R.string.error_required_field, label)
@@ -43,6 +46,13 @@ fun validationErrorText(
             stringResource(R.string.error_required_selection_field, label)
         FieldValidationError.INVALID_NUMBER ->
             stringResource(R.string.error_invalid_number_field, label)
+        FieldValidationError.INVALID_INTEGER_RANGE ->
+            stringResource(
+                R.string.error_invalid_integer_range_field,
+                label,
+                requireNotNull(minValue),
+                requireNotNull(maxValue),
+            )
         FieldValidationError.INVALID_PERCENTAGE ->
             stringResource(R.string.error_invalid_percentage_field, label)
         FieldValidationError.INVALID_DATE -> stringResource(R.string.error_invalid_date_field, label)

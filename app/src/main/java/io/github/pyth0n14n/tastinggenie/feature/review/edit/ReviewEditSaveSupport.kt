@@ -10,10 +10,16 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
     val parsedPrice = price.toOptionalInt()
     val parsedVolume = volume.toOptionalInt()
     val hasInvalidNumber = parsedPrice == INVALID_NUMBER || parsedVolume == INVALID_NUMBER
+    val hasOutOfRangeNumber =
+        parsedPrice.isOutOfReviewRange(ReviewValidationField.PRICE) ||
+            parsedVolume.isOutOfReviewRange(ReviewValidationField.VOLUME)
+    val canSave =
+        currentSakeId != null &&
+            parsedDate != null &&
+            !hasInvalidNumber &&
+            !hasOutOfRangeNumber
 
-    return if (currentSakeId == null || parsedDate == null || hasInvalidNumber) {
-        null
-    } else {
+    return if (canSave) {
         ReviewInput(
             id = reviewId,
             sakeId = currentSakeId,
@@ -38,6 +44,8 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
             comment = comment.trimmedOrNull(),
             review = review,
         )
+    } else {
+        null
     }
 }
 
@@ -56,3 +64,8 @@ fun ReviewEditUiState.withValidationFailure(snapshot: ReviewEditUiState): Review
 }
 
 private fun String.trimmedOrNull(): String? = trim().takeIf { it.isNotEmpty() }
+
+private fun Int?.isOutOfReviewRange(field: ReviewValidationField): Boolean =
+    this != null &&
+        this != INVALID_NUMBER &&
+        this !in requireNotNull(reviewValidationRange(field))

@@ -120,6 +120,7 @@
     <string name="error_required_field">%1$sを入力してください</string>
     <string name="error_required_selection_field">%1$sを選択してください</string>
     <string name="error_invalid_number_field">%1$sは数値で入力してください</string>
+    <string name="error_invalid_integer_range_field">%1$sは%2$d〜%3$dの整数で入力してください</string>
     <string name="error_invalid_percentage_field">%1$sは0〜100の整数で入力してください</string>
     <string name="error_invalid_date_field">%1$sを確認してください</string>
     <string name="message_required_field_hint">* は必須項目です</string>

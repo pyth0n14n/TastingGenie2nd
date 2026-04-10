@@ -250,7 +250,13 @@ private fun LazyListScope.textField(
                     errorText =
                         ui.validationField?.let { validationField ->
                             state.validationErrors[validationField]?.let { error ->
-                                validationErrorText(label = label, error = error)
+                                val range = reviewValidationRange(validationField)
+                                validationErrorText(
+                                    label = label,
+                                    error = error,
+                                    minValue = range?.first,
+                                    maxValue = range?.last,
+                                )
                             }
                         },
                 ),
