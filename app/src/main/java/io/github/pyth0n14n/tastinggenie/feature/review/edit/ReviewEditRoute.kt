@@ -25,9 +25,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
+import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
+private const val REVIEW_DATE_INDEX = 2
+private const val REVIEW_PRICE_INDEX = 4
+private const val REVIEW_VOLUME_INDEX = 5
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,9 +130,7 @@ private fun ReviewEditBody(
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
-        item {
-            RequiredFieldHint()
-        }
+        reviewEditHeaderItems()
         val formUiData =
             ReviewEditFormUiData(
                 singleChoiceUiData =
@@ -150,31 +152,10 @@ private fun ReviewEditBody(
             onAction = onAction,
             uiData = formUiData,
         )
-        item {
-            if (state.error != null) {
-                Text(
-                    text = stringResource(state.error.messageResId),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        item {
-            Button(
-                onClick = onSave,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isSaving && !state.isInputLocked,
-            ) {
-                Text(
-                    text =
-                        if (state.isSaving) {
-                            stringResource(R.string.message_saving)
-                        } else {
-                            stringResource(R.string.action_save)
-                        },
-                )
-            }
-        }
+        reviewEditFooterItems(
+            state = state,
+            onSave = onSave,
+        )
     }
 }
 
@@ -183,18 +164,65 @@ private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
         return null
     }
     return when {
-        validationErrors.containsKey(ReviewValidationField.DATE) -> 2
-        validationErrors.containsKey(ReviewValidationField.PRICE) -> 4
-        validationErrors.containsKey(ReviewValidationField.VOLUME) -> 5
+        validationErrors.containsKey(ReviewValidationField.DATE) -> REVIEW_DATE_INDEX
+        validationErrors.containsKey(ReviewValidationField.PRICE) -> REVIEW_PRICE_INDEX
+        validationErrors.containsKey(ReviewValidationField.VOLUME) -> REVIEW_VOLUME_INDEX
         else -> null
     }
 }
 
+private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems() {
+    item(key = "required_hint", contentType = "hint") {
+        RequiredFieldHint()
+    }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditFooterItems(
+    state: ReviewEditUiState,
+    onSave: () -> Unit,
+) {
+    item(key = "error", contentType = "error") {
+        ReviewEditError(state = state)
+    }
+    item(key = "save", contentType = "save") {
+        ReviewEditSaveButton(
+            isSaving = state.isSaving,
+            isInputLocked = state.isInputLocked,
+            onSave = onSave,
+        )
+    }
+}
+
 @Composable
-private fun RequiredFieldHint() {
+private fun ReviewEditError(state: ReviewEditUiState) {
+    if (state.error == null) {
+        return
+    }
     Text(
-        text = stringResource(R.string.message_required_field_hint),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        text = stringResource(state.error.messageResId),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
     )
+}
+
+@Composable
+private fun ReviewEditSaveButton(
+    isSaving: Boolean,
+    isInputLocked: Boolean,
+    onSave: () -> Unit,
+) {
+    Button(
+        onClick = onSave,
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !isSaving && !isInputLocked,
+    ) {
+        Text(
+            text =
+                if (isSaving) {
+                    stringResource(R.string.message_saving)
+                } else {
+                    stringResource(R.string.action_save)
+                },
+        )
+    }
 }

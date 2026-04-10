@@ -35,11 +35,19 @@ import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedSingleSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
+import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
+private const val NAME_FIELD_INDEX = 1
+private const val GRADE_FIELD_INDEX = 2
+private const val SAKE_DEGREE_FIELD_INDEX = 9
+private const val ACIDITY_FIELD_INDEX = 10
+private const val KOJI_POLISH_FIELD_INDEX = 12
+private const val KAKE_POLISH_FIELD_INDEX = 14
+private const val ALCOHOL_FIELD_INDEX = 15
 
 /**
  * Route for sake edit/create screen.
@@ -125,9 +133,7 @@ fun SakeEditScreen(
             contentPadding = PaddingValues(SCREEN_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
         ) {
-            item {
-                RequiredFieldHint()
-            }
+            sakeEditHeaderItems()
             formFields(
                 state = state,
                 uiData =
@@ -139,66 +145,61 @@ fun SakeEditScreen(
                 callbacks = callbacks,
                 onDeleteImageRequest = { isDeleteImageDialogVisible = true },
             )
-            item {
-                if (state.error != null) {
-                    Text(
-                        text = stringResource(state.error.messageResId),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
-            item {
-                SaveButton(
-                    isSaving = state.isSaving,
-                    isEnabled = !state.isEditTargetMissing,
-                    onSave = onSave,
-                )
-            }
+            sakeEditFooterItems(
+                state = state,
+                onSave = onSave,
+            )
         }
     }
-}
-
-@Composable
-private fun RequiredFieldHint() {
-    Text(
-        text = stringResource(R.string.message_required_field_hint),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
 }
 
 private fun SakeEditUiState.firstInvalidFieldIndex(): Int? {
     if (validationErrors.isEmpty()) {
         return null
     }
-    var index = 0
-    index += 1 // required field hint
-    if (validationErrors.containsKey(SakeValidationField.NAME)) return index
-    index += 1 // name
-    if (validationErrors.containsKey(SakeValidationField.GRADE)) return index
-    index += 1 // grade
-    index += 1 // image
-    if (grade == SakeGrade.OTHER) {
-        index += 1
+    return invalidFieldIndexCandidates()
+        .firstOrNull { (_, field) ->
+            validationErrors.containsKey(field)
+        }?.first
+}
+
+private fun SakeEditUiState.invalidFieldIndexCandidates(): List<Pair<Int, SakeValidationField>> =
+    buildList {
+        add(NAME_FIELD_INDEX to SakeValidationField.NAME)
+        add(GRADE_FIELD_INDEX to SakeValidationField.GRADE)
+        add(SAKE_DEGREE_FIELD_INDEX to SakeValidationField.SAKE_DEGREE)
+        add(ACIDITY_FIELD_INDEX to SakeValidationField.ACIDITY)
+        add(KOJI_POLISH_FIELD_INDEX to SakeValidationField.KOJI_POLISH)
+        add(KAKE_POLISH_FIELD_INDEX to SakeValidationField.KAKE_POLISH)
+        add(ALCOHOL_FIELD_INDEX to SakeValidationField.ALCOHOL)
     }
-    index += 1 // classification
-    if (classifications.contains(SakeClassification.OTHER)) {
-        index += 1
+
+private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditHeaderItems() {
+    item(key = "required_hint", contentType = "hint") {
+        RequiredFieldHint()
     }
-    index += 1 // maker
-    index += 1 // prefecture
-    if (validationErrors.containsKey(SakeValidationField.SAKE_DEGREE)) return index
-    index += 1
-    if (validationErrors.containsKey(SakeValidationField.ACIDITY)) return index
-    index += 1
-    index += 1 // kojiMai
-    if (validationErrors.containsKey(SakeValidationField.KOJI_POLISH)) return index
-    index += 1
-    index += 1 // kakeMai
-    if (validationErrors.containsKey(SakeValidationField.KAKE_POLISH)) return index
-    index += 1
-    return if (validationErrors.containsKey(SakeValidationField.ALCOHOL)) index else null
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditFooterItems(
+    state: SakeEditUiState,
+    onSave: () -> Unit,
+) {
+    item(key = "error", contentType = "error") {
+        if (state.error != null) {
+            Text(
+                text = stringResource(state.error.messageResId),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+    item(key = "save", contentType = "save") {
+        SaveButton(
+            isSaving = state.isSaving,
+            isEnabled = !state.isEditTargetMissing,
+            onSave = onSave,
+        )
+    }
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
