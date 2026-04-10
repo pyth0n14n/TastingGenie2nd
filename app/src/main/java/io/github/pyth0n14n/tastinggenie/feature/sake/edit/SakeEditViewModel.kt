@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
-import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
@@ -22,9 +21,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-private const val MIN_POLISH_RATIO = 0
-private const val MAX_POLISH_RATIO = 100
 
 @HiltViewModel
 class SakeEditViewModel
@@ -47,21 +43,23 @@ class SakeEditViewModel
             value: String,
         ) {
             updateEditableState { current ->
-                when (field) {
-                    SakeTextField.NAME -> current.copy(name = value)
-                    SakeTextField.GRADE_OTHER -> current.copy(gradeOther = value)
-                    SakeTextField.TYPE_OTHER -> current.copy(typeOther = value)
-                    SakeTextField.MAKER -> current.copy(maker = value)
-                    SakeTextField.SAKE_DEGREE -> current.copy(sakeDegree = value)
-                    SakeTextField.ACIDITY -> current.copy(acidity = value)
-                    SakeTextField.KOJI_MAI -> current.copy(kojiMai = value)
-                    SakeTextField.KOJI_POLISH -> current.copy(kojiPolish = value)
-                    SakeTextField.KAKE_MAI -> current.copy(kakeMai = value)
-                    SakeTextField.KAKE_POLISH -> current.copy(kakePolish = value)
-                    SakeTextField.ALCOHOL -> current.copy(alcohol = value)
-                    SakeTextField.YEAST -> current.copy(yeast = value)
-                    SakeTextField.WATER -> current.copy(water = value)
-                }
+                val nextState =
+                    when (field) {
+                        SakeTextField.NAME -> current.copy(name = value)
+                        SakeTextField.GRADE_OTHER -> current.copy(gradeOther = value)
+                        SakeTextField.TYPE_OTHER -> current.copy(typeOther = value)
+                        SakeTextField.MAKER -> current.copy(maker = value)
+                        SakeTextField.SAKE_DEGREE -> current.copy(sakeDegree = value)
+                        SakeTextField.ACIDITY -> current.copy(acidity = value)
+                        SakeTextField.KOJI_MAI -> current.copy(kojiMai = value)
+                        SakeTextField.KOJI_POLISH -> current.copy(kojiPolish = value)
+                        SakeTextField.KAKE_MAI -> current.copy(kakeMai = value)
+                        SakeTextField.KAKE_POLISH -> current.copy(kakePolish = value)
+                        SakeTextField.ALCOHOL -> current.copy(alcohol = value)
+                        SakeTextField.YEAST -> current.copy(yeast = value)
+                        SakeTextField.WATER -> current.copy(water = value)
+                    }
+                nextState.clearValidationError(field.toValidationField())
             }
         }
 
@@ -103,11 +101,12 @@ class SakeEditViewModel
                             ),
                     )
                 } else {
-                    current.copy(
-                        grade = selectedGrade,
-                        gradeOther = if (selectedGrade == SakeGrade.OTHER) current.gradeOther else "",
-                        error = null,
-                    )
+                    current
+                        .copy(
+                            grade = selectedGrade,
+                            gradeOther = if (selectedGrade == SakeGrade.OTHER) current.gradeOther else "",
+                            error = null,
+                        ).clearValidationError(SakeValidationField.GRADE)
                 }
             }
         }
@@ -189,11 +188,22 @@ class SakeEditViewModel
             }
             val input = snapshot.toValidatedInput()
             if (input == null) {
-                _uiState.update { state -> state.withInvalidInputError() }
+                _uiState.update { state ->
+                    val validationErrors = state.validationErrorsForSave()
+                    state.copy(
+                        error =
+                            if (validationErrors.isEmpty()) {
+                                UiError(messageResId = R.string.error_invalid_sake_input)
+                            } else {
+                                null
+                            },
+                        validationErrors = validationErrors,
+                    )
+                }
                 return
             }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null) }
+                _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
                     saveSake(
                         snapshot = snapshot,
@@ -316,104 +326,5 @@ private fun SakeEditUiState.withLoadedData(
         alcohol = existing?.alcohol?.toString().orEmpty(),
         yeast = existing?.yeast.orEmpty(),
         water = existing?.water.orEmpty(),
+        validationErrors = emptyMap(),
     )
-
-private fun SakeEditUiState.withInvalidInputError(): SakeEditUiState =
-    copy(error = UiError(messageResId = R.string.error_invalid_sake_input))
-
-private fun String.normalizedOrNull(): String? = trim().takeIf { value -> value.isNotEmpty() }
-
-private fun String.parseOptionalInt(): ParsedNumber<Int> {
-    val normalized = trim()
-    return when {
-        normalized.isEmpty() -> ParsedNumber(isValid = true, value = null)
-        else -> ParsedNumber(isValid = normalized.toIntOrNull() != null, value = normalized.toIntOrNull())
-    }
-}
-
-private fun String.parseOptionalPercentage(): ParsedNumber<Int> {
-    val parsed = parseOptionalInt()
-    val isInRange = parsed.value == null || parsed.value in MIN_POLISH_RATIO..MAX_POLISH_RATIO
-    return ParsedNumber(
-        isValid = parsed.isValid && isInRange,
-        value = parsed.value,
-    )
-}
-
-private fun String.parseOptionalFloat(): ParsedNumber<Float> {
-    val normalized = trim()
-    return when {
-        normalized.isEmpty() -> ParsedNumber(isValid = true, value = null)
-        else -> {
-            val parsed = normalized.toFloatOrNull()
-            ParsedNumber(
-                isValid = parsed?.isFinite() == true,
-                value = parsed?.takeIf { it.isFinite() },
-            )
-        }
-    }
-}
-
-private data class ParsedNumber<T>(
-    val isValid: Boolean,
-    val value: T?,
-)
-
-private data class ParsedSakeNumbers(
-    val alcohol: Int?,
-    val kojiPolish: Int?,
-    val kakePolish: Int?,
-    val sakeDegree: Float?,
-    val acidity: Float?,
-)
-
-private fun SakeEditUiState.toValidatedInput(): SakeInput? {
-    val currentGrade = grade
-    val parsedNumbers = parseSakeNumbers()
-    if (currentGrade == null || name.isBlank() || parsedNumbers == null) return null
-
-    return SakeInput(
-        id = sakeId,
-        name = name.trim(),
-        grade = currentGrade,
-        gradeOther = gradeOther.normalizedOrNull()?.takeIf { currentGrade == SakeGrade.OTHER },
-        type = classifications,
-        typeOther = typeOther.normalizedOrNull()?.takeIf { classifications.contains(SakeClassification.OTHER) },
-        maker = maker.normalizedOrNull(),
-        prefecture = prefecture,
-        alcohol = parsedNumbers.alcohol,
-        kojiMai = kojiMai.normalizedOrNull(),
-        kojiPolish = parsedNumbers.kojiPolish,
-        kakeMai = kakeMai.normalizedOrNull(),
-        kakePolish = parsedNumbers.kakePolish,
-        sakeDegree = parsedNumbers.sakeDegree,
-        acidity = parsedNumbers.acidity,
-        yeast = yeast.normalizedOrNull(),
-        water = water.normalizedOrNull(),
-    )
-}
-
-private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
-    val alcohol = alcohol.parseOptionalInt()
-    val kojiPolish = kojiPolish.parseOptionalPercentage()
-    val kakePolish = kakePolish.parseOptionalPercentage()
-    val sakeDegree = sakeDegree.parseOptionalFloat()
-    val acidity = acidity.parseOptionalFloat()
-    val allNumbersValid =
-        alcohol.isValid &&
-            kojiPolish.isValid &&
-            kakePolish.isValid &&
-            sakeDegree.isValid &&
-            acidity.isValid
-    return if (allNumbersValid) {
-        ParsedSakeNumbers(
-            alcohol = alcohol.value,
-            kojiPolish = kojiPolish.value,
-            kakePolish = kakePolish.value,
-            sakeDegree = sakeDegree.value,
-            acidity = acidity.value,
-        )
-    } else {
-        null
-    }
-}

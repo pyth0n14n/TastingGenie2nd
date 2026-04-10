@@ -3,7 +3,6 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,11 +30,12 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
+import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedSingleSelectDropdown
-import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
+import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
@@ -127,7 +127,15 @@ fun SakeEditScreen(
                 callbacks = callbacks,
                 onDeleteImageRequest = { isDeleteImageDialogVisible = true },
             )
-            errorMessage(state = state)
+            item {
+                if (state.error != null) {
+                    Text(
+                        text = stringResource(state.error.messageResId),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
             item {
                 SaveButton(
                     isSaving = state.isSaving,
@@ -163,16 +171,30 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
 ) {
     textFieldItem(
         labelRes = R.string.label_sake_name,
-        value = state.name,
+        state = state,
         callbacks = callbacks,
-        field = SakeTextField.NAME,
+        ui =
+            SakeTextFieldUi(
+                value = state.name,
+                field = SakeTextField.NAME,
+                presentation = SakeFieldPresentation(validationField = SakeValidationField.NAME, required = true),
+            ),
     )
     item {
+        val label = stringResource(R.string.label_grade)
         SimpleDropdown(
-            label = stringResource(R.string.label_grade),
+            label = label,
             selectedLabel = state.gradeOptions.selectedLabel(state.grade?.name),
             options = uiData.gradeOptions,
             onSelected = callbacks.onGradeSelected,
+            fieldState =
+                FormFieldState(
+                    required = true,
+                    errorText =
+                        state.validationErrors[SakeValidationField.GRADE]?.let { error ->
+                            validationErrorText(label = label, error = error)
+                        },
+                ),
         )
     }
     item {
@@ -186,9 +208,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
     if (state.grade == SakeGrade.OTHER) {
         textFieldItem(
             labelRes = R.string.label_grade_other,
-            value = state.gradeOther,
+            state = state,
             callbacks = callbacks,
-            field = SakeTextField.GRADE_OTHER,
+            ui = SakeTextFieldUi(value = state.gradeOther, field = SakeTextField.GRADE_OTHER),
         )
     }
 }
@@ -209,16 +231,16 @@ private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
     if (state.classifications.contains(SakeClassification.OTHER)) {
         textFieldItem(
             labelRes = R.string.label_classification_other,
-            value = state.typeOther,
+            state = state,
             callbacks = callbacks,
-            field = SakeTextField.TYPE_OTHER,
+            ui = SakeTextFieldUi(value = state.typeOther, field = SakeTextField.TYPE_OTHER),
         )
     }
     textFieldItem(
         labelRes = R.string.label_maker,
-        value = state.maker,
+        state = state,
         callbacks = callbacks,
-        field = SakeTextField.MAKER,
+        ui = SakeTextFieldUi(value = state.maker, field = SakeTextField.MAKER),
     )
     item {
         GroupedSingleSelectDropdown(
@@ -227,48 +249,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
             selectedValue = state.prefecture?.name,
             onSelected = callbacks.onPrefectureSelected,
         )
-    }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.metadataFields(
-    state: SakeEditUiState,
-    callbacks: SakeEditCallbacks,
-) {
-    textFieldItem(R.string.label_sake_degree, state.sakeDegree, callbacks, SakeTextField.SAKE_DEGREE)
-    textFieldItem(R.string.label_acidity, state.acidity, callbacks, SakeTextField.ACIDITY)
-    textFieldItem(R.string.label_koji_mai, state.kojiMai, callbacks, SakeTextField.KOJI_MAI)
-    textFieldItem(R.string.label_koji_polish, state.kojiPolish, callbacks, SakeTextField.KOJI_POLISH)
-    textFieldItem(R.string.label_kake_mai, state.kakeMai, callbacks, SakeTextField.KAKE_MAI)
-    textFieldItem(R.string.label_kake_polish, state.kakePolish, callbacks, SakeTextField.KAKE_POLISH)
-    textFieldItem(R.string.label_alcohol, state.alcohol, callbacks, SakeTextField.ALCOHOL)
-    textFieldItem(R.string.label_yeast, state.yeast, callbacks, SakeTextField.YEAST)
-    textFieldItem(R.string.label_water, state.water, callbacks, SakeTextField.WATER)
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.textFieldItem(
-    @StringRes labelRes: Int,
-    value: String,
-    callbacks: SakeEditCallbacks,
-    field: SakeTextField,
-) {
-    item {
-        LabeledTextField(
-            label = stringResource(labelRes),
-            value = value,
-            onValueChange = { updated -> callbacks.onTextChanged(field, updated) },
-        )
-    }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.errorMessage(state: SakeEditUiState) {
-    item {
-        if (state.error != null) {
-            Text(
-                text = stringResource(state.error.messageResId),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-            )
-        }
     }
 }
 

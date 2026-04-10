@@ -39,7 +39,7 @@ class SakeEditScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("種別: 未選択").performClick()
+        composeRule.onNodeWithText("種別 *: 未選択").performClick()
         composeRule.onNodeWithText("吟醸").performClick()
         composeRule.runOnIdle { assertEquals(SakeGrade.GINJO.name, selectedValue) }
     }

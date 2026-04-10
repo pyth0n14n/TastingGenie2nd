@@ -5,6 +5,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 
 data class SakeEditUiState(
     val isLoading: Boolean = true,
@@ -12,6 +13,7 @@ data class SakeEditUiState(
     val isSaved: Boolean = false,
     val isEditTargetMissing: Boolean = false,
     val error: UiError? = null,
+    val validationErrors: Map<SakeValidationField, FieldValidationError> = emptyMap(),
     val sakeId: Long? = null,
     val name: String = "",
     val grade: SakeGrade? = null,

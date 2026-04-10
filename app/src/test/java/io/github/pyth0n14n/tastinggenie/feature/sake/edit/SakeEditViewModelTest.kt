@@ -16,6 +16,7 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
+import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,8 +86,12 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertNotNull(state.error)
-            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertEquals(null, state.error)
+            assertEquals(FieldValidationError.REQUIRED, state.validationErrors[SakeValidationField.NAME])
+            assertEquals(
+                FieldValidationError.REQUIRED_SELECTION,
+                state.validationErrors[SakeValidationField.GRADE],
+            )
         }
 
     @Test
@@ -312,7 +317,7 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertEquals(FieldValidationError.INVALID_NUMBER, state.validationErrors[SakeValidationField.ALCOHOL])
             assertTrue(repository.savedInputs.isEmpty())
         }
 
@@ -336,7 +341,10 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertEquals(
+                FieldValidationError.INVALID_PERCENTAGE,
+                state.validationErrors[SakeValidationField.KOJI_POLISH],
+            )
             assertTrue(repository.savedInputs.isEmpty())
         }
 
@@ -361,7 +369,14 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertEquals(
+                FieldValidationError.INVALID_NUMBER,
+                state.validationErrors[SakeValidationField.SAKE_DEGREE],
+            )
+            assertEquals(
+                FieldValidationError.INVALID_NUMBER,
+                state.validationErrors[SakeValidationField.ACIDITY],
+            )
             assertTrue(repository.savedInputs.isEmpty())
         }
 
@@ -537,7 +552,11 @@ class SakeEditViewModelTest {
 
             val state = viewModel.uiState.value
             assertEquals(null, state.grade)
-            assertEquals(R.string.error_invalid_sake_input, state.error?.messageResId)
+            assertEquals(null, state.error)
+            assertEquals(
+                FieldValidationError.REQUIRED_SELECTION,
+                state.validationErrors[SakeValidationField.GRADE],
+            )
             assertTrue(repository.savedInputs.isEmpty())
         }
 
