@@ -17,12 +17,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
@@ -41,6 +45,13 @@ fun ReviewEditRoute(
     viewModel: ReviewEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.BASIC.name) }
+    val selectedSection = ReviewSection.valueOf(selectedSectionName)
+    LaunchedEffect(state.validationFailureCount) {
+        if (state.validationErrors.isNotEmpty() && selectedSection != ReviewSection.BASIC) {
+            selectedSectionName = ReviewSection.BASIC.name
+        }
+    }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             viewModel.consumeSaved()
@@ -48,36 +59,39 @@ fun ReviewEditRoute(
         }
     }
     ReviewEditScreen(
-        state = state,
-        onAction = viewModel::onAction,
-        onSave = viewModel::save,
         onBack = onBack,
+        content =
+            ReviewEditScreenContent(
+                state = state,
+                onAction = viewModel::onAction,
+                onSave = viewModel::save,
+                viscosityOptions = viscosityOptions(),
+                volumeShortcutOptions = volumeShortcutOptions(),
+                selectedSection = selectedSection,
+                onSectionSelected = { next -> selectedSectionName = next.name },
+            ),
     )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ReviewEditScreen(
-    state: ReviewEditUiState,
-    onAction: (ReviewEditAction) -> Unit,
-    onSave: () -> Unit,
     onBack: () -> Unit,
+    content: ReviewEditScreenContent,
 ) {
-    if (state.isLoading) {
+    if (content.state.isLoading) {
         LoadingContent()
         return
     }
-    val viscosityOptions = viscosityOptions()
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        if (state.sakeName.isBlank()) {
+                        if (content.state.sakeName.isBlank()) {
                             stringResource(R.string.screen_review_edit)
                         } else {
-                            state.sakeName
+                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
                         },
                     )
                 },
@@ -90,10 +104,7 @@ fun ReviewEditScreen(
         },
     ) { padding ->
         ReviewEditBody(
-            state = state,
-            onAction = onAction,
-            onSave = onSave,
-            viscosityOptions = viscosityOptions,
+            content = content,
             modifier = Modifier.padding(padding),
         )
     }
@@ -111,15 +122,15 @@ private fun viscosityOptions(): List<DropdownOption> =
 
 @Composable
 private fun ReviewEditBody(
-    state: ReviewEditUiState,
-    onAction: (ReviewEditAction) -> Unit,
-    onSave: () -> Unit,
-    viscosityOptions: List<DropdownOption>,
+    content: ReviewEditScreenContent,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    LaunchedEffect(state.validationFailureCount) {
-        val targetIndex = state.firstInvalidFieldIndex()
+    LaunchedEffect(content.state.validationFailureCount, content.selectedSection) {
+        if (content.selectedSection != ReviewSection.BASIC) {
+            return@LaunchedEffect
+        }
+        val targetIndex = content.state.firstInvalidFieldIndex()
         if (targetIndex != null) {
             listState.animateScrollToItem(index = targetIndex)
         }
@@ -135,29 +146,41 @@ private fun ReviewEditBody(
             ReviewEditFormUiData(
                 singleChoiceUiData =
                     SingleChoiceUiData(
-                        temperatureOptions = state.temperatureOptions.toOptions(),
-                        colorOptions = state.colorOptions.toOptions(),
-                        intensityOptions = state.intensityOptions.toOptions(),
-                        viscosityOptions = viscosityOptions,
+                        temperatureOptions = content.state.temperatureOptions.toOptions(),
+                        colorOptions = content.state.colorOptions.toOptions(),
+                        intensityOptions = content.state.intensityOptions.toOptions(),
+                        viscosityOptions = content.viscosityOptions,
                     ),
-                tasteOptions = state.tasteOptions.toOptions(),
-                overallReviewOptions = state.overallReviewOptions.toOptions(),
+                tasteOptions = content.state.tasteOptions.toOptions(),
+                overallReviewOptions = content.state.overallReviewOptions.toOptions(),
                 aromaUiData =
                     AromaUiData(
-                        categories = state.aromaCategories,
+                        categories = content.state.aromaCategories,
                     ),
+                volumeShortcutOptions = content.volumeShortcutOptions,
             )
         reviewEditFormContent(
-            state = state,
-            onAction = onAction,
+            state = content.state,
+            onAction = content.onAction,
             uiData = formUiData,
+            selectedSection = content.selectedSection,
+            onSectionSelected = content.onSectionSelected,
         )
         reviewEditFooterItems(
-            state = state,
-            onSave = onSave,
+            state = content.state,
+            onSave = content.onSave,
         )
     }
 }
+
+@Composable
+private fun volumeShortcutOptions(): List<DropdownOption> =
+    listOf(
+        DropdownOption(value = "120", label = stringResource(R.string.label_volume_glass)),
+        DropdownOption(value = "180", label = stringResource(R.string.label_volume_one_jo)),
+        DropdownOption(value = "720", label = stringResource(R.string.label_volume_four_go)),
+        DropdownOption(value = "1800", label = stringResource(R.string.label_volume_one_sho)),
+    )
 
 private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
     if (validationErrors.isEmpty()) {
@@ -170,6 +193,16 @@ private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
         else -> null
     }
 }
+
+data class ReviewEditScreenContent(
+    val state: ReviewEditUiState,
+    val onAction: (ReviewEditAction) -> Unit,
+    val onSave: () -> Unit,
+    val viscosityOptions: List<DropdownOption>,
+    val volumeShortcutOptions: List<DropdownOption>,
+    val selectedSection: ReviewSection,
+    val onSectionSelected: (ReviewSection) -> Unit,
+)
 
 private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems() {
     item(key = "required_hint", contentType = "hint") {

@@ -27,6 +27,15 @@
     <string name="label_price">価格</string>
     <string name="label_volume">量</string>
     <string name="label_temperature">温度</string>
+    <string name="label_review_section_appearance">外観</string>
+    <string name="label_review_section_aroma">香り</string>
+    <string name="label_review_section_taste">味わい</string>
+    <string name="label_review_section_other">その他</string>
+    <string name="label_review_section_basic">基本情報</string>
+    <string name="label_volume_glass">グラス 120mL</string>
+    <string name="label_volume_one_jo">1合 180mL</string>
+    <string name="label_volume_four_go">四合瓶 720mL</string>
+    <string name="label_volume_one_sho">一升瓶 1800mL</string>
     <string name="label_soundness">健全度</string>
     <string name="label_color">色</string>
     <string name="label_viscosity">粘度</string>
@@ -49,6 +58,7 @@
     <string name="label_sharp">キレ</string>
     <string name="label_scene">シーン</string>
     <string name="label_dish">料理</string>
+    <string name="label_cautions">留意点</string>
     <string name="label_comment">コメント</string>
     <string name="label_overall_review">総合評価</string>
     <string name="label_sake">銘柄</string>

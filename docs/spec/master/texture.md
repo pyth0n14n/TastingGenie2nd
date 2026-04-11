@@ -14,12 +14,11 @@
 
 | value | 表示名 |
 |--------|--------|
-| FIRM_TIGHT | 堅い・引き締まった |
-| SLIGHTLY_FIRM_SHARP | やや硬い・シャープ |
+| FIRM_TIGHT | シャープ |
+| SLIGHTLY_FIRM_SHARP | ややシャープ |
 | BALANCED | 中間 |
-| SLIGHTLY_SOFT_ROUND | やや柔らかい・やや丸い |
+| SLIGHTLY_SOFT_ROUND | やや柔らかい |
 | SOFT | 柔らかい |
-| MELLOW | まろやか |
 
 ## Y軸: 舌ざわり
 
@@ -28,5 +27,5 @@
 | ROUGH | 粗い |
 | SLIGHTLY_ROUGH | やや粗い |
 | BALANCED | 中間 |
-| SLIGHTLY_FINE | ややキメ細かい |
+| SLIGHTLY_FINE | ややなめらか |
 | SMOOTH | なめらか |

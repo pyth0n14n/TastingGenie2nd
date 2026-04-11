@@ -32,12 +32,12 @@ internal fun AttackLevel.toLabel(): String =
 
 internal fun TextureRoundness.toLabel(): String =
     when (this) {
-        TextureRoundness.FIRM_TIGHT -> "堅い・引き締まった"
-        TextureRoundness.SLIGHTLY_FIRM_SHARP -> "やや硬い・シャープ"
+        TextureRoundness.FIRM_TIGHT -> "シャープ"
+        TextureRoundness.SLIGHTLY_FIRM_SHARP -> "ややシャープ"
         TextureRoundness.BALANCED -> "中間"
-        TextureRoundness.SLIGHTLY_SOFT_ROUND -> "やや柔らかい・やや丸い"
+        TextureRoundness.SLIGHTLY_SOFT_ROUND -> "やや柔らかい"
         TextureRoundness.SOFT -> "柔らかい"
-        TextureRoundness.MELLOW -> "まろやか"
+        TextureRoundness.MELLOW -> "柔らかい"
     }
 
 internal fun TextureSmoothness.toLabel(): String =
@@ -45,6 +45,6 @@ internal fun TextureSmoothness.toLabel(): String =
         TextureSmoothness.ROUGH -> "粗い"
         TextureSmoothness.SLIGHTLY_ROUGH -> "やや粗い"
         TextureSmoothness.BALANCED -> "中間"
-        TextureSmoothness.SLIGHTLY_FINE -> "ややキメ細やか"
+        TextureSmoothness.SLIGHTLY_FINE -> "ややなめらか"
         TextureSmoothness.SMOOTH -> "なめらか"
     }
