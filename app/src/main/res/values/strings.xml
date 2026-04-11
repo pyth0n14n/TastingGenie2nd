@@ -96,6 +96,7 @@
     <string name="help_taste">味: 甘味、酸味、苦味、旨味、キレを5段階で記録します。</string>
     <string name="setting_help_hint">ヘルプ導線を表示する</string>
     <string name="setting_image_preview">画像表示を有効にする</string>
+    <string name="setting_review_soundness">健全度入力を表示する</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>

@@ -9,4 +9,6 @@ interface SettingsRepository {
     suspend fun updateShowHelpHints(enabled: Boolean)
 
     suspend fun updateShowImagePreview(enabled: Boolean)
+
+    suspend fun updateShowReviewSoundness(enabled: Boolean)
 }
