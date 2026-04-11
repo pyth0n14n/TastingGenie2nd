@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -17,6 +18,7 @@ data class ReviewSeedData(
     val master: MasterDataBundle,
     val sake: Sake?,
     val review: Review?,
+    val settings: AppSettings,
 )
 
 fun SavedStateHandle.toReviewArgs(): ReviewEditArgs =
@@ -47,6 +49,7 @@ fun ReviewEditUiState.toLoadedState(
                 sakeId = args.sakeId,
                 sakeName = sake.name,
                 master = loaded.master,
+                settings = loaded.settings,
                 reviewId = reviewId,
             )
         else ->
@@ -55,6 +58,7 @@ fun ReviewEditUiState.toLoadedState(
                 sakeName = sake.name,
                 review = review,
                 master = loaded.master,
+                settings = loaded.settings,
             )
     }
 }
@@ -75,12 +79,14 @@ private fun ReviewEditUiState.toMissingReviewState(
     sakeId: Long,
     sakeName: String,
     master: MasterDataBundle,
+    settings: AppSettings,
     reviewId: Long,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         sakeName = sakeName,
+        showReviewSoundness = settings.showReviewSoundness,
         isEditTargetMissing = true,
         temperatureOptions = master.temperatures,
         colorOptions = master.colors,
@@ -101,12 +107,14 @@ private fun ReviewEditUiState.toEditableLoadedState(
     sakeName: String,
     review: Review?,
     master: MasterDataBundle,
+    settings: AppSettings,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         reviewId = review?.id,
         sakeName = sakeName,
+        showReviewSoundness = settings.showReviewSoundness,
         date = review?.date?.toString() ?: defaultReviewDateText(),
         bar = review?.bar.orEmpty(),
         price = review?.price?.toString().orEmpty(),

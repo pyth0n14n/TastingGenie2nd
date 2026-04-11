@@ -78,13 +78,15 @@ private fun LazyListScope.addChoiceFields(
     uiData: SingleChoiceUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    steppedField(
-        labelRes = R.string.label_soundness,
-        selectedValue = state.appearanceSoundness.name,
-        options = reviewSoundnessOptions(),
-        field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
-        onAction = onAction,
-    )
+    if (state.showReviewSoundness) {
+        steppedField(
+            labelRes = R.string.label_soundness,
+            selectedValue = state.appearanceSoundness.name,
+            options = reviewSoundnessOptions(),
+            field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
+            onAction = onAction,
+        )
+    }
     dropdownField(
         R.string.label_temperature,
         state.temperature?.name,
@@ -120,13 +122,15 @@ private fun LazyListScope.addAromaFields(
     aromaUiData: AromaUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    steppedField(
-        labelRes = R.string.label_soundness,
-        selectedValue = state.tasteSoundness.name,
-        options = reviewSoundnessOptions(),
-        field = ReviewSelectionField.TASTE_SOUNDNESS,
-        onAction = onAction,
-    )
+    if (state.showReviewSoundness) {
+        steppedField(
+            labelRes = R.string.label_soundness,
+            selectedValue = state.aromaSoundness.name,
+            options = reviewSoundnessOptions(),
+            field = ReviewSelectionField.AROMA_SOUNDNESS,
+            onAction = onAction,
+        )
+    }
     aromaField(
         labelRes = R.string.label_scent_top,
         selectedValues = state.scentTop.map { it.name },

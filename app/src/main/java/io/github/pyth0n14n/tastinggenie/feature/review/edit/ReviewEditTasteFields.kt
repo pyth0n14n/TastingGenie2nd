@@ -9,13 +9,15 @@ internal fun LazyListScope.addTasteEvaluationFields(
     tasteOptions: List<DropdownOption>,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    steppedField(
-        labelRes = R.string.label_soundness,
-        selectedValue = state.tasteSoundness.name,
-        options = reviewSoundnessOptions(),
-        field = ReviewSelectionField.TASTE_SOUNDNESS,
-        onAction = onAction,
-    )
+    if (state.showReviewSoundness) {
+        steppedField(
+            labelRes = R.string.label_soundness,
+            selectedValue = state.tasteSoundness.name,
+            options = reviewSoundnessOptions(),
+            field = ReviewSelectionField.TASTE_SOUNDNESS,
+            onAction = onAction,
+        )
+    }
     steppedField(
         labelRes = R.string.label_sweet,
         selectedValue = state.sweet?.name,
