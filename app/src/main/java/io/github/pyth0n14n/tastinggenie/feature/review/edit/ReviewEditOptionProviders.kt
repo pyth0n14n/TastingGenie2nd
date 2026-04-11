@@ -33,12 +33,11 @@ fun attackOptions(): List<DropdownOption> =
 
 fun textureRoundnessOptions(): List<DropdownOption> =
     listOf(
-        DropdownOption(value = TextureRoundness.FIRM_TIGHT.name, label = "堅い・引き締まった"),
-        DropdownOption(value = TextureRoundness.SLIGHTLY_FIRM_SHARP.name, label = "やや硬い・シャープ"),
+        DropdownOption(value = TextureRoundness.FIRM_TIGHT.name, label = "シャープ"),
+        DropdownOption(value = TextureRoundness.SLIGHTLY_FIRM_SHARP.name, label = "ややシャープ"),
         DropdownOption(value = TextureRoundness.BALANCED.name, label = "中間"),
-        DropdownOption(value = TextureRoundness.SLIGHTLY_SOFT_ROUND.name, label = "やや柔らかい・やや丸い"),
+        DropdownOption(value = TextureRoundness.SLIGHTLY_SOFT_ROUND.name, label = "やや柔らかい"),
         DropdownOption(value = TextureRoundness.SOFT.name, label = "柔らかい"),
-        DropdownOption(value = TextureRoundness.MELLOW.name, label = "まろやか"),
     )
 
 fun textureSmoothnessOptions(): List<DropdownOption> =
@@ -46,6 +45,6 @@ fun textureSmoothnessOptions(): List<DropdownOption> =
         DropdownOption(value = TextureSmoothness.ROUGH.name, label = "粗い"),
         DropdownOption(value = TextureSmoothness.SLIGHTLY_ROUGH.name, label = "やや粗い"),
         DropdownOption(value = TextureSmoothness.BALANCED.name, label = "中間"),
-        DropdownOption(value = TextureSmoothness.SLIGHTLY_FINE.name, label = "ややキメ細やか"),
+        DropdownOption(value = TextureSmoothness.SLIGHTLY_FINE.name, label = "ややなめらか"),
         DropdownOption(value = TextureSmoothness.SMOOTH.name, label = "なめらか"),
     )

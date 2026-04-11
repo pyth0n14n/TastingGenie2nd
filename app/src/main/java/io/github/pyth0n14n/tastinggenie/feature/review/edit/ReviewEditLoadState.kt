@@ -7,6 +7,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 
 data class ReviewEditArgs(
@@ -134,7 +135,7 @@ private fun ReviewEditUiState.toEditableLoadedState(
         aromaComplexity = review?.aromaComplexity,
         tasteSoundness = review?.tasteSoundness ?: tasteSoundness,
         tasteAttack = review?.tasteAttack,
-        tasteTextureRoundness = review?.tasteTextureRoundness,
+        tasteTextureRoundness = review?.tasteTextureRoundness.normalizeLegacyTextureRoundness(),
         tasteTextureSmoothness = review?.tasteTextureSmoothness,
         sweet = review?.tasteSweetness,
         sour = review?.tasteSourness,
@@ -155,3 +156,9 @@ private fun ReviewEditUiState.toEditableLoadedState(
         isEditTargetMissing = false,
         validationErrors = emptyMap(),
     )
+
+private fun TextureRoundness?.normalizeLegacyTextureRoundness(): TextureRoundness? =
+    when (this) {
+        TextureRoundness.MELLOW -> TextureRoundness.SOFT
+        else -> this
+    }
