@@ -5,7 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
-import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
@@ -25,41 +24,7 @@ fun LazyListScope.reviewEditFormContent(
         onAction = onAction,
     )
     addAromaFields(state = state, aromaUiData = uiData.aromaUiData, onAction = onAction)
-    steppedField(
-        labelRes = R.string.label_sweet,
-        selectedValue = state.sweet?.name,
-        options = uiData.tasteOptions,
-        field = ReviewSelectionField.SWEET,
-        onAction = onAction,
-    )
-    steppedField(
-        labelRes = R.string.label_sour,
-        selectedValue = state.sour?.name,
-        options = uiData.tasteOptions,
-        field = ReviewSelectionField.SOUR,
-        onAction = onAction,
-    )
-    steppedField(
-        labelRes = R.string.label_bitter,
-        selectedValue = state.bitter?.name,
-        options = uiData.tasteOptions,
-        field = ReviewSelectionField.BITTER,
-        onAction = onAction,
-    )
-    steppedField(
-        labelRes = R.string.label_umami,
-        selectedValue = state.umami?.name,
-        options = uiData.tasteOptions,
-        field = ReviewSelectionField.UMAMI,
-        onAction = onAction,
-    )
-    steppedField(
-        labelRes = R.string.label_sharp,
-        selectedValue = state.sharp?.name,
-        options = uiData.tasteOptions,
-        field = ReviewSelectionField.SHARP,
-        onAction = onAction,
-    )
+    addTasteFields(state = state, uiData = uiData, onAction = onAction)
     addNoteFields(state = state, overallReviewOptions = uiData.overallReviewOptions, onAction = onAction)
 }
 
@@ -113,6 +78,13 @@ private fun LazyListScope.addChoiceFields(
     uiData: SingleChoiceUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
+    steppedField(
+        labelRes = R.string.label_soundness,
+        selectedValue = state.appearanceSoundness.name,
+        options = reviewSoundnessOptions(),
+        field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
+        onAction = onAction,
+    )
     dropdownField(
         R.string.label_temperature,
         state.temperature?.name,
@@ -148,17 +120,17 @@ private fun LazyListScope.addAromaFields(
     aromaUiData: AromaUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
+    steppedField(
+        labelRes = R.string.label_soundness,
+        selectedValue = state.tasteSoundness.name,
+        options = reviewSoundnessOptions(),
+        field = ReviewSelectionField.TASTE_SOUNDNESS,
+        onAction = onAction,
+    )
     aromaField(
         labelRes = R.string.label_scent_top,
         selectedValues = state.scentTop.map { it.name },
         field = ReviewAromaField.TOP,
-        aromaUiData = aromaUiData,
-        onAction = onAction,
-    )
-    aromaField(
-        labelRes = R.string.label_scent_base,
-        selectedValues = state.scentBase.map { it.name },
-        field = ReviewAromaField.BASE,
         aromaUiData = aromaUiData,
         onAction = onAction,
     )
@@ -169,6 +141,28 @@ private fun LazyListScope.addAromaFields(
         aromaUiData = aromaUiData,
         onAction = onAction,
     )
+    textField(
+        state = state,
+        labelRes = R.string.label_aroma_main_note,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.aromaMainNote, field = ReviewTextField.AROMA_MAIN_NOTE),
+    )
+    steppedField(
+        labelRes = R.string.label_aroma_complexity,
+        selectedValue = state.aromaComplexity?.name,
+        options = complexityOptions(),
+        field = ReviewSelectionField.AROMA_COMPLEXITY,
+        onAction = onAction,
+    )
+}
+
+private fun LazyListScope.addTasteFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    addTasteEvaluationFields(state = state, tasteOptions = uiData.tasteOptions, onAction = onAction)
+    addTasteTextureFields(state = state, onAction = onAction)
 }
 
 private fun LazyListScope.addNoteFields(
@@ -198,6 +192,25 @@ private fun LazyListScope.addNoteFields(
             singleLine = false,
         )
     }
+    textField(
+        state = state,
+        labelRes = R.string.label_taste_main_note,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.tasteMainNote, field = ReviewTextField.TASTE_MAIN_NOTE),
+    )
+    textField(
+        state = state,
+        labelRes = R.string.label_other_individuality,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.otherIndividuality, field = ReviewTextField.OTHER_INDIVIDUALITY),
+    )
+    steppedField(
+        labelRes = R.string.label_taste_complexity,
+        selectedValue = state.tasteComplexity?.name,
+        options = complexityOptions(),
+        field = ReviewSelectionField.TASTE_COMPLEXITY,
+        onAction = onAction,
+    )
     overallReviewField(
         selectedValue = state.review?.name,
         options = overallReviewOptions,
@@ -301,14 +314,6 @@ private fun LazyListScope.aromaField(
         )
     }
 }
-
-fun List<MasterOption>.toOptions(): List<DropdownOption> =
-    map { option ->
-        DropdownOption(
-            value = option.value,
-            label = option.label,
-        )
-    }
 
 data class AromaUiData(
     val categories: List<AromaCategoryMaster>,
