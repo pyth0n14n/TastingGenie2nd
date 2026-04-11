@@ -28,8 +28,8 @@ class ReviewRepositoryImplTest {
                     ReviewInput(
                         sakeId = 1L,
                         date = LocalDate.parse("2026-02-22"),
-                        comment = "香りが良い",
-                        review = OverallReview.GOOD,
+                        otherCautions = "香りが良い",
+                        otherOverallReview = OverallReview.GOOD,
                     ),
                 )
 
@@ -37,7 +37,7 @@ class ReviewRepositoryImplTest {
             val observed = repository.observeReviews(1L).first { it.isNotEmpty() }
 
             assertNotNull(loaded)
-            assertEquals("香りが良い", loaded?.comment)
+            assertEquals("香りが良い", loaded?.otherCautions)
             assertEquals(1, observed.size)
         }
 
@@ -51,7 +51,7 @@ class ReviewRepositoryImplTest {
                     ReviewInput(
                         sakeId = 2L,
                         date = LocalDate.parse("2026-02-20"),
-                        comment = "更新前",
+                        otherCautions = "更新前",
                     ),
                 )
             repository.upsertReview(
@@ -59,16 +59,16 @@ class ReviewRepositoryImplTest {
                     id = reviewId,
                     sakeId = 2L,
                     date = LocalDate.parse("2026-02-21"),
-                    comment = "更新後",
-                    review = OverallReview.VERY_GOOD,
+                    otherCautions = "更新後",
+                    otherOverallReview = OverallReview.VERY_GOOD,
                 ),
             )
 
             val loaded = repository.getReview(reviewId)
 
-            assertEquals("更新後", loaded?.comment)
+            assertEquals("更新後", loaded?.otherCautions)
             assertEquals(LocalDate.parse("2026-02-21"), loaded?.date)
-            assertEquals(OverallReview.VERY_GOOD, loaded?.review)
+            assertEquals(OverallReview.VERY_GOOD, loaded?.otherOverallReview)
         }
 
     @Test
@@ -81,7 +81,7 @@ class ReviewRepositoryImplTest {
                     ReviewInput(
                         sakeId = DELETE_TEST_SAKE_ID,
                         date = LocalDate.parse("2026-02-23"),
-                        comment = "削除対象",
+                        otherCautions = "削除対象",
                     ),
                 )
 

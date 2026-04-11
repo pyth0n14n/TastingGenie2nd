@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -200,20 +201,30 @@ class AppDatabaseDaoTest {
             price = null,
             volume = null,
             temperature = null,
-            color = null,
-            viscosity = null,
-            intensity = null,
-            scentTop = emptyList(),
-            scentBase = emptyList(),
-            scentMouth = emptyList(),
-            sweet = null,
-            sour = null,
-            bitter = null,
-            umami = null,
-            sharp = null,
             scene = null,
             dish = null,
-            comment = comment,
-            review = null,
+            appearanceSoundness = ReviewSoundness.SOUND,
+            appearanceColor = null,
+            appearanceViscosity = null,
+            aromaSoundness = ReviewSoundness.SOUND,
+            aromaIntensity = null,
+            aromaExamples = emptyList(),
+            aromaMainNote = null,
+            aromaComplexity = null,
+            tasteSoundness = ReviewSoundness.SOUND,
+            tasteAttack = null,
+            tasteTextureRoundness = null,
+            tasteTextureSmoothness = null,
+            tasteMainNote = null,
+            tasteSweetness = null,
+            tasteSourness = null,
+            tasteBitterness = null,
+            tasteUmami = null,
+            tasteInPalateAroma = emptyList(),
+            tasteAftertaste = null,
+            tasteComplexity = null,
+            otherIndividuality = null,
+            otherCautions = comment,
+            otherOverallReview = null,
         )
 }

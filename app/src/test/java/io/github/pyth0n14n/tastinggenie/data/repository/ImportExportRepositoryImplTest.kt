@@ -15,6 +15,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionExc
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
@@ -157,7 +158,7 @@ class ImportExportRepositoryImplTest {
                 BackupPayload(
                     schemaVersion = CURRENT_SCHEMA_VERSION,
                     sakes = listOf(sampleSerializableSake().copy(name = "バックアップ酒")),
-                    reviews = listOf(sampleSerializableReview().copy(comment = "imported")),
+                    reviews = listOf(sampleSerializableReview().copy(otherCautions = "imported")),
                 )
 
             repository.importJson(json.encodeToString(payload)).getOrThrow()
@@ -168,10 +169,14 @@ class ImportExportRepositoryImplTest {
             assertEquals(2, storedReviews.size)
             assertTrue(storedSakes.any { sake -> sake.id == sampleSakeEntity().id && sake.name == "テスト酒" })
             assertTrue(storedSakes.any { sake -> sake.id != sampleSerializableSake().id && sake.name == "バックアップ酒" })
-            assertTrue(storedReviews.any { review -> review.id == sampleReviewEntity().id && review.comment == null })
             assertTrue(
                 storedReviews.any { review ->
-                    review.id != sampleSerializableReview().id && review.comment == "imported"
+                    review.id == sampleReviewEntity().id && review.otherCautions == null
+                },
+            )
+            assertTrue(
+                storedReviews.any { review ->
+                    review.id != sampleSerializableReview().id && review.otherCautions == "imported"
                 },
             )
         }
@@ -220,7 +225,7 @@ class ImportExportRepositoryImplTest {
                 BackupPayload(
                     schemaVersion = CURRENT_SCHEMA_VERSION,
                     sakes = listOf(sampleSerializableSake()),
-                    reviews = listOf(sampleSerializableReview().copy(viscosity = 6)),
+                    reviews = listOf(sampleSerializableReview().copy(appearanceViscosity = 6)),
                 )
 
             val result = repository.importJson(json.encodeToString(payload))
@@ -281,11 +286,14 @@ class ImportExportRepositoryImplTest {
             sakeId = 101L,
             date = "2026-03-17",
             temperature = Temperature.JOON.name,
-            color = SakeColor.CLEAR.name,
-            intensity = IntensityLevel.MEDIUM.name,
-            scentTop = listOf(Aroma.MELON.name),
-            sweet = TasteLevel.STRONG.name,
-            review = OverallReview.GOOD.name,
+            appearanceSoundness = ReviewSoundness.SOUND.name,
+            appearanceColor = SakeColor.CLEAR.name,
+            aromaSoundness = ReviewSoundness.SOUND.name,
+            aromaIntensity = IntensityLevel.MEDIUM.name,
+            aromaExamples = listOf(Aroma.MELON.name),
+            tasteSoundness = ReviewSoundness.SOUND.name,
+            tasteSweetness = TasteLevel.STRONG.name,
+            otherOverallReview = OverallReview.GOOD.name,
         )
 
     private fun sampleSakeEntity(): SakeEntity =
@@ -322,21 +330,31 @@ class ImportExportRepositoryImplTest {
             price = null,
             volume = null,
             temperature = Temperature.JOON,
-            color = SakeColor.CLEAR,
-            viscosity = null,
-            intensity = IntensityLevel.MEDIUM,
-            scentTop = listOf(Aroma.MELON),
-            scentBase = emptyList(),
-            scentMouth = emptyList(),
-            sweet = TasteLevel.STRONG,
-            sour = null,
-            bitter = null,
-            umami = null,
-            sharp = null,
             scene = null,
             dish = null,
-            comment = null,
-            review = OverallReview.GOOD,
+            appearanceSoundness = ReviewSoundness.SOUND,
+            appearanceColor = SakeColor.CLEAR,
+            appearanceViscosity = null,
+            aromaSoundness = ReviewSoundness.SOUND,
+            aromaIntensity = IntensityLevel.MEDIUM,
+            aromaExamples = listOf(Aroma.MELON),
+            aromaMainNote = null,
+            aromaComplexity = null,
+            tasteSoundness = ReviewSoundness.SOUND,
+            tasteAttack = null,
+            tasteTextureRoundness = null,
+            tasteTextureSmoothness = null,
+            tasteMainNote = null,
+            tasteSweetness = TasteLevel.STRONG,
+            tasteSourness = null,
+            tasteBitterness = null,
+            tasteUmami = null,
+            tasteInPalateAroma = emptyList(),
+            tasteAftertaste = null,
+            tasteComplexity = null,
+            otherIndividuality = null,
+            otherCautions = null,
+            otherOverallReview = OverallReview.GOOD,
         )
 }
 

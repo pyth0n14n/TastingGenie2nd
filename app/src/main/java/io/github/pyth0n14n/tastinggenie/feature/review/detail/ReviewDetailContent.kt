@@ -41,17 +41,16 @@ fun ReviewDetailContent(
             color = stringResource(R.string.label_color),
             viscosity = stringResource(R.string.label_viscosity),
             intensity = stringResource(R.string.label_intensity),
-            scentTop = stringResource(R.string.label_scent_top),
-            scentBase = stringResource(R.string.label_scent_base),
-            scentMouth = stringResource(R.string.label_scent_mouth),
+            aromaExamples = stringResource(R.string.label_scent_top),
+            tasteInPalateAroma = stringResource(R.string.label_scent_mouth),
             sweet = stringResource(R.string.label_sweet),
             sour = stringResource(R.string.label_sour),
             bitter = stringResource(R.string.label_bitter),
             umami = stringResource(R.string.label_umami),
-            sharp = stringResource(R.string.label_sharp),
+            aftertaste = stringResource(R.string.label_sharp),
             scene = stringResource(R.string.label_scene),
             dish = stringResource(R.string.label_dish),
-            comment = stringResource(R.string.label_comment),
+            cautions = stringResource(R.string.label_comment),
             overallReview = stringResource(R.string.label_overall_review),
         )
     val viscosityLabels =
@@ -124,15 +123,15 @@ private fun MutableList<DetailRow>.addGeneralRows(
     )
     addIfNotBlank(
         label = textLabels.color,
-        value = review.color?.let { labels.color[it.name] ?: it.name },
+        value = review.appearanceColor?.let { labels.color[it.name] ?: it.name },
     )
     addIfNotBlank(
         label = textLabels.viscosity,
-        value = review.viscosity?.let { viscosity -> viscosityLabels[viscosity] ?: viscosity.toString() },
+        value = review.appearanceViscosity?.let { viscosity -> viscosityLabels[viscosity] ?: viscosity.toString() },
     )
     addIfNotBlank(
         label = textLabels.intensity,
-        value = review.intensity?.let { labels.intensity[it.name] ?: it.name },
+        value = review.aromaIntensity?.let { labels.intensity[it.name] ?: it.name },
     )
 }
 
@@ -141,9 +140,11 @@ private fun MutableList<DetailRow>.addAromaRows(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
 ) {
-    addIfNotBlank(label = textLabels.scentTop, value = review.scentTop.asDisplayText(labels.aroma))
-    addIfNotBlank(label = textLabels.scentBase, value = review.scentBase.asDisplayText(labels.aroma))
-    addIfNotBlank(label = textLabels.scentMouth, value = review.scentMouth.asDisplayText(labels.aroma))
+    addIfNotBlank(label = textLabels.aromaExamples, value = review.aromaExamples.asDisplayText(labels.aroma))
+    addIfNotBlank(
+        label = textLabels.tasteInPalateAroma,
+        value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
+    )
 }
 
 private fun MutableList<DetailRow>.addTasteRows(
@@ -151,11 +152,20 @@ private fun MutableList<DetailRow>.addTasteRows(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
 ) {
-    addIfNotBlank(label = textLabels.sweet, value = review.sweet?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(label = textLabels.sour, value = review.sour?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(label = textLabels.bitter, value = review.bitter?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(label = textLabels.umami, value = review.umami?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(label = textLabels.sharp, value = review.sharp?.let { labels.taste[it.name] ?: it.name })
+    addIfNotBlank(
+        label = textLabels.sweet,
+        value = review.tasteSweetness?.let { labels.taste[it.name] ?: it.name },
+    )
+    addIfNotBlank(label = textLabels.sour, value = review.tasteSourness?.let { labels.taste[it.name] ?: it.name })
+    addIfNotBlank(
+        label = textLabels.bitter,
+        value = review.tasteBitterness?.let { labels.taste[it.name] ?: it.name },
+    )
+    addIfNotBlank(label = textLabels.umami, value = review.tasteUmami?.let { labels.taste[it.name] ?: it.name })
+    addIfNotBlank(
+        label = textLabels.aftertaste,
+        value = review.tasteAftertaste?.let { labels.taste[it.name] ?: it.name },
+    )
 }
 
 private fun MutableList<DetailRow>.addTextRows(
@@ -165,10 +175,10 @@ private fun MutableList<DetailRow>.addTextRows(
 ) {
     addIfNotBlank(label = textLabels.scene, value = review.scene)
     addIfNotBlank(label = textLabels.dish, value = review.dish)
-    addIfNotBlank(label = textLabels.comment, value = review.comment)
+    addIfNotBlank(label = textLabels.cautions, value = review.otherCautions)
     addIfNotBlank(
         label = textLabels.overallReview,
-        value = review.review?.let { labels.overallReview[it.name] ?: it.name },
+        value = review.otherOverallReview?.let { labels.overallReview[it.name] ?: it.name },
     )
 }
 
@@ -198,17 +208,16 @@ private data class ReviewDetailTextLabels(
     val color: String,
     val viscosity: String,
     val intensity: String,
-    val scentTop: String,
-    val scentBase: String,
-    val scentMouth: String,
+    val aromaExamples: String,
+    val tasteInPalateAroma: String,
     val sweet: String,
     val sour: String,
     val bitter: String,
     val umami: String,
-    val sharp: String,
+    val aftertaste: String,
     val scene: String,
     val dish: String,
-    val comment: String,
+    val cautions: String,
     val overallReview: String,
 )
 
