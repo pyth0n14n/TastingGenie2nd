@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -166,6 +167,12 @@ private fun FlavorProfileCellBox(
     onClick: ((FlavorProfileSelection) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    val cellDescription =
+        stringResource(
+            R.string.content_flavor_profile_cell,
+            selection.intensity.toLabel(),
+            selection.complexity.toLabel(),
+        )
     val cellModifier =
         modifier
             .aspectRatio(1f)
@@ -186,8 +193,10 @@ private fun FlavorProfileCellBox(
                     } else {
                         MaterialTheme.colorScheme.surface
                     },
-            ).semantics { selected = isSelected }
-            .let { base ->
+            ).semantics {
+                selected = isSelected
+                contentDescription = cellDescription
+            }.let { base ->
                 if (onClick == null) {
                     base
                 } else {
@@ -222,6 +231,26 @@ private fun FlavorProfileType.toLabel(): String =
         FlavorProfileType.KUNSHU -> reviewFlavorProfileText(R.string.label_flavor_profile_kunshu)
         FlavorProfileType.JUNSHU -> reviewFlavorProfileText(R.string.label_flavor_profile_junshu)
         FlavorProfileType.JUKUSHU -> reviewFlavorProfileText(R.string.label_flavor_profile_jukushu)
+    }
+
+@Composable
+private fun IntensityLevel.toLabel(): String =
+    when (this) {
+        IntensityLevel.VERY_WEAK -> reviewFlavorProfileText(R.string.label_intensity_very_weak)
+        IntensityLevel.WEAK -> reviewFlavorProfileText(R.string.label_intensity_weak)
+        IntensityLevel.MEDIUM -> reviewFlavorProfileText(R.string.label_intensity_medium)
+        IntensityLevel.STRONG -> reviewFlavorProfileText(R.string.label_intensity_strong)
+        IntensityLevel.VERY_STRONG -> reviewFlavorProfileText(R.string.label_intensity_very_strong)
+    }
+
+@Composable
+private fun ComplexityLevel.toLabel(): String =
+    when (this) {
+        ComplexityLevel.SIMPLE -> reviewFlavorProfileText(R.string.label_complexity_simple)
+        ComplexityLevel.SLIGHTLY_SIMPLE -> reviewFlavorProfileText(R.string.label_complexity_slightly_simple)
+        ComplexityLevel.MEDIUM -> reviewFlavorProfileText(R.string.label_complexity_medium)
+        ComplexityLevel.SLIGHTLY_COMPLEX -> reviewFlavorProfileText(R.string.label_complexity_slightly_complex)
+        ComplexityLevel.COMPLEX -> reviewFlavorProfileText(R.string.label_complexity_complex)
     }
 
 @Composable

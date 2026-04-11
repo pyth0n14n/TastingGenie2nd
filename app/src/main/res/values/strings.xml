@@ -40,6 +40,11 @@
     <string name="label_color">色</string>
     <string name="label_viscosity">粘度</string>
     <string name="label_intensity">香味強度</string>
+    <string name="label_intensity_very_weak">とても弱い</string>
+    <string name="label_intensity_weak">弱い</string>
+    <string name="label_intensity_medium">中程度</string>
+    <string name="label_intensity_strong">強い</string>
+    <string name="label_intensity_very_strong">とても強い</string>
     <string name="label_aroma_main_note">主体となる香り</string>
     <string name="label_aroma_complexity">香り複雑性</string>
     <string name="label_taste_attack">アタック</string>
@@ -134,6 +139,7 @@
     <string name="content_delete_sake">酒を削除</string>
     <string name="content_delete_review">レビューを削除</string>
     <string name="content_star_rating_option">%1$s %2$d</string>
+    <string name="content_flavor_profile_cell">香り %1$s、味わい %2$s</string>
     <string name="title_delete_sake">酒を削除</string>
     <string name="title_delete_sake_image">画像を削除</string>
     <string name="title_delete_review">レビューを削除</string>
