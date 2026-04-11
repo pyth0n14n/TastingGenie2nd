@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -59,6 +60,12 @@ fun DiscreteSliderField(
             valueRange = SLIDER_VALUE_START..maxIndex.toFloat(),
             steps = (options.size - 2).coerceAtLeast(0),
             modifier = Modifier.fillMaxWidth(),
+            colors =
+                SliderDefaults.colors(
+                    thumbColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
         )
     }
 }

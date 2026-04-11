@@ -47,6 +47,11 @@ fun ReviewEditRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.BASIC.name) }
     val selectedSection = ReviewSection.valueOf(selectedSectionName)
+    LaunchedEffect(state.validationFailureCount) {
+        if (state.validationErrors.isNotEmpty() && selectedSection != ReviewSection.BASIC) {
+            selectedSectionName = ReviewSection.BASIC.name
+        }
+    }
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
             viewModel.consumeSaved()
@@ -121,7 +126,10 @@ private fun ReviewEditBody(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    LaunchedEffect(content.state.validationFailureCount) {
+    LaunchedEffect(content.state.validationFailureCount, content.selectedSection) {
+        if (content.selectedSection != ReviewSection.BASIC) {
+            return@LaunchedEffect
+        }
         val targetIndex = content.state.firstInvalidFieldIndex()
         if (targetIndex != null) {
             listState.animateScrollToItem(index = targetIndex)

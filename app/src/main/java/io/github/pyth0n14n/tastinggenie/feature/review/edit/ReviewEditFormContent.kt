@@ -143,18 +143,6 @@ private fun LazyListScope.addBasicVolumeAndTemperatureFields(
             },
         )
     }
-    textField(
-        state = state,
-        labelRes = R.string.label_scene,
-        onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
-    )
-    textField(
-        state = state,
-        labelRes = R.string.label_dish,
-        onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
-    )
 }
 
 private fun LazyListScope.addChoiceFields(
