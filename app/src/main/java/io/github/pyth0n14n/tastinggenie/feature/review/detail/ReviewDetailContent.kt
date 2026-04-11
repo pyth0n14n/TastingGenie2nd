@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
@@ -24,10 +28,9 @@ private const val VISCOSITY_STRONG = 4
 private const val VISCOSITY_VERY_STRONG = 5
 
 @Composable
+@Suppress("LongMethod")
 fun ReviewDetailContent(
-    review: Review,
-    sakeName: String,
-    labels: ReviewDetailLabels,
+    content: ReviewDetailContentState,
     modifier: Modifier = Modifier,
 ) {
     val textLabels =
@@ -70,14 +73,31 @@ fun ReviewDetailContent(
             VISCOSITY_STRONG to stringResource(R.string.label_viscosity_4),
             VISCOSITY_VERY_STRONG to stringResource(R.string.label_viscosity_5),
         )
-    val rows = reviewDetailRows(review, sakeName, labels, textLabels, viscosityLabels)
+    val commonRows = reviewDetailCommonRows(content.review, content.sakeName, content.labels, textLabels)
+    val sectionRows =
+        reviewDetailSectionRows(
+            review = content.review,
+            labels = content.labels,
+            textLabels = textLabels,
+            viscosityLabels = viscosityLabels,
+            selectedSection = content.selectedSection,
+        )
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
-        items(items = rows, key = { row -> row.key }) { row ->
+        items(items = commonRows, key = { row -> row.key }) { row ->
+            DetailValue(label = row.label, value = row.value)
+        }
+        item(key = "review_section_tabs", contentType = "tabs") {
+            ReviewSectionTabs(
+                selectedSection = content.selectedSection,
+                onSectionSelected = content.onSectionSelected,
+            )
+        }
+        items(items = sectionRows, key = { row -> row.key }) { row ->
             DetailValue(label = row.label, value = row.value)
         }
     }
@@ -102,12 +122,19 @@ fun ReviewDetailUiState.toLabels(): ReviewDetailLabels =
         aroma = aromaLabels,
     )
 
+data class ReviewDetailContentState(
+    val review: Review,
+    val sakeName: String,
+    val labels: ReviewDetailLabels,
+    val selectedSection: ReviewSection,
+    val onSectionSelected: (ReviewSection) -> Unit,
+)
+
 private fun MutableList<DetailRow>.addGeneralRows(
     review: Review,
     sakeName: String,
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
-    viscosityLabels: Map<Int, String>,
 ) {
     add(DetailRow(key = textLabels.sake, label = textLabels.sake, value = sakeName))
     add(DetailRow(key = "reviewDate", label = textLabels.reviewDate, value = review.date.toString()))
@@ -118,6 +145,14 @@ private fun MutableList<DetailRow>.addGeneralRows(
         label = textLabels.temperature,
         value = review.temperature?.let { labels.temperature[it.name] ?: it.name },
     )
+}
+
+private fun MutableList<DetailRow>.addAppearanceRows(
+    review: Review,
+    labels: ReviewDetailLabels,
+    textLabels: ReviewDetailTextLabels,
+    viscosityLabels: Map<Int, String>,
+) {
     addIfNotBlank(
         key = "appearanceSoundness",
         label = textLabels.soundness,
@@ -131,10 +166,6 @@ private fun MutableList<DetailRow>.addGeneralRows(
         label = textLabels.viscosity,
         value = review.appearanceViscosity?.let { viscosity -> viscosityLabels[viscosity] ?: viscosity.toString() },
     )
-    addIfNotBlank(
-        label = textLabels.intensity,
-        value = review.aromaIntensity?.let { labels.intensity[it.name] ?: it.name },
-    )
 }
 
 private fun MutableList<DetailRow>.addAromaRows(
@@ -147,13 +178,13 @@ private fun MutableList<DetailRow>.addAromaRows(
         label = textLabels.soundness,
         value = review.aromaSoundness.toLabel(),
     )
+    addIfNotBlank(
+        label = textLabels.intensity,
+        value = review.aromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+    )
+    addIfNotBlank(label = textLabels.aromaExamples, value = review.aromaExamples.asDisplayText(labels.aroma))
     addIfNotBlank(label = textLabels.aromaMainNote, value = review.aromaMainNote)
     addIfNotBlank(label = textLabels.aromaComplexity, value = review.aromaComplexity?.toLabel())
-    addIfNotBlank(label = textLabels.aromaExamples, value = review.aromaExamples.asDisplayText(labels.aroma))
-    addIfNotBlank(
-        label = textLabels.tasteInPalateAroma,
-        value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
-    )
 }
 
 private fun MutableList<DetailRow>.addTasteRows(
@@ -171,6 +202,10 @@ private fun MutableList<DetailRow>.addTasteRows(
     addIfNotBlank(label = textLabels.tasteTextureSmoothness, value = review.tasteTextureSmoothness?.toLabel())
     addIfNotBlank(label = textLabels.tasteMainNote, value = review.tasteMainNote)
     addIfNotBlank(
+        label = textLabels.tasteInPalateAroma,
+        value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
+    )
+    addIfNotBlank(
         label = textLabels.sweet,
         value = review.tasteSweetness?.let { labels.taste[it.name] ?: it.name },
     )
@@ -187,10 +222,10 @@ private fun MutableList<DetailRow>.addTasteRows(
     addIfNotBlank(label = textLabels.tasteComplexity, value = review.tasteComplexity?.toLabel())
 }
 
-private fun MutableList<DetailRow>.addTextRows(
+private fun MutableList<DetailRow>.addOtherRows(
     review: Review,
-    labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
+    labels: ReviewDetailLabels,
 ) {
     addIfNotBlank(label = textLabels.individuality, value = review.otherIndividuality)
     addIfNotBlank(label = textLabels.scene, value = review.scene)
@@ -202,12 +237,11 @@ private fun MutableList<DetailRow>.addTextRows(
     )
 }
 
-private fun reviewDetailRows(
+private fun reviewDetailCommonRows(
     review: Review,
     sakeName: String,
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
-    viscosityLabels: Map<Int, String>,
 ): List<DetailRow> =
     buildList {
         addGeneralRows(
@@ -215,11 +249,29 @@ private fun reviewDetailRows(
             sakeName = sakeName,
             labels = labels,
             textLabels = textLabels,
-            viscosityLabels = viscosityLabels,
         )
-        addAromaRows(review = review, labels = labels, textLabels = textLabels)
-        addTasteRows(review = review, labels = labels, textLabels = textLabels)
-        addTextRows(review = review, labels = labels, textLabels = textLabels)
+    }
+
+private fun reviewDetailSectionRows(
+    review: Review,
+    labels: ReviewDetailLabels,
+    textLabels: ReviewDetailTextLabels,
+    viscosityLabels: Map<Int, String>,
+    selectedSection: ReviewSection,
+): List<DetailRow> =
+    buildList {
+        when (selectedSection) {
+            ReviewSection.APPEARANCE ->
+                addAppearanceRows(
+                    review = review,
+                    labels = labels,
+                    textLabels = textLabels,
+                    viscosityLabels = viscosityLabels,
+                )
+            ReviewSection.AROMA -> addAromaRows(review = review, labels = labels, textLabels = textLabels)
+            ReviewSection.TASTE -> addTasteRows(review = review, labels = labels, textLabels = textLabels)
+            ReviewSection.OTHER -> addOtherRows(review = review, textLabels = textLabels, labels = labels)
+        }
     }
 
 @Composable

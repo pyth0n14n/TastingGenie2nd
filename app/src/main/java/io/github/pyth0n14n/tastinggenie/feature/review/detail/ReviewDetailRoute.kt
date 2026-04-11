@@ -9,11 +9,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 
@@ -27,6 +31,8 @@ fun ReviewDetailRoute(
     viewModel: ReviewDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.APPEARANCE.name) }
+    val selectedSection = ReviewSection.valueOf(selectedSectionName)
     LaunchedEffect(refreshRequested) {
         if (refreshRequested) {
             viewModel.refresh()
@@ -34,18 +40,22 @@ fun ReviewDetailRoute(
         }
     }
     ReviewDetailScreen(
-        state = state,
         onBack = onBack,
-        onEditReview = onEditReview,
+        content =
+            ReviewDetailScreenContent(
+                state = state,
+                onEditReview = onEditReview,
+                selectedSection = selectedSection,
+                onSectionSelected = { next -> selectedSectionName = next.name },
+            ),
     )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ReviewDetailScreen(
-    state: ReviewDetailUiState,
     onBack: () -> Unit,
-    onEditReview: (Long, Long) -> Unit,
+    content: ReviewDetailScreenContent,
 ) {
     Scaffold(
         topBar = {
@@ -57,9 +67,9 @@ fun ReviewDetailScreen(
                     }
                 },
                 actions = {
-                    val review = state.review
+                    val review = content.state.review
                     if (review != null) {
-                        TextButton(onClick = { onEditReview(review.sakeId, review.id) }) {
+                        TextButton(onClick = { content.onEditReview(review.sakeId, review.id) }) {
                             Text(stringResource(R.string.action_edit))
                         }
                     }
@@ -68,15 +78,27 @@ fun ReviewDetailScreen(
         },
     ) { padding ->
         when {
-            state.isLoading -> LoadingContent()
-            state.error != null -> MessageContent(text = stringResource(state.error.messageResId))
-            state.review != null ->
+            content.state.isLoading -> LoadingContent()
+            content.state.error != null -> MessageContent(text = stringResource(content.state.error.messageResId))
+            content.state.review != null ->
                 ReviewDetailContent(
-                    review = state.review,
-                    sakeName = state.sakeName,
-                    labels = state.toLabels(),
+                    content =
+                        ReviewDetailContentState(
+                            review = content.state.review,
+                            sakeName = content.state.sakeName,
+                            labels = content.state.toLabels(),
+                            selectedSection = content.selectedSection,
+                            onSectionSelected = content.onSectionSelected,
+                        ),
                     modifier = Modifier.padding(padding),
                 )
         }
     }
 }
+
+data class ReviewDetailScreenContent(
+    val state: ReviewDetailUiState,
+    val onEditReview: (Long, Long) -> Unit,
+    val selectedSection: ReviewSection,
+    val onSectionSelected: (ReviewSection) -> Unit,
+)
