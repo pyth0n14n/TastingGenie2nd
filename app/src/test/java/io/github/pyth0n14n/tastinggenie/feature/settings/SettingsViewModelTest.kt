@@ -38,6 +38,7 @@ class SettingsViewModelTest {
             Assert.assertFalse(state.isLoading)
             Assert.assertEquals(true, state.settings.showHelpHints)
             Assert.assertEquals(true, state.settings.showImagePreview)
+            Assert.assertEquals(true, state.settings.showReviewSoundness)
         }
 
     @Test
@@ -56,6 +57,24 @@ class SettingsViewModelTest {
 
             val state = viewModel.uiState.value
             Assert.assertEquals(false, state.settings.showImagePreview)
+        }
+
+    @Test
+    fun toggleReviewSoundness_updatesState() =
+        runTest {
+            val repository = FakeSettingsRepository()
+            val viewModel =
+                SettingsViewModel(
+                    settingsRepository = repository,
+                    importExportRepository = FakeImportExportRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.toggleReviewSoundness(enabled = false)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            Assert.assertEquals(false, state.settings.showReviewSoundness)
         }
 
     @Test
@@ -401,6 +420,10 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun updateShowImagePreview(enabled: Boolean) {
         stream.value = stream.value.copy(showImagePreview = enabled)
     }
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+        stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
 }
 
 private class FakeImportExportRepository(
@@ -435,6 +458,10 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateShowImagePreview(enabled: Boolean) {
+        error("settings write failed")
+    }
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         error("settings write failed")
     }
 }

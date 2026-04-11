@@ -81,6 +81,7 @@ fun SettingsRoute(
             SettingsScreenActions(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleImagePreview = viewModel::toggleImagePreview,
+                onToggleReviewSoundness = viewModel::toggleReviewSoundness,
                 onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
                 onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
                 onDismissMessage = viewModel::clearTransferFeedback,
@@ -177,6 +178,12 @@ fun SettingsScreen(
                 onCheckedChange = actions.onToggleImagePreview,
                 enabled = !state.isProcessingTransfer,
             )
+            SettingSwitchRow(
+                label = stringResource(R.string.setting_review_soundness),
+                checked = state.settings.showReviewSoundness,
+                onCheckedChange = actions.onToggleReviewSoundness,
+                enabled = !state.isProcessingTransfer,
+            )
             TransferActions(
                 isProcessingTransfer = state.isProcessingTransfer,
                 messageResId = state.messageResId,
@@ -197,6 +204,7 @@ fun SettingsScreen(
 data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
     val onToggleImagePreview: (Boolean) -> Unit,
+    val onToggleReviewSoundness: (Boolean) -> Unit,
     val onExportJson: () -> Unit,
     val onImportJson: () -> Unit,
     val onDismissMessage: () -> Unit,

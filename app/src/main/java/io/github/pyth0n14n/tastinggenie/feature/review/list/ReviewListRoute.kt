@@ -164,7 +164,7 @@ private fun ReviewListContent(
                     headlineContent = { Text(review.date.toString()) },
                     supportingContent = {
                         val text =
-                            review.review
+                            review.otherOverallReview
                                 ?.name
                                 ?.let { state.overallReviewLabels[it] }
                                 .orEmpty()

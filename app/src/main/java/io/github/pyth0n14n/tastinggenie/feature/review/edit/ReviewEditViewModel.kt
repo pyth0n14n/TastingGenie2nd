@@ -9,25 +9,26 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ReviewEditViewModel
-    @Inject
+    @javax.inject.Inject
     constructor(
         private val savedStateHandle: SavedStateHandle,
         private val sakeRepository: SakeRepository,
         private val reviewRepository: ReviewRepository,
         private val masterDataRepository: MasterDataRepository,
+        private val settingsRepository: SettingsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(ReviewEditUiState())
-        val uiState: StateFlow<ReviewEditUiState> = _uiState.asStateFlow()
+        val uiState = _uiState.asStateFlow()
 
         init {
             loadInitial()
@@ -116,5 +117,6 @@ class ReviewEditViewModel
                 master = masterDataRepository.getMasterData(),
                 sake = sakeRepository.getSake(args.sakeId),
                 review = args.reviewId?.let { reviewRepository.getReview(it) },
+                settings = settingsRepository.observeSettings().first(),
             )
     }

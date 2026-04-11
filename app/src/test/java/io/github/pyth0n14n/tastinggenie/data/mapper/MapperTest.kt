@@ -42,29 +42,30 @@ class MapperTest {
                 sakeId = 2L,
                 date = LocalDate.parse("2026-02-25"),
                 temperature = Temperature.HANABIE,
-                color = SakeColor.AMBER,
-                intensity = IntensityLevel.STRONG,
-                scentTop = listOf(Aroma.LEMON, Aroma.BANANA),
-                scentBase = listOf(Aroma.KONBU),
-                scentMouth = listOf(Aroma.PEAR),
-                sweet = TasteLevel.MEDIUM,
-                sour = TasteLevel.WEAK,
-                bitter = TasteLevel.STRONG,
-                umami = TasteLevel.VERY_STRONG,
-                sharp = TasteLevel.WEAK,
-                review = OverallReview.GOOD,
+                appearanceSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                appearanceColor = SakeColor.AMBER,
+                aromaSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                aromaIntensity = IntensityLevel.STRONG,
+                aromaExamples = listOf(Aroma.LEMON, Aroma.BANANA),
+                tasteSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                tasteInPalateAroma = listOf(Aroma.PEAR),
+                tasteSweetness = TasteLevel.MEDIUM,
+                tasteSourness = TasteLevel.WEAK,
+                tasteBitterness = TasteLevel.STRONG,
+                tasteUmami = TasteLevel.VERY_STRONG,
+                tasteAftertaste = TasteLevel.WEAK,
+                otherOverallReview = OverallReview.GOOD,
             )
 
         val restored = input.toEntity().toDomain()
 
         assertEquals(Temperature.HANABIE, restored.temperature)
-        assertEquals(SakeColor.AMBER, restored.color)
-        assertEquals(IntensityLevel.STRONG, restored.intensity)
-        assertEquals(listOf(Aroma.LEMON, Aroma.BANANA), restored.scentTop)
-        assertEquals(listOf(Aroma.KONBU), restored.scentBase)
-        assertEquals(listOf(Aroma.PEAR), restored.scentMouth)
-        assertEquals(TasteLevel.MEDIUM, restored.sweet)
-        assertEquals(OverallReview.GOOD, restored.review)
+        assertEquals(SakeColor.AMBER, restored.appearanceColor)
+        assertEquals(IntensityLevel.STRONG, restored.aromaIntensity)
+        assertEquals(listOf(Aroma.LEMON, Aroma.BANANA), restored.aromaExamples)
+        assertEquals(listOf(Aroma.PEAR), restored.tasteInPalateAroma)
+        assertEquals(TasteLevel.MEDIUM, restored.tasteSweetness)
+        assertEquals(OverallReview.GOOD, restored.otherOverallReview)
     }
 
     @Test
@@ -78,24 +79,34 @@ class MapperTest {
                 price = null,
                 volume = null,
                 temperature = null,
-                color = null,
-                viscosity = null,
-                intensity = null,
-                scentTop = emptyList(),
-                scentBase = emptyList(),
-                scentMouth = emptyList(),
-                sweet = null,
-                sour = null,
-                bitter = null,
-                umami = null,
-                sharp = null,
                 scene = null,
                 dish = null,
-                comment = null,
-                review = null,
+                appearanceSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                appearanceColor = null,
+                appearanceViscosity = null,
+                aromaSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                aromaIntensity = null,
+                aromaExamples = emptyList(),
+                aromaMainNote = null,
+                aromaComplexity = null,
+                tasteSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
+                tasteAttack = null,
+                tasteTextureRoundness = null,
+                tasteTextureSmoothness = null,
+                tasteMainNote = null,
+                tasteSweetness = null,
+                tasteSourness = null,
+                tasteBitterness = null,
+                tasteUmami = null,
+                tasteInPalateAroma = emptyList(),
+                tasteAftertaste = null,
+                tasteComplexity = null,
+                otherIndividuality = null,
+                otherCautions = null,
+                otherOverallReview = null,
             )
 
-        assertNull(entity.toDomain().comment)
+        assertNull(entity.toDomain().otherCautions)
     }
 
     @Test

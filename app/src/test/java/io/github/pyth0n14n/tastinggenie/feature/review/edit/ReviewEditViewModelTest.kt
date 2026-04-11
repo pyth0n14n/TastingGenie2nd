@@ -2,10 +2,12 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFakeMasterDataRepository
@@ -17,6 +19,8 @@ import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.testutil.MainDispatcherRule
 import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -39,11 +43,8 @@ class ReviewEditViewModelTest {
     fun loadInitial_newMode_readsMasterDataAndSake() =
         runTest {
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -56,15 +57,27 @@ class ReviewEditViewModelTest {
         }
 
     @Test
+    fun loadInitial_appliesReviewSoundnessVisibilitySetting() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = false)),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.showReviewSoundness)
+        }
+
+    @Test
     fun save_withInvalidDate_setsValidationError() =
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -83,11 +96,9 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -113,11 +124,9 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -143,11 +152,9 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -172,11 +179,8 @@ class ReviewEditViewModelTest {
     fun onDateSelected_formatsReviewDateText() =
         runTest {
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -192,11 +196,9 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -218,11 +220,8 @@ class ReviewEditViewModelTest {
     fun onTemperatureSelected_withUnexpectedValue_setsUiErrorWithoutCrashing() =
         runTest {
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -244,11 +243,8 @@ class ReviewEditViewModelTest {
     fun blankSelection_clearsOptionalReviewRatings() =
         runTest {
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -287,11 +283,8 @@ class ReviewEditViewModelTest {
     fun viscosity_acceptsFiveStepMaximum() =
         runTest {
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
-                    reviewRepository = RecordingReviewRepository(),
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -312,7 +305,7 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository(initial = listOf(testReview()))
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle =
                         SavedStateHandle(
                             mapOf(
@@ -320,7 +313,6 @@ class ReviewEditViewModelTest {
                                 AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
                             ),
                         ),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
                     masterDataRepository = ThrowingMasterDataRepository(),
                 )
@@ -342,7 +334,7 @@ class ReviewEditViewModelTest {
         runTest {
             val repository = RecordingReviewRepository()
             val viewModel =
-                ReviewEditViewModel(
+                reviewEditViewModel(
                     savedStateHandle =
                         SavedStateHandle(
                             mapOf(
@@ -350,9 +342,7 @@ class ReviewEditViewModelTest {
                                 AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
                             ),
                         ),
-                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = repository,
-                    masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
 
@@ -370,6 +360,37 @@ class ReviewEditViewModelTest {
 private class ThrowingMasterDataRepository : MasterDataRepository {
     override suspend fun getMasterData() = error("seed load failure")
 }
+
+private class FakeSettingsRepository(
+    initial: AppSettings = AppSettings(),
+) : SettingsRepository {
+    private val stream = MutableStateFlow(initial)
+
+    override fun observeSettings(): Flow<AppSettings> = stream
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
+
+    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+        stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
+}
+
+private fun reviewEditViewModel(
+    savedStateHandle: SavedStateHandle,
+    sakeRepository: RecordingSakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+    reviewRepository: RecordingReviewRepository = RecordingReviewRepository(),
+    masterDataRepository: MasterDataRepository = ReviewFakeMasterDataRepository(),
+    settingsRepository: SettingsRepository = FakeSettingsRepository(),
+): ReviewEditViewModel =
+    ReviewEditViewModel(
+        savedStateHandle = savedStateHandle,
+        sakeRepository = sakeRepository,
+        reviewRepository = reviewRepository,
+        masterDataRepository = masterDataRepository,
+        settingsRepository = settingsRepository,
+    )
 
 private fun testDateMillis(): Long {
     val localDate = LocalDate.parse("2026-03-14")

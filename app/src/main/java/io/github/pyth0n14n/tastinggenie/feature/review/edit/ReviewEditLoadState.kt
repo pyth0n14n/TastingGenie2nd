@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -17,6 +18,7 @@ data class ReviewSeedData(
     val master: MasterDataBundle,
     val sake: Sake?,
     val review: Review?,
+    val settings: AppSettings,
 )
 
 fun SavedStateHandle.toReviewArgs(): ReviewEditArgs =
@@ -47,6 +49,7 @@ fun ReviewEditUiState.toLoadedState(
                 sakeId = args.sakeId,
                 sakeName = sake.name,
                 master = loaded.master,
+                settings = loaded.settings,
                 reviewId = reviewId,
             )
         else ->
@@ -55,6 +58,7 @@ fun ReviewEditUiState.toLoadedState(
                 sakeName = sake.name,
                 review = review,
                 master = loaded.master,
+                settings = loaded.settings,
             )
     }
 }
@@ -75,12 +79,14 @@ private fun ReviewEditUiState.toMissingReviewState(
     sakeId: Long,
     sakeName: String,
     master: MasterDataBundle,
+    settings: AppSettings,
     reviewId: Long,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         sakeName = sakeName,
+        showReviewSoundness = settings.showReviewSoundness,
         isEditTargetMissing = true,
         temperatureOptions = master.temperatures,
         colorOptions = master.colors,
@@ -101,32 +107,44 @@ private fun ReviewEditUiState.toEditableLoadedState(
     sakeName: String,
     review: Review?,
     master: MasterDataBundle,
+    settings: AppSettings,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         reviewId = review?.id,
         sakeName = sakeName,
+        showReviewSoundness = settings.showReviewSoundness,
         date = review?.date?.toString() ?: defaultReviewDateText(),
         bar = review?.bar.orEmpty(),
         price = review?.price?.toString().orEmpty(),
         volume = review?.volume?.toString().orEmpty(),
+        aromaMainNote = review?.aromaMainNote.orEmpty(),
+        tasteMainNote = review?.tasteMainNote.orEmpty(),
+        otherIndividuality = review?.otherIndividuality.orEmpty(),
         scene = review?.scene.orEmpty(),
         dish = review?.dish.orEmpty(),
-        comment = review?.comment.orEmpty(),
+        comment = review?.otherCautions.orEmpty(),
+        appearanceSoundness = review?.appearanceSoundness ?: appearanceSoundness,
         temperature = review?.temperature,
-        color = review?.color,
-        viscosity = review?.viscosity,
-        intensity = review?.intensity,
-        sweet = review?.sweet,
-        sour = review?.sour,
-        bitter = review?.bitter,
-        umami = review?.umami,
-        sharp = review?.sharp,
-        review = review?.review,
-        scentTop = review?.scentTop.orEmpty(),
-        scentBase = review?.scentBase.orEmpty(),
-        scentMouth = review?.scentMouth.orEmpty(),
+        color = review?.appearanceColor,
+        viscosity = review?.appearanceViscosity,
+        aromaSoundness = review?.aromaSoundness ?: aromaSoundness,
+        intensity = review?.aromaIntensity,
+        aromaComplexity = review?.aromaComplexity,
+        tasteSoundness = review?.tasteSoundness ?: tasteSoundness,
+        tasteAttack = review?.tasteAttack,
+        tasteTextureRoundness = review?.tasteTextureRoundness,
+        tasteTextureSmoothness = review?.tasteTextureSmoothness,
+        sweet = review?.tasteSweetness,
+        sour = review?.tasteSourness,
+        bitter = review?.tasteBitterness,
+        umami = review?.tasteUmami,
+        sharp = review?.tasteAftertaste,
+        tasteComplexity = review?.tasteComplexity,
+        review = review?.otherOverallReview,
+        scentTop = review?.aromaExamples.orEmpty(),
+        scentMouth = review?.tasteInPalateAroma.orEmpty(),
         temperatureOptions = master.temperatures,
         colorOptions = master.colors,
         intensityOptions = master.intensityLevels,

@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -15,12 +16,15 @@ import org.robolectric.annotation.Config
 
 private const val MIGRATED_REVIEW_ID = 10L
 private const val MIGRATED_REVIEW_EPOCH_DAY = 20_000L
+private const val LEGACY_REVIEW_VISCOSITY = 4
+private const val LEGACY_DATABASE_VERSION_3 = 3
+private const val VERSION_3_IDENTITY_HASH = "da56d247c1fa344031cd57474b9c205b"
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_3_preservesExistingSakeData() {
+    fun migration_1_4_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -32,6 +36,7 @@ class AppDatabaseMigrationTest {
             databaseBuilder.addMigrations(
                 AppDatabaseMigrations.MIGRATION_1_2,
                 AppDatabaseMigrations.MIGRATION_2_3,
+                AppDatabaseMigrations.MIGRATION_3_4,
             )
             val database = databaseBuilder.build()
 
@@ -47,7 +52,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_3_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_4_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -56,7 +61,10 @@ class AppDatabaseMigrationTest {
             createVersion2Database(context = context, databaseName = databaseName)
 
             val databaseBuilder = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            databaseBuilder.addMigrations(AppDatabaseMigrations.MIGRATION_2_3)
+            databaseBuilder.addMigrations(
+                AppDatabaseMigrations.MIGRATION_2_3,
+                AppDatabaseMigrations.MIGRATION_3_4,
+            )
             val database = databaseBuilder.build()
 
             val migratedSake = requireNotNull(database.sakeDao().getById(1L))
@@ -65,8 +73,52 @@ class AppDatabaseMigrationTest {
 
             assertEquals("移行前の酒", migratedSake.name)
             assertNull(migratedSake.imageUri)
-            assertEquals("移行前レビュー", migratedReview.comment)
+            assertEquals("移行前レビュー", migratedReview.otherCautions)
             assertEquals(false, reviewColumns.contains("imageUri"))
+            assertEquals(false, reviewColumns.contains("comment"))
+            assertTrue(reviewColumns.contains("otherCautions"))
+
+            database.close()
+            context.deleteDatabase(databaseName)
+        }
+    }
+
+    @Test
+    fun migration_3_4_renamesReviewColumnsAndPreservesReviewValues() {
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val databaseName = "migration-3-4-test.db"
+            context.deleteDatabase(databaseName)
+
+            createVersion3Database(context = context, databaseName = databaseName)
+
+            val databaseBuilder = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
+            databaseBuilder.addMigrations(AppDatabaseMigrations.MIGRATION_3_4)
+            val database = databaseBuilder.build()
+
+            val migratedReview = requireNotNull(database.reviewDao().getById(MIGRATED_REVIEW_ID))
+            val reviewColumns = database.reviewColumnNames()
+
+            assertEquals("content://bar/1", migratedReview.bar)
+            assertEquals("移行前レビュー", migratedReview.otherCautions)
+            assertEquals("屋台", migratedReview.scene)
+            assertEquals("刺身", migratedReview.dish)
+            assertEquals("CLEAR", migratedReview.appearanceColor?.name)
+            assertEquals(LEGACY_REVIEW_VISCOSITY, migratedReview.appearanceViscosity)
+            assertEquals("MEDIUM", migratedReview.aromaIntensity?.name)
+            assertEquals(listOf("MELON"), migratedReview.aromaExamples.map { it.name })
+            assertEquals(listOf("PEAR"), migratedReview.tasteInPalateAroma.map { it.name })
+            assertEquals("STRONG", migratedReview.tasteSweetness?.name)
+            assertEquals("WEAK", migratedReview.tasteAftertaste?.name)
+            assertEquals("GOOD", migratedReview.otherOverallReview?.name)
+            assertEquals("SOUND", migratedReview.appearanceSoundness.name)
+            assertEquals("SOUND", migratedReview.aromaSoundness.name)
+            assertEquals("SOUND", migratedReview.tasteSoundness.name)
+            assertEquals(false, reviewColumns.contains("color"))
+            assertEquals(false, reviewColumns.contains("comment"))
+            assertEquals(false, reviewColumns.contains("scentBase"))
+            assertTrue(reviewColumns.contains("appearanceColor"))
+            assertTrue(reviewColumns.contains("otherCautions"))
 
             database.close()
             context.deleteDatabase(databaseName)
@@ -238,6 +290,46 @@ class AppDatabaseMigrationTest {
         helper.writableDatabase.close()
         helper.close()
     }
+
+    private fun createVersion3Database(
+        context: Context,
+        databaseName: String,
+    ) {
+        val helper =
+            FrameworkSQLiteOpenHelperFactory().create(
+                SupportSQLiteOpenHelper.Configuration
+                    .builder(context)
+                    .name(databaseName)
+                    .callback(
+                        object : SupportSQLiteOpenHelper.Callback(LEGACY_DATABASE_VERSION_3) {
+                            override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                                db.execSQL(createVersion3SakesTableSql())
+                                db.execSQL(createVersion3ReviewsTableSql())
+                                db.execSQL(
+                                    "CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)",
+                                )
+                                db.execSQL(
+                                    createRoomMasterTableSql(),
+                                )
+                                db.execSQL(
+                                    version3IdentitySql(),
+                                )
+                                db.execSQL(insertVersion3SakeSql())
+                                db.execSQL(insertVersion3ReviewSql())
+                            }
+
+                            override fun onUpgrade(
+                                db: androidx.sqlite.db.SupportSQLiteDatabase,
+                                oldVersion: Int,
+                                newVersion: Int,
+                            ) = Unit
+                        },
+                    ).build(),
+            )
+
+        helper.writableDatabase.close()
+        helper.close()
+    }
 }
 
 private fun AppDatabase.reviewColumnNames(): Set<String> {
@@ -250,3 +342,90 @@ private fun AppDatabase.reviewColumnNames(): Set<String> {
     }
     return columns
 }
+
+private fun createVersion3SakesTableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `sakes` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `name` TEXT NOT NULL,
+        `grade` TEXT NOT NULL,
+        `imageUri` TEXT,
+        `gradeOther` TEXT,
+        `type` TEXT NOT NULL,
+        `typeOther` TEXT,
+        `maker` TEXT,
+        `prefecture` TEXT,
+        `alcohol` INTEGER,
+        `kojiMai` TEXT,
+        `kojiPolish` INTEGER,
+        `kakeMai` TEXT,
+        `kakePolish` INTEGER,
+        `sakeDegree` REAL,
+        `acidity` REAL,
+        `amino` REAL,
+        `yeast` TEXT,
+        `water` TEXT
+    )
+    """.trimIndent()
+
+private fun createVersion3ReviewsTableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `reviews` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `sakeId` INTEGER NOT NULL,
+        `dateEpochDay` INTEGER NOT NULL,
+        `bar` TEXT,
+        `price` INTEGER,
+        `volume` INTEGER,
+        `temperature` TEXT,
+        `color` TEXT,
+        `viscosity` INTEGER,
+        `intensity` TEXT,
+        `scentTop` TEXT NOT NULL,
+        `scentBase` TEXT NOT NULL,
+        `scentMouth` TEXT NOT NULL,
+        `sweet` TEXT,
+        `sour` TEXT,
+        `bitter` TEXT,
+        `umami` TEXT,
+        `sharp` TEXT,
+        `scene` TEXT,
+        `dish` TEXT,
+        `comment` TEXT,
+        `review` TEXT,
+        FOREIGN KEY(`sakeId`) REFERENCES `sakes`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+    )
+    """.trimIndent()
+
+private fun version3IdentitySql(): String =
+    "INSERT OR REPLACE INTO room_master_table (id,identity_hash) " +
+        "VALUES(42, '$VERSION_3_IDENTITY_HASH')"
+
+private fun createRoomMasterTableSql(): String =
+    "CREATE TABLE IF NOT EXISTS room_master_table " +
+        "(id INTEGER PRIMARY KEY,identity_hash TEXT)"
+
+private fun insertVersion3SakeSql(): String =
+    """
+    INSERT INTO `sakes` (
+        `id`, `name`, `grade`, `imageUri`, `gradeOther`, `type`, `typeOther`, `maker`,
+        `prefecture`, `alcohol`, `kojiMai`, `kojiPolish`, `kakeMai`, `kakePolish`,
+        `sakeDegree`, `acidity`, `amino`, `yeast`, `water`
+    ) VALUES (
+        1, '移行前の酒', 'JUNMAI', NULL, NULL, '[]', NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    )
+    """.trimIndent()
+
+private fun insertVersion3ReviewSql(): String =
+    """
+    INSERT INTO `reviews` (
+        `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `color`,
+        `viscosity`, `intensity`, `scentTop`, `scentBase`, `scentMouth`, `sweet`, `sour`,
+        `bitter`, `umami`, `sharp`, `scene`, `dish`, `comment`, `review`
+    ) VALUES (
+        $MIGRATED_REVIEW_ID, 1, $MIGRATED_REVIEW_EPOCH_DAY, 'content://bar/1', 1200, 180, 'JOON',
+        'CLEAR', $LEGACY_REVIEW_VISCOSITY, 'MEDIUM', '["MELON"]', '["KONBU"]', '["PEAR"]',
+        'STRONG', 'WEAK', 'MEDIUM', 'VERY_STRONG', 'WEAK', '屋台', '刺身', '移行前レビュー', 'GOOD'
+    )
+    """.trimIndent()

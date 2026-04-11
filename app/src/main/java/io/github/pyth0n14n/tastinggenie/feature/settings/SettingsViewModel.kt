@@ -37,11 +37,54 @@ class SettingsViewModel
         }
 
         fun toggleHelpHints(enabled: Boolean) {
-            updateSetting { settingsRepository.updateShowHelpHints(enabled) }
+            viewModelScope.launch {
+                runCatching { settingsRepository.updateShowHelpHints(enabled) }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_save_settings,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }
+            }
         }
 
         fun toggleImagePreview(enabled: Boolean) {
-            updateSetting { settingsRepository.updateShowImagePreview(enabled) }
+            viewModelScope.launch {
+                runCatching { settingsRepository.updateShowImagePreview(enabled) }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_save_settings,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }
+            }
+        }
+
+        fun toggleReviewSoundness(enabled: Boolean) {
+            viewModelScope.launch {
+                runCatching { settingsRepository.updateShowReviewSoundness(enabled) }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_save_settings,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }
+            }
         }
 
         fun exportBackup(writeJson: suspend (String) -> Result<Unit>) {
@@ -197,23 +240,6 @@ class SettingsViewModel
                                 isLoading = false,
                                 settings = settings,
                                 error = null,
-                            )
-                        }
-                    }
-            }
-        }
-
-        private fun updateSetting(action: suspend () -> Unit) {
-            viewModelScope.launch {
-                runCatching { action() }
-                    .onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_save_settings,
-                                        causeKey = throwable.message,
-                                    ),
                             )
                         }
                     }

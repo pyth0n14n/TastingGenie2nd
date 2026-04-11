@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 private const val DATABASE_VERSION_1 = 1
 private const val DATABASE_VERSION_2 = 2
 private const val DATABASE_VERSION_3 = 3
+private const val DATABASE_VERSION_4 = 4
 
 object AppDatabaseMigrations {
     val MIGRATION_1_2: Migration =
@@ -19,24 +20,39 @@ object AppDatabaseMigrations {
         object : Migration(DATABASE_VERSION_2, DATABASE_VERSION_3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 migrateSakes(db)
-                migrateReviews(db)
-            }
-
-            private fun migrateSakes(db: SupportSQLiteDatabase) {
-                db.execSQL(createSakesTableSql())
-                db.execSQL(copySakesSql())
-                db.execSQL("DROP TABLE `sakes`")
-                db.execSQL("ALTER TABLE `sakes_new` RENAME TO `sakes`")
-            }
-
-            private fun migrateReviews(db: SupportSQLiteDatabase) {
-                db.execSQL(createReviewsTableSql())
-                db.execSQL(copyReviewsSql())
-                db.execSQL("DROP TABLE `reviews`")
-                db.execSQL("ALTER TABLE `reviews_new` RENAME TO `reviews`")
-                db.execSQL("CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)")
+                migrateReviewsToV3(db)
             }
         }
+
+    val MIGRATION_3_4: Migration =
+        object : Migration(DATABASE_VERSION_3, DATABASE_VERSION_4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                migrateReviewsToV4(db)
+            }
+        }
+}
+
+private fun migrateSakes(db: SupportSQLiteDatabase) {
+    db.execSQL(createSakesTableSql())
+    db.execSQL(copySakesSql())
+    db.execSQL("DROP TABLE `sakes`")
+    db.execSQL("ALTER TABLE `sakes_new` RENAME TO `sakes`")
+}
+
+private fun migrateReviewsToV3(db: SupportSQLiteDatabase) {
+    db.execSQL(createReviewsV3TableSql())
+    db.execSQL(copyReviewsToV3Sql())
+    db.execSQL("DROP TABLE `reviews`")
+    db.execSQL("ALTER TABLE `reviews_new` RENAME TO `reviews`")
+    db.execSQL("CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)")
+}
+
+private fun migrateReviewsToV4(db: SupportSQLiteDatabase) {
+    db.execSQL(createReviewsV4TableSql())
+    db.execSQL(copyReviewsToV4Sql())
+    db.execSQL("DROP TABLE `reviews`")
+    db.execSQL("ALTER TABLE `reviews_new` RENAME TO `reviews`")
+    db.execSQL("CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)")
 }
 
 private fun createSakesTableSql(): String =
@@ -78,7 +94,7 @@ private fun copySakesSql(): String =
     FROM `sakes`
     """.trimIndent()
 
-private fun createReviewsTableSql(): String =
+private fun createReviewsV3TableSql(): String =
     """
     CREATE TABLE IF NOT EXISTS `reviews_new` (
         `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -107,7 +123,7 @@ private fun createReviewsTableSql(): String =
     )
     """.trimIndent()
 
-private fun copyReviewsSql(): String =
+private fun copyReviewsToV3Sql(): String =
     """
     INSERT INTO `reviews_new` (
         `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `color`, `viscosity`,
@@ -118,5 +134,64 @@ private fun copyReviewsSql(): String =
         `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `color`, `viscosity`,
         `intensity`, `scentTop`, `scentBase`, `scentMouth`, `sweet`, `sour`, `bitter`, `umami`,
         `sharp`, `scene`, `dish`, `comment`, `review`
+    FROM `reviews`
+    """.trimIndent()
+
+private fun createReviewsV4TableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `reviews_new` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `sakeId` INTEGER NOT NULL,
+        `dateEpochDay` INTEGER NOT NULL,
+        `bar` TEXT,
+        `price` INTEGER,
+        `volume` INTEGER,
+        `temperature` TEXT,
+        `scene` TEXT,
+        `dish` TEXT,
+        `appearanceSoundness` TEXT NOT NULL,
+        `appearanceColor` TEXT,
+        `appearanceViscosity` INTEGER,
+        `aromaSoundness` TEXT NOT NULL,
+        `aromaIntensity` TEXT,
+        `aromaExamples` TEXT NOT NULL,
+        `aromaMainNote` TEXT,
+        `aromaComplexity` TEXT,
+        `tasteSoundness` TEXT NOT NULL,
+        `tasteAttack` TEXT,
+        `tasteTextureRoundness` TEXT,
+        `tasteTextureSmoothness` TEXT,
+        `tasteMainNote` TEXT,
+        `tasteSweetness` TEXT,
+        `tasteSourness` TEXT,
+        `tasteBitterness` TEXT,
+        `tasteUmami` TEXT,
+        `tasteInPalateAroma` TEXT NOT NULL,
+        `tasteAftertaste` TEXT,
+        `tasteComplexity` TEXT,
+        `otherIndividuality` TEXT,
+        `otherCautions` TEXT,
+        `otherOverallReview` TEXT,
+        FOREIGN KEY(`sakeId`) REFERENCES `sakes`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+    )
+    """.trimIndent()
+
+private fun copyReviewsToV4Sql(): String =
+    """
+    INSERT INTO `reviews_new` (
+        `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `scene`, `dish`,
+        `appearanceSoundness`, `appearanceColor`, `appearanceViscosity`,
+        `aromaSoundness`, `aromaIntensity`, `aromaExamples`, `aromaMainNote`, `aromaComplexity`,
+        `tasteSoundness`, `tasteAttack`, `tasteTextureRoundness`, `tasteTextureSmoothness`, `tasteMainNote`,
+        `tasteSweetness`, `tasteSourness`, `tasteBitterness`, `tasteUmami`, `tasteInPalateAroma`,
+        `tasteAftertaste`, `tasteComplexity`, `otherIndividuality`, `otherCautions`, `otherOverallReview`
+    )
+    SELECT
+        `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `scene`, `dish`,
+        'SOUND', `color`, `viscosity`,
+        'SOUND', `intensity`, `scentTop`, NULL, NULL,
+        'SOUND', NULL, NULL, NULL, NULL,
+        `sweet`, `sour`, `bitter`, `umami`, `scentMouth`,
+        `sharp`, NULL, NULL, `comment`, `review`
     FROM `reviews`
     """.trimIndent()

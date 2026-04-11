@@ -433,6 +433,10 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun updateShowImagePreview(enabled: Boolean) {
         stream.value = stream.value.copy(showImagePreview = enabled)
     }
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+        stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
 }
 
 private fun testReview(

@@ -68,7 +68,7 @@ class ReviewDetailViewModelTest {
         runTest {
             val reviewRepository =
                 RecordingReviewRepository(
-                    initial = listOf(testReview().copy(comment = "更新前")),
+                    initial = listOf(testReview().copy(otherCautions = "更新前")),
                 )
             val viewModel =
                 ReviewDetailViewModel(
@@ -79,13 +79,13 @@ class ReviewDetailViewModelTest {
                 )
             advanceUntilIdle()
 
-            reviewRepository.upsertReview(testReview().copy(comment = "更新後").toInput())
+            reviewRepository.upsertReview(testReview().copy(otherCautions = "更新後").toInput())
             viewModel.refresh()
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals("更新後", state.review?.comment)
+            assertEquals("更新後", state.review?.otherCautions)
         }
 }
 
@@ -98,19 +98,29 @@ private fun Review.toInput(): ReviewInput =
         price = price,
         volume = volume,
         temperature = temperature,
-        color = color,
-        viscosity = viscosity,
-        intensity = intensity,
-        scentTop = scentTop,
-        scentBase = scentBase,
-        scentMouth = scentMouth,
-        sweet = sweet,
-        sour = sour,
-        bitter = bitter,
-        umami = umami,
-        sharp = sharp,
         scene = scene,
         dish = dish,
-        comment = comment,
-        review = review,
+        appearanceSoundness = appearanceSoundness,
+        appearanceColor = appearanceColor,
+        appearanceViscosity = appearanceViscosity,
+        aromaSoundness = aromaSoundness,
+        aromaIntensity = aromaIntensity,
+        aromaExamples = aromaExamples,
+        aromaMainNote = aromaMainNote,
+        aromaComplexity = aromaComplexity,
+        tasteSoundness = tasteSoundness,
+        tasteAttack = tasteAttack,
+        tasteTextureRoundness = tasteTextureRoundness,
+        tasteTextureSmoothness = tasteTextureSmoothness,
+        tasteMainNote = tasteMainNote,
+        tasteSweetness = tasteSweetness,
+        tasteSourness = tasteSourness,
+        tasteBitterness = tasteBitterness,
+        tasteUmami = tasteUmami,
+        tasteInPalateAroma = tasteInPalateAroma,
+        tasteAftertaste = tasteAftertaste,
+        tasteComplexity = tasteComplexity,
+        otherIndividuality = otherIndividuality,
+        otherCautions = otherCautions,
+        otherOverallReview = otherOverallReview,
     )

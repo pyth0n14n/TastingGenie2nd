@@ -20,6 +20,7 @@ class SettingsRepositoryImpl
                 AppSettings(
                     showHelpHints = preferences[showHelpHintsKey] ?: true,
                     showImagePreview = preferences[showImagePreviewKey] ?: true,
+                    showReviewSoundness = preferences[showReviewSoundnessKey] ?: true,
                 )
             }
 
@@ -35,8 +36,15 @@ class SettingsRepositoryImpl
             }
         }
 
+        override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[showReviewSoundnessKey] = enabled
+            }
+        }
+
         private companion object {
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
             val showImagePreviewKey = booleanPreferencesKey("show_image_preview")
+            val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")
         }
     }

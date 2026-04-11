@@ -33,11 +33,13 @@ class ConvertersTest {
 
     @Test
     fun reviewEnumConverters_roundTrip() {
-        val converter = ReviewEnumConverters()
-        val temperature = converter.toTemperature(converter.fromTemperature(Temperature.JOON))
-        val color = converter.toColor(converter.fromColor(SakeColor.AMBER))
-        val intensity = converter.toIntensity(converter.fromIntensity(IntensityLevel.MEDIUM))
-        val taste = converter.toTaste(converter.fromTaste(TasteLevel.STRONG))
+        val temperatureConverter = ReviewTemperatureColorConverters()
+        val scalarConverter = ReviewScalarConverters()
+        val textureTasteConverter = ReviewTextureTasteConverters()
+        val temperature = temperatureConverter.toTemperature(temperatureConverter.fromTemperature(Temperature.JOON))
+        val color = temperatureConverter.toColor(temperatureConverter.fromColor(SakeColor.AMBER))
+        val intensity = scalarConverter.toIntensity(scalarConverter.fromIntensity(IntensityLevel.MEDIUM))
+        val taste = textureTasteConverter.toTaste(textureTasteConverter.fromTaste(TasteLevel.STRONG))
 
         assertEquals(Temperature.JOON, temperature)
         assertEquals(SakeColor.AMBER, color)
@@ -58,7 +60,7 @@ class ConvertersTest {
     fun converters_throwOnUnknownEnumValue() {
         // 欠損/不正値は静かに落とさず、呼び出し側でエラー表示できるよう例外を期待する。
         val sakeConverter = SakeConverters()
-        val reviewConverter = ReviewEnumConverters()
+        val reviewConverter = ReviewTemperatureColorConverters()
 
         expectFailure<IllegalArgumentException> { sakeConverter.toGrade("UNKNOWN") }
         expectFailure<IllegalArgumentException> { reviewConverter.toTemperature("UNKNOWN") }

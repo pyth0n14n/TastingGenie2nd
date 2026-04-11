@@ -4,18 +4,22 @@ import androidx.room.withTransaction
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.mapper.toImportedEntity
 import io.github.pyth0n14n.tastinggenie.data.mapper.toSerializable
+import io.github.pyth0n14n.tastinggenie.data.mapper.toSerializableV4
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
 import io.github.pyth0n14n.tastinggenie.domain.model.BackupPayload
 import io.github.pyth0n14n.tastinggenie.domain.model.CURRENT_SCHEMA_VERSION
 import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceException
+import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_3
+import io.github.pyth0n14n.tastinggenie.domain.model.LegacyBackupPayloadV3
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
 class ImportExportRepositoryImpl
@@ -39,6 +43,7 @@ class ImportExportRepositoryImpl
                             )
                         }
                     json.encodeToString(
+                        BackupPayload.serializer(),
                         payload,
                     )
                 }
@@ -47,8 +52,7 @@ class ImportExportRepositoryImpl
         override suspend fun importJson(rawJson: String): Result<Unit> =
             runSuspendCatching {
                 withContext(ioDispatcher) {
-                    val payload = json.decodeFromString<BackupPayload>(rawJson)
-                    validateSchemaVersion(payload.schemaVersion)
+                    val payload = decodePayload(rawJson)
                     database.withTransaction {
                         validateReviewReferences(payload)
                         val importedSakeIds =
@@ -66,6 +70,24 @@ class ImportExportRepositoryImpl
                 }
             }
 
+        private fun decodePayload(rawJson: String): BackupPayload {
+            val root = json.parseToJsonElement(rawJson).jsonObject
+            val version = root.getValue("schemaVersion").jsonPrimitive.int
+            return when (version) {
+                CURRENT_SCHEMA_VERSION -> json.decodeFromJsonElement(BackupPayload.serializer(), root)
+                LEGACY_SCHEMA_VERSION_3 ->
+                    json.decodeFromJsonElement(LegacyBackupPayloadV3.serializer(), root).let { legacy ->
+                        BackupPayload(
+                            schemaVersion = CURRENT_SCHEMA_VERSION,
+                            sakes = legacy.sakes,
+                            reviews = legacy.reviews.map { review -> review.toSerializableV4() },
+                        )
+                    }
+
+                else -> throw UnsupportedSchemaVersionException(version = version)
+            }
+        }
+
         private suspend fun validateReviewReferences(payload: BackupPayload) {
             val payloadSakeIds = payload.sakes.map { sake -> sake.id }
             require(payloadSakeIds.size == payloadSakeIds.toSet().size) {
@@ -74,12 +96,6 @@ class ImportExportRepositoryImpl
             val allowedSakeIds = payloadSakeIds.toSet()
             payload.reviews.firstOrNull { review -> review.sakeId !in allowedSakeIds }?.let { invalidReview ->
                 throw InvalidBackupReferenceException(sakeId = invalidReview.sakeId)
-            }
-        }
-
-        private fun validateSchemaVersion(version: Int) {
-            if (version != CURRENT_SCHEMA_VERSION) {
-                throw UnsupportedSchemaVersionException(version = version)
             }
         }
 

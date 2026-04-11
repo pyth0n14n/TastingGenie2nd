@@ -5,11 +5,16 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureSmoothness
 
 @Entity(
     tableName = "reviews",
@@ -33,19 +38,29 @@ data class ReviewEntity(
     val price: Int?,
     val volume: Int?,
     val temperature: Temperature?,
-    val color: SakeColor?,
-    val viscosity: Int?,
-    val intensity: IntensityLevel?,
-    val scentTop: List<Aroma>,
-    val scentBase: List<Aroma>,
-    val scentMouth: List<Aroma>,
-    val sweet: TasteLevel?,
-    val sour: TasteLevel?,
-    val bitter: TasteLevel?,
-    val umami: TasteLevel?,
-    val sharp: TasteLevel?,
     val scene: String?,
     val dish: String?,
-    val comment: String?,
-    val review: OverallReview?,
+    val appearanceSoundness: ReviewSoundness,
+    val appearanceColor: SakeColor?,
+    val appearanceViscosity: Int?,
+    val aromaSoundness: ReviewSoundness,
+    val aromaIntensity: IntensityLevel?,
+    val aromaExamples: List<Aroma>,
+    val aromaMainNote: String?,
+    val aromaComplexity: ComplexityLevel?,
+    val tasteSoundness: ReviewSoundness,
+    val tasteAttack: AttackLevel?,
+    val tasteTextureRoundness: TextureRoundness?,
+    val tasteTextureSmoothness: TextureSmoothness?,
+    val tasteMainNote: String?,
+    val tasteSweetness: TasteLevel?,
+    val tasteSourness: TasteLevel?,
+    val tasteBitterness: TasteLevel?,
+    val tasteUmami: TasteLevel?,
+    val tasteInPalateAroma: List<Aroma>,
+    val tasteAftertaste: TasteLevel?,
+    val tasteComplexity: ComplexityLevel?,
+    val otherIndividuality: String?,
+    val otherCautions: String?,
+    val otherOverallReview: OverallReview?,
 )
