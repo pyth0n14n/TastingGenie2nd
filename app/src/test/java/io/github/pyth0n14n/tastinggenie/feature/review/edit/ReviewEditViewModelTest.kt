@@ -3,6 +3,8 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
@@ -276,6 +278,28 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(null, state.sweet)
             assertEquals(null, state.review)
+            assertEquals(null, state.error)
+        }
+
+    @Test
+    fun flavorProfileSelection_updatesSharedSourceFields() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.FlavorProfileSelected(
+                    intensity = IntensityLevel.STRONG,
+                    complexity = ComplexityLevel.SLIGHTLY_COMPLEX,
+                ),
+            )
+
+            val state = viewModel.uiState.value
+            assertEquals(IntensityLevel.STRONG, state.intensity)
+            assertEquals(ComplexityLevel.SLIGHTLY_COMPLEX, state.tasteComplexity)
             assertEquals(null, state.error)
         }
 

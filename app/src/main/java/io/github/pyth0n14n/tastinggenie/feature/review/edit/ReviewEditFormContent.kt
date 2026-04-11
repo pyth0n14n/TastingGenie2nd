@@ -253,6 +253,12 @@ private fun LazyListScope.addNoteFields(
     overallReviewOptions: List<DropdownOption>,
     onAction: (ReviewEditAction) -> Unit,
 ) {
+    textField(
+        state = state,
+        labelRes = R.string.label_other_individuality,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.otherIndividuality, field = ReviewTextField.OTHER_INDIVIDUALITY),
+    )
     item {
         LabeledTextField(
             label = reviewTextResource(R.string.label_cautions),
@@ -263,11 +269,9 @@ private fun LazyListScope.addNoteFields(
             singleLine = false,
         )
     }
-    textField(
+    flavorProfileField(
         state = state,
-        labelRes = R.string.label_other_individuality,
         onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.otherIndividuality, field = ReviewTextField.OTHER_INDIVIDUALITY),
     )
     overallReviewField(
         selectedValue = state.review?.name,
