@@ -1,5 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
+
 sealed interface ReviewEditAction {
     data class DateSelected(
         val epochMillis: Long,
@@ -18,6 +21,11 @@ sealed interface ReviewEditAction {
     data class AromaToggled(
         val field: ReviewAromaField,
         val value: String,
+    ) : ReviewEditAction
+
+    data class FlavorProfileSelected(
+        val intensity: IntensityLevel,
+        val complexity: ComplexityLevel,
     ) : ReviewEditAction
 }
 

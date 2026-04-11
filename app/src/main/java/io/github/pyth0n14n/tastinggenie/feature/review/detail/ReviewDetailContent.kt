@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 
@@ -91,6 +92,15 @@ fun ReviewDetailContent(
                 selectedSection = content.selectedSection,
                 onSectionSelected = content.onSectionSelected,
             )
+        }
+        if (content.selectedSection == ReviewSection.OTHER) {
+            item(key = "flavor_profile_grid", contentType = "flavor_profile") {
+                ReviewFlavorProfileField(
+                    intensity = content.review.aromaIntensity,
+                    complexity = content.review.tasteComplexity,
+                    onSelectionChanged = null,
+                )
+            }
         }
         items(items = sectionRows, key = { row -> row.key }) { row ->
             DetailValue(label = row.label, value = row.value)

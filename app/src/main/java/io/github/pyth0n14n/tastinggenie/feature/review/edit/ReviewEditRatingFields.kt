@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.compose.foundation.lazy.LazyListScope
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.ui.common.DiscreteSliderField
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.StarRatingField
@@ -40,6 +41,26 @@ fun LazyListScope.overallReviewField(
                     ReviewEditAction.SelectionChanged(
                         field = ReviewSelectionField.OVERALL_REVIEW,
                         value = next ?: "",
+                    ),
+                )
+            },
+        )
+    }
+}
+
+fun LazyListScope.flavorProfileField(
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    item {
+        ReviewFlavorProfileField(
+            intensity = state.intensity,
+            complexity = state.tasteComplexity,
+            onSelectionChanged = { selection ->
+                onAction(
+                    ReviewEditAction.FlavorProfileSelected(
+                        intensity = selection.intensity,
+                        complexity = selection.complexity,
                     ),
                 )
             },
