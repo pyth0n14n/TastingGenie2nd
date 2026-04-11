@@ -3,8 +3,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
@@ -25,7 +23,6 @@ fun LazyListScope.reviewEditFormContent(
     selectedSection: ReviewSection,
     onSectionSelected: (ReviewSection) -> Unit,
 ) {
-    addBasicFields(state = state, onAction = onAction, uiData = uiData)
     item(key = "review_section_tabs", contentType = "tabs") {
         ReviewSectionTabs(
             selectedSection = selectedSection,
@@ -33,6 +30,13 @@ fun LazyListScope.reviewEditFormContent(
         )
     }
     when (selectedSection) {
+        ReviewSection.BASIC ->
+            addBasicInfoFields(
+                state = state,
+                uiData = uiData,
+                onAction = onAction,
+            )
+
         ReviewSection.APPEARANCE ->
             addChoiceFields(
                 state = state,
@@ -56,26 +60,17 @@ fun LazyListScope.reviewEditFormContent(
     }
 }
 
-private fun LazyListScope.addBasicFields(
+private fun LazyListScope.addBasicInfoFields(
     state: ReviewEditUiState,
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    addReviewTitleField(state)
-    addReviewTextMetadataFields(state, onAction)
-    addReviewVolumeAndTemperatureFields(state, uiData, onAction)
+    addBasicMetadataFields(state = state, onAction = onAction)
+    addBasicVolumeAndTemperatureFields(state = state, uiData = uiData, onAction = onAction)
+    addBasicSceneAndDishFields(state = state, onAction = onAction)
 }
 
-private fun LazyListScope.addReviewTitleField(state: ReviewEditUiState) {
-    item {
-        Text(
-            text = "${reviewTextResource(R.string.label_sake)}: ${state.sakeName}",
-            style = MaterialTheme.typography.titleMedium,
-        )
-    }
-}
-
-private fun LazyListScope.addReviewTextMetadataFields(
+private fun LazyListScope.addBasicMetadataFields(
     state: ReviewEditUiState,
     onAction: (ReviewEditAction) -> Unit,
 ) {
@@ -103,7 +98,7 @@ private fun LazyListScope.addReviewTextMetadataFields(
     )
 }
 
-private fun LazyListScope.addReviewVolumeAndTemperatureFields(
+private fun LazyListScope.addBasicVolumeAndTemperatureFields(
     state: ReviewEditUiState,
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
@@ -148,6 +143,18 @@ private fun LazyListScope.addReviewVolumeAndTemperatureFields(
             },
         )
     }
+    textField(
+        state = state,
+        labelRes = R.string.label_scene,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
+    )
+    textField(
+        state = state,
+        labelRes = R.string.label_dish,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
+    )
 }
 
 private fun LazyListScope.addChoiceFields(
@@ -258,21 +265,9 @@ private fun LazyListScope.addNoteFields(
     overallReviewOptions: List<DropdownOption>,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    textField(
-        state = state,
-        labelRes = R.string.label_scene,
-        onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
-    )
-    textField(
-        state = state,
-        labelRes = R.string.label_dish,
-        onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
-    )
     item {
         LabeledTextField(
-            label = reviewTextResource(R.string.label_comment),
+            label = reviewTextResource(R.string.label_cautions),
             value = state.comment,
             onValueChange = { next ->
                 onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COMMENT, value = next))
@@ -317,6 +312,24 @@ private fun LazyListScope.dateField(
                 ),
         )
     }
+}
+
+private fun LazyListScope.addBasicSceneAndDishFields(
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    textField(
+        state = state,
+        labelRes = R.string.label_scene,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
+    )
+    textField(
+        state = state,
+        labelRes = R.string.label_dish,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
+    )
 }
 
 private fun LazyListScope.textField(

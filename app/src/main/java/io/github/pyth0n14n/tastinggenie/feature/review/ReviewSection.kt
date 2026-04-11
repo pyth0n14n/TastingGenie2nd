@@ -13,6 +13,7 @@ import io.github.pyth0n14n.tastinggenie.R
 enum class ReviewSection(
     @StringRes val labelRes: Int,
 ) {
+    BASIC(R.string.label_review_section_basic),
     APPEARANCE(R.string.label_review_section_appearance),
     AROMA(R.string.label_review_section_aroma),
     TASTE(R.string.label_review_section_taste),

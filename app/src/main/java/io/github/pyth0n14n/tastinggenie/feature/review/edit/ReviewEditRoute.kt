@@ -45,7 +45,7 @@ fun ReviewEditRoute(
     viewModel: ReviewEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.APPEARANCE.name) }
+    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.BASIC.name) }
     val selectedSection = ReviewSection.valueOf(selectedSectionName)
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
@@ -86,7 +86,7 @@ fun ReviewEditScreen(
                         if (content.state.sakeName.isBlank()) {
                             stringResource(R.string.screen_review_edit)
                         } else {
-                            content.state.sakeName
+                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
                         },
                     )
                 },

@@ -31,7 +31,7 @@ fun ReviewDetailRoute(
     viewModel: ReviewDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.APPEARANCE.name) }
+    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.BASIC.name) }
     val selectedSection = ReviewSection.valueOf(selectedSectionName)
     LaunchedEffect(refreshRequested) {
         if (refreshRequested) {
@@ -60,7 +60,15 @@ fun ReviewDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.screen_review_detail)) },
+                title = {
+                    Text(
+                        if (content.state.sakeName.isBlank()) {
+                            stringResource(R.string.screen_review_detail)
+                        } else {
+                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                        },
+                    )
+                },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
                         Text(stringResource(R.string.action_back))

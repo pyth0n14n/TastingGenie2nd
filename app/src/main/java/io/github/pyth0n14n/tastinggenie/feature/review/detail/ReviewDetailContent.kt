@@ -35,7 +35,6 @@ fun ReviewDetailContent(
 ) {
     val textLabels =
         ReviewDetailTextLabels(
-            sake = stringResource(R.string.label_sake),
             reviewDate = stringResource(R.string.label_review_date),
             bar = stringResource(R.string.label_bar),
             price = stringResource(R.string.label_price),
@@ -62,7 +61,7 @@ fun ReviewDetailContent(
             individuality = stringResource(R.string.label_other_individuality),
             scene = stringResource(R.string.label_scene),
             dish = stringResource(R.string.label_dish),
-            cautions = stringResource(R.string.label_comment),
+            cautions = stringResource(R.string.label_cautions),
             overallReview = stringResource(R.string.label_overall_review),
         )
     val viscosityLabels =
@@ -73,7 +72,6 @@ fun ReviewDetailContent(
             VISCOSITY_STRONG to stringResource(R.string.label_viscosity_4),
             VISCOSITY_VERY_STRONG to stringResource(R.string.label_viscosity_5),
         )
-    val commonRows = reviewDetailCommonRows(content.review, content.sakeName, content.labels, textLabels)
     val sectionRows =
         reviewDetailSectionRows(
             review = content.review,
@@ -88,9 +86,6 @@ fun ReviewDetailContent(
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
-        items(items = commonRows, key = { row -> row.key }) { row ->
-            DetailValue(label = row.label, value = row.value)
-        }
         item(key = "review_section_tabs", contentType = "tabs") {
             ReviewSectionTabs(
                 selectedSection = content.selectedSection,
@@ -130,13 +125,11 @@ data class ReviewDetailContentState(
     val onSectionSelected: (ReviewSection) -> Unit,
 )
 
-private fun MutableList<DetailRow>.addGeneralRows(
+private fun MutableList<DetailRow>.addBasicRows(
     review: Review,
-    sakeName: String,
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
 ) {
-    add(DetailRow(key = textLabels.sake, label = textLabels.sake, value = sakeName))
     add(DetailRow(key = "reviewDate", label = textLabels.reviewDate, value = review.date.toString()))
     addIfNotBlank(label = textLabels.bar, value = review.bar)
     addIfNotBlank(label = textLabels.price, value = review.price?.toString())
@@ -144,6 +137,14 @@ private fun MutableList<DetailRow>.addGeneralRows(
     addIfNotBlank(
         label = textLabels.temperature,
         value = review.temperature?.let { labels.temperature[it.name] ?: it.name },
+    )
+    addIfNotBlank(
+        label = textLabels.scene,
+        value = review.scene,
+    )
+    addIfNotBlank(
+        label = textLabels.dish,
+        value = review.dish,
     )
 }
 
@@ -228,29 +229,12 @@ private fun MutableList<DetailRow>.addOtherRows(
     labels: ReviewDetailLabels,
 ) {
     addIfNotBlank(label = textLabels.individuality, value = review.otherIndividuality)
-    addIfNotBlank(label = textLabels.scene, value = review.scene)
-    addIfNotBlank(label = textLabels.dish, value = review.dish)
     addIfNotBlank(label = textLabels.cautions, value = review.otherCautions)
     addIfNotBlank(
         label = textLabels.overallReview,
         value = review.otherOverallReview?.let { labels.overallReview[it.name] ?: it.name },
     )
 }
-
-private fun reviewDetailCommonRows(
-    review: Review,
-    sakeName: String,
-    labels: ReviewDetailLabels,
-    textLabels: ReviewDetailTextLabels,
-): List<DetailRow> =
-    buildList {
-        addGeneralRows(
-            review = review,
-            sakeName = sakeName,
-            labels = labels,
-            textLabels = textLabels,
-        )
-    }
 
 private fun reviewDetailSectionRows(
     review: Review,
@@ -261,6 +245,12 @@ private fun reviewDetailSectionRows(
 ): List<DetailRow> =
     buildList {
         when (selectedSection) {
+            ReviewSection.BASIC ->
+                addBasicRows(
+                    review = review,
+                    labels = labels,
+                    textLabels = textLabels,
+                )
             ReviewSection.APPEARANCE ->
                 addAppearanceRows(
                     review = review,
@@ -292,7 +282,6 @@ private data class DetailRow(
 )
 
 private data class ReviewDetailTextLabels(
-    val sake: String,
     val reviewDate: String,
     val bar: String,
     val price: String,
