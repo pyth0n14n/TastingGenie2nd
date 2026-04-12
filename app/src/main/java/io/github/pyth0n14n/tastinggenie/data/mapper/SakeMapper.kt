@@ -1,14 +1,17 @@
 package io.github.pyth0n14n.tastinggenie.data.mapper
 
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 
 fun SakeEntity.toDomain(): Sake =
     Sake(
         id = id,
         name = name,
         grade = grade,
+        isPinned = isPinned,
         imageUri = imageUri,
         gradeOther = gradeOther,
         type = type,
@@ -32,6 +35,7 @@ fun SakeInput.toEntity(): SakeEntity =
         id = id ?: 0L,
         name = name,
         grade = grade,
+        isPinned = isPinned,
         imageUri = imageUri,
         gradeOther = gradeOther,
         type = type,
@@ -48,4 +52,10 @@ fun SakeInput.toEntity(): SakeEntity =
         amino = amino,
         yeast = yeast,
         water = water,
+    )
+
+fun SakeListSummaryRow.toDomain(): SakeListSummary =
+    SakeListSummary(
+        sake = sake.toDomain(),
+        latestOverallReview = latestOverallReview,
     )

@@ -30,6 +30,7 @@ fun SakeEditUiState.toValidatedInput(): SakeInput? {
         id = sakeId,
         name = name.trim(),
         grade = currentGrade,
+        isPinned = isPinned,
         gradeOther = gradeOther.normalizedOrNull()?.takeIf { currentGrade == SakeGrade.OTHER },
         type = classifications,
         typeOther = typeOther.normalizedOrNull()?.takeIf { classifications.contains(SakeClassification.OTHER) },

@@ -4,6 +4,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,9 +13,16 @@ import kotlinx.coroutines.flow.Flow
 interface SakeRepository {
     fun observeSakes(): Flow<List<Sake>>
 
+    fun observeSakeListSummaries(): Flow<List<SakeListSummary>>
+
     suspend fun getSake(id: SakeId): Sake?
 
     suspend fun upsertSake(input: SakeInput): SakeId
+
+    suspend fun setPinned(
+        id: SakeId,
+        isPinned: Boolean,
+    )
 
     suspend fun deleteSake(id: SakeId): SakeDeleteResult
 }

@@ -307,6 +307,7 @@ private fun SakeEditUiState.withLoadedData(
         classificationOptions = master.classifications,
         prefectureOptions = master.prefectures,
         sakeId = existing?.id,
+        isPinned = existing?.isPinned ?: false,
         name = existing?.name.orEmpty(),
         grade = existing?.grade,
         imagePreviewUri = existing?.imageUri,

@@ -29,6 +29,7 @@ fun SakeEntity.toSerializable(): SerializableSake =
         id = id,
         name = name,
         grade = grade.name,
+        isPinned = isPinned,
         gradeOther = gradeOther,
         type = type.map { classification -> classification.name },
         typeOther = typeOther,
@@ -53,6 +54,7 @@ fun SerializableSake.toImportedEntity(): SakeEntity =
                 .trim()
                 .also { trimmedName -> require(trimmedName.isNotEmpty()) { "Backup sake name must not be blank" } },
         grade = enumValueOf<SakeGrade>(grade),
+        isPinned = isPinned,
         imageUri = null,
         gradeOther = gradeOther,
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
