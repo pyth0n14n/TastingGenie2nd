@@ -5,9 +5,12 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +51,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
+private const val SAKE_EDIT_FORM_TAG = "sake_edit_form"
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,6 +134,12 @@ fun SakeEditScreen(
     }
     Scaffold(
         topBar = { SakeEditTopBar(onBack = onBack) },
+        bottomBar = {
+            SakeEditBottomBar(
+                state = state,
+                onSave = onSave,
+            )
+        },
     ) { padding ->
         DeleteSakeImageDialog(
             isVisible = isDeleteImageDialogVisible,
@@ -141,7 +153,8 @@ fun SakeEditScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(padding),
+                    .padding(padding)
+                    .testTag(SAKE_EDIT_FORM_TAG),
             state = listState,
             contentPadding = PaddingValues(SCREEN_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
@@ -158,10 +171,6 @@ fun SakeEditScreen(
                 callbacks = callbacks,
                 onDeleteImageRequest = { isDeleteImageDialogVisible = true },
             )
-            sakeEditFooterItems(
-                state = state,
-                onSave = onSave,
-            )
         }
     }
 }
@@ -172,25 +181,37 @@ private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditHeaderItems()
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditFooterItems(
+@Composable
+private fun SakeEditBottomBar(
     state: SakeEditUiState,
     onSave: () -> Unit,
 ) {
-    item(key = SAKE_ROW_ERROR, contentType = "error") {
-        if (state.error != null) {
-            Text(
-                text = stringResource(state.error.messageResId),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
+    Surface(
+        tonalElevation = 2.dp,
+        shadowElevation = 2.dp,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = SCREEN_PADDING.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            state.error?.let { error ->
+                Text(
+                    text = stringResource(error.messageResId),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            SaveButton(
+                isSaving = state.isSaving,
+                isEnabled = !state.isEditTargetMissing,
+                onSave = onSave,
             )
         }
-    }
-    item(key = SAKE_ROW_SAVE, contentType = "save") {
-        SaveButton(
-            isSaving = state.isSaving,
-            isEnabled = !state.isEditTargetMissing,
-            onSave = onSave,
-        )
     }
 }
 
@@ -245,15 +266,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
                 ),
         )
     }
-    item(key = SAKE_ROW_IMAGE) {
-        SakeImageField(
-            imageUri = state.imagePreviewUri,
-            isSaving = state.isSaving,
-            onPickImage = callbacks.onPickImageRequest,
-            onCaptureImage = callbacks.onCaptureImageRequest,
-            onDeleteImageRequest = onDeleteImageRequest,
-        )
-    }
     if (state.grade == SakeGrade.OTHER) {
         textFieldItem(
             labelRes = R.string.label_grade_other,
@@ -261,6 +273,15 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
             callbacks = callbacks,
             ui = SakeTextFieldUi(value = state.gradeOther, field = SakeTextField.GRADE_OTHER),
             itemKey = SAKE_ROW_GRADE_OTHER,
+        )
+    }
+    item(key = SAKE_ROW_IMAGE) {
+        SakeImageField(
+            imageUri = state.imagePreviewUri,
+            isSaving = state.isSaving,
+            onPickImage = callbacks.onPickImageRequest,
+            onCaptureImage = callbacks.onCaptureImageRequest,
+            onDeleteImageRequest = onDeleteImageRequest,
         )
     }
 }

@@ -37,10 +37,10 @@ internal fun SakeEditUiState.visibleSakeEditRowKeys(): List<String> =
         add(SAKE_ROW_REQUIRED_HINT)
         add(SAKE_ROW_NAME)
         add(SAKE_ROW_GRADE)
-        add(SAKE_ROW_IMAGE)
         if (grade == SakeGrade.OTHER) {
             add(SAKE_ROW_GRADE_OTHER)
         }
+        add(SAKE_ROW_IMAGE)
         add(SAKE_ROW_CLASSIFICATION)
         if (classifications.contains(SakeClassification.OTHER)) {
             add(SAKE_ROW_CLASSIFICATION_OTHER)

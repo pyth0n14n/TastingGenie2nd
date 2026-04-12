@@ -181,6 +181,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Swipe `ReviewEdit` and `ReviewDetail` horizontally and verify the visible section changes while the selected tab stays in sync.
   - Scroll or swipe within `ReviewEdit` and verify the save button remains visible and enabled/disabled state is preserved.
 
+### Problem: Sake edit save action disappears at the end of a long form.
+- **Example**: `SakeEdit` keeps the error text and save button inside the `LazyColumn`, so scrolling through metadata fields can hide the primary action entirely.
+- **Preventive Measure**: Keep `SakeEdit` save/error feedback in a fixed bottom bar, not as the last rows of the form list. The form may scroll independently, but the primary save action should remain visible while editing and while the IME is shown.
+- **Test Coverage**:
+  - Scroll `SakeEdit` through lower metadata fields and verify the save button remains visible.
+  - Trigger an edit error state and verify the error message is shown in the fixed bottom bar together with the save action.
+
 ### Problem: Optional dropdowns cannot be cleared to null.
 - **Example**: Once selected, cannot deselect optional review fields.
 - **Root Cause**: From commit `503eb59` (test(review): cover PR4 viewmodel flows) - No "none" option in dropdowns.
@@ -283,7 +290,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Expand classification groups and verify options are shown under the correct headings.
   - Select `OTHER` in sake classification and verify the free-text field appears.
-  - Verify the `OTHER` free-text field is rendered immediately below the classification selector, not below unrelated fields such as the image.
+  - Select `OTHER` in sake grade/type and verify the free-text field is rendered immediately below the grade selector, not below unrelated fields such as the image.
   - Select and clear prefecture; verify the field returns to `未選択`.
 
 ### Problem: Sake type masters regress when a non-special-designation option is added.
