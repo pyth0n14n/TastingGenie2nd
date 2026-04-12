@@ -56,6 +56,7 @@ private suspend fun cleanupCommittedImageMutation(
                 if (!previousImageUri.isNullOrBlank() && previousImageUri != importedImageUri) {
                     sakeImageRepository.deleteImage(previousImageUri)
                 }
+                sakeImageRepository.deleteImage(snapshot.pendingImageSourceUri)
             }
 
             snapshot.isImageMarkedForDeletion -> sakeImageRepository.deleteImage(previousImageUri)

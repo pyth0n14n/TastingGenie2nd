@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
+import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,6 +31,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.image.PendingSakeCameraCapture
+import io.github.pyth0n14n.tastinggenie.image.createPendingSakeCameraCapture
+import io.github.pyth0n14n.tastinggenie.image.deletePendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
@@ -49,9 +54,24 @@ fun SakeEditRoute(
     viewModel: SakeEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var pendingCameraCapture by remember { mutableStateOf<PendingSakeCameraCapture?>(null) }
     val imagePickerLauncher =
         rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
             uri?.toString()?.let(viewModel::onImageSelected)
+        }
+    val cameraCaptureLauncher =
+        rememberLauncherForActivityResult(TakePicture()) { isSuccess ->
+            val capture = pendingCameraCapture
+            pendingCameraCapture = null
+            if (capture == null) {
+                return@rememberLauncherForActivityResult
+            }
+            if (isSuccess) {
+                viewModel.onImageSelected(capture.sourceUri)
+            } else {
+                context.deletePendingSakeCameraCapture(capture.sourceUri)
+            }
         }
     val callbacks =
         SakeEditCallbacks(
@@ -61,6 +81,11 @@ fun SakeEditRoute(
             onPrefectureSelected = viewModel::onPrefectureSelected,
             onPickImageRequest = {
                 imagePickerLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+            },
+            onCaptureImageRequest = {
+                val capture = context.createPendingSakeCameraCapture()
+                pendingCameraCapture = capture
+                cameraCaptureLauncher.launch(capture.launchUri)
             },
             onDeleteImage = viewModel::removeImage,
         )
@@ -225,6 +250,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
             imageUri = state.imagePreviewUri,
             isSaving = state.isSaving,
             onPickImage = callbacks.onPickImageRequest,
+            onCaptureImage = callbacks.onCaptureImageRequest,
             onDeleteImageRequest = onDeleteImageRequest,
         )
     }
@@ -306,6 +332,7 @@ data class SakeEditCallbacks(
     val onClassificationToggled: (String) -> Unit,
     val onPrefectureSelected: (String?) -> Unit,
     val onPickImageRequest: () -> Unit,
+    val onCaptureImageRequest: () -> Unit,
     val onDeleteImage: () -> Unit,
 )
 
