@@ -6,13 +6,13 @@ import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
+import io.github.pyth0n14n.tastinggenie.image.SAKE_MANAGED_IMAGE_DIRECTORY
+import io.github.pyth0n14n.tastinggenie.image.ownedSakeImageFileOrNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
-
-private const val SAKE_IMAGE_DIRECTORY = "images/sakes"
 
 class SakeImageRepositoryImpl
     @Inject
@@ -47,7 +47,7 @@ class SakeImageRepositoryImpl
         }
 
         private fun createManagedImageFile(source: Uri): File {
-            val directory = File(context.filesDir, SAKE_IMAGE_DIRECTORY).apply { mkdirs() }
+            val directory = File(context.filesDir, SAKE_MANAGED_IMAGE_DIRECTORY).apply { mkdirs() }
             val extension = source.extensionOrNull(context)
             val filename =
                 buildString {
@@ -58,28 +58,12 @@ class SakeImageRepositoryImpl
         }
 
         private fun deleteManagedImage(imageUri: String?) {
-            val targetFile = imageUri?.toManagedFileOrNull() ?: return
+            val targetFile = context.ownedSakeImageFileOrNull(imageUri) ?: return
             if (targetFile.exists()) {
                 targetFile.delete()
             }
         }
-
-        private fun String.toManagedFileOrNull(): File? {
-            val parsed = Uri.parse(this)
-            val file =
-                parsed.path
-                    ?.takeIf { parsed.scheme == SCHEME_FILE }
-                    ?.let(::File)
-            val canonicalRoot = File(context.filesDir, SAKE_IMAGE_DIRECTORY).canonicalFile
-            val canonicalFile = file?.canonicalFile
-            val rootPath = canonicalRoot.path + File.separator
-            return canonicalFile?.takeIf { candidate ->
-                candidate.path.startsWith(rootPath)
-            }
-        }
     }
-
-private const val SCHEME_FILE = "file"
 
 private fun Uri.extensionOrNull(context: Context): String? {
     val contentResolverExtension =
