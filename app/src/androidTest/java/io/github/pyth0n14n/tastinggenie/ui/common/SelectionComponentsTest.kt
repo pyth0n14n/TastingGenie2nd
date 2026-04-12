@@ -6,17 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.click
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -128,8 +124,8 @@ class SelectionComponentsTest {
         }
 
         composeRule.onNodeWithText("未選択", useUnmergedTree = true).performTouchInput { click() }
-        composeRule.onNodeWithText("選択").assertIsDisplayed()
-        composeRule.onNodeWithText("キャンセル").assertIsDisplayed()
+        assertDisplayed(composeRule.onNodeWithText("選択"))
+        assertDisplayed(composeRule.onNodeWithText("キャンセル"))
     }
 
     @Test
@@ -153,14 +149,15 @@ class SelectionComponentsTest {
             )
         }
 
-        composeRule.onNodeWithText("香味強度").assertIsDisplayed()
-        composeRule.onNodeWithText("クリア").assertIsDisplayed().assertIsNotEnabled()
-        composeRule.onNode(selectableOption("強い")).assertIsNotSelected()
-        composeRule.onNode(selectableOption("強い")).performClick()
+        assertDisplayed(composeRule.onNodeWithText("香味強度"))
+        assertDisplayed(composeRule.onNodeWithText("クリア"))
+        composeRule.onNodeWithText("クリア").assertIsNotEnabled()
+        composeRule.onNodeWithText("強い").assertIsNotSelected()
+        composeRule.onNodeWithText("強い").performClick()
         composeRule.runOnIdle { assertEquals("HIGH", selectedValue) }
-        composeRule.onNode(selectableOption("強い")).assertIsSelected()
-        composeRule.onNode(selectableOption("弱い")).assertIsNotSelected()
-        composeRule.onNodeWithText("クリア").assertIsEnabled()
+        composeRule.onNodeWithText("強い").assertIsSelected()
+        composeRule.onNodeWithText("弱い").assertIsNotSelected()
+        assertEnabled(composeRule.onNodeWithText("クリア"))
     }
 
     @Test
@@ -184,10 +181,10 @@ class SelectionComponentsTest {
             )
         }
 
-        composeRule.onNode(selectableOption("中程度")).performClick()
+        composeRule.onNodeWithText("中程度").performClick()
         composeRule.runOnIdle { assertEquals("MEDIUM", selectedValue) }
-        composeRule.onNode(selectableOption("中程度")).assertIsSelected()
-        composeRule.onNodeWithText("中程度").assertIsDisplayed()
+        composeRule.onNodeWithText("中程度").assertIsSelected()
+        assertDisplayed(composeRule.onNodeWithText("中程度"))
     }
 
     @Test
@@ -209,9 +206,10 @@ class SelectionComponentsTest {
             )
         }
 
-        composeRule.onNode(selectableOption("温度10")).assertIsDisplayed().performClick()
+        assertDisplayed(composeRule.onNodeWithText("温度10"))
+        composeRule.onNodeWithText("温度10").performClick()
         composeRule.runOnIdle { assertEquals("LEVEL_10", selectedValue) }
-        composeRule.onNode(selectableOption("温度10")).assertIsSelected()
+        composeRule.onNodeWithText("温度10").assertIsSelected()
     }
 
     @Test
@@ -237,7 +235,7 @@ class SelectionComponentsTest {
 
         composeRule.onNodeWithText("クリア").performClick()
         composeRule.runOnIdle { assertEquals(null, selectedValue) }
-        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        assertDisplayed(composeRule.onNodeWithText("未選択"))
         composeRule.onNodeWithText("クリア").assertIsNotEnabled()
     }
 
@@ -252,8 +250,8 @@ class SelectionComponentsTest {
             )
         }
 
-        composeRule.onNodeWithText("香味強度").assertIsDisplayed()
-        composeRule.onNodeWithText("未選択").assertIsDisplayed()
+        assertDisplayed(composeRule.onNodeWithText("香味強度"))
+        assertDisplayed(composeRule.onNodeWithText("未選択"))
         composeRule.onNodeWithText("クリア").assertIsNotEnabled()
     }
 
@@ -287,5 +285,10 @@ class SelectionComponentsTest {
     }
 }
 
-private fun selectableOption(label: String): SemanticsMatcher =
-    hasText(label) and SemanticsMatcher.keyIsDefined(SemanticsProperties.Selected)
+private fun assertDisplayed(interaction: SemanticsNodeInteraction) {
+    interaction.fetchSemanticsNode()
+}
+
+private fun assertEnabled(interaction: SemanticsNodeInteraction) {
+    assertTrue(!interaction.fetchSemanticsNode().config.contains(SemanticsProperties.Disabled))
+}
