@@ -7,6 +7,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -95,6 +96,64 @@ class SakeRepositoryImplTest {
         }
 
     @Test
+    fun observeSakeListSummaries_sortsPinnedFirstAndLoadsLatestOverallReview() =
+        runTest {
+            val pinnedId =
+                database.sakeDao().insert(
+                    createSake(
+                        name = "後ろ",
+                        isPinned = true,
+                    ),
+                )
+            val normalId =
+                database.sakeDao().insert(
+                    createSake(
+                        name = "前",
+                        isPinned = false,
+                    ),
+                )
+            database.reviewDao().insert(
+                createReview(
+                    sakeId = normalId,
+                    comment = "old",
+                    overallReview = OverallReview.BAD,
+                    date = LocalDate.parse("2026-03-13"),
+                ),
+            )
+            database.reviewDao().insert(
+                createReview(
+                    sakeId = normalId,
+                    comment = "new",
+                    overallReview = OverallReview.GOOD,
+                    date = LocalDate.parse("2026-03-14"),
+                ),
+            )
+
+            val summaries = repository.observeSakeListSummaries().first { it.size == 2 }
+
+            assertEquals(pinnedId, summaries.first().sake.id)
+            assertEquals(normalId, summaries.last().sake.id)
+            assertEquals(OverallReview.GOOD, summaries.last().latestOverallReview)
+        }
+
+    @Test
+    fun setPinned_updatesStoredFlag() =
+        runTest {
+            val createdId =
+                repository.upsertSake(
+                    SakeInput(
+                        name = "固定対象",
+                        grade = SakeGrade.JUNMAI,
+                    ),
+                )
+
+            repository.setPinned(id = createdId, isPinned = true)
+
+            val loaded = repository.getSake(createdId)
+            assertEquals(true, loaded?.isPinned)
+        }
+
+    @Test
     fun deleteSake_removesReviewsAndDeletesImage() =
         runTest {
             val sakeId =
@@ -160,10 +219,12 @@ class SakeRepositoryImplTest {
     private fun createSake(
         name: String,
         imageUri: String? = null,
+        isPinned: Boolean = false,
     ): SakeEntity =
         SakeEntity(
             name = name,
             grade = SakeGrade.JUNMAI,
+            isPinned = isPinned,
             imageUri = imageUri,
             gradeOther = null,
             type = emptyList(),
@@ -185,10 +246,12 @@ class SakeRepositoryImplTest {
     private fun createReview(
         sakeId: Long,
         comment: String,
+        overallReview: OverallReview? = null,
+        date: LocalDate = LocalDate.parse("2026-03-14"),
     ): ReviewEntity =
         ReviewEntity(
             sakeId = sakeId,
-            dateEpochDay = LocalDate.parse("2026-03-14").toEpochDay(),
+            dateEpochDay = date.toEpochDay(),
             bar = null,
             price = null,
             volume = null,
@@ -217,7 +280,7 @@ class SakeRepositoryImplTest {
             tasteComplexity = null,
             otherIndividuality = null,
             otherCautions = comment,
-            otherOverallReview = null,
+            otherOverallReview = overallReview,
         )
 }
 

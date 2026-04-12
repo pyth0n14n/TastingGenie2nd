@@ -8,6 +8,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
@@ -20,6 +21,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -657,6 +659,9 @@ class RecordingSakeRepository(
 
     override fun observeSakes(): Flow<List<Sake>> = stream
 
+    override fun observeSakeListSummaries(): Flow<List<SakeListSummary>> =
+        stream.map { list -> list.map { SakeListSummary(it) } }
+
     override suspend fun getSake(id: SakeId): Sake? = stream.value.firstOrNull { it.id == id }
 
     override suspend fun upsertSake(input: SakeInput): SakeId {
@@ -668,6 +673,7 @@ class RecordingSakeRepository(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                isPinned = input.isPinned,
                 imageUri = input.imageUri,
                 gradeOther = input.gradeOther,
                 type = input.type,
@@ -688,6 +694,20 @@ class RecordingSakeRepository(
         mutable.add(mapped)
         stream.value = mutable
         return id
+    }
+
+    override suspend fun setPinned(
+        id: SakeId,
+        isPinned: Boolean,
+    ) {
+        stream.value =
+            stream.value.map { sake ->
+                if (sake.id == id) {
+                    sake.copy(isPinned = isPinned)
+                } else {
+                    sake
+                }
+            }
     }
 
     override suspend fun deleteSake(id: SakeId): SakeDeleteResult {

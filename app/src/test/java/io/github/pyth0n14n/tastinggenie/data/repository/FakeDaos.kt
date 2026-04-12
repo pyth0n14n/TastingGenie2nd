@@ -4,6 +4,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -14,6 +15,15 @@ class FakeSakeDao : SakeDao {
     private var nextId: Long = 1L
 
     override fun observeAll(): Flow<List<SakeEntity>> = stream.map { list -> list.sortedBy { it.name } }
+
+    override fun observeListSummaries(): Flow<List<SakeListSummaryRow>> =
+        stream.map { list ->
+            list
+                .sortedWith(compareByDescending<SakeEntity> { it.isPinned }.thenBy { it.name })
+                .map { entity ->
+                    SakeListSummaryRow(sake = entity, latestOverallReview = null)
+                }
+        }
 
     override suspend fun getById(id: Long): SakeEntity? = entries.firstOrNull { it.id == id }
 
@@ -35,6 +45,20 @@ class FakeSakeDao : SakeDao {
         val index = entries.indexOfFirst { it.id == entity.id }
         return if (index >= 0) {
             entries[index] = entity
+            emit()
+            1
+        } else {
+            0
+        }
+    }
+
+    override suspend fun updatePinned(
+        id: Long,
+        isPinned: Boolean,
+    ): Int {
+        val index = entries.indexOfFirst { it.id == id }
+        return if (index >= 0) {
+            entries[index] = entries[index].copy(isPinned = isPinned)
             emit()
             1
         } else {

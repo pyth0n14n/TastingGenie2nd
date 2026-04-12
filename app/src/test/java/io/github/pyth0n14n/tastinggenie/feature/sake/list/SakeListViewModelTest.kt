@@ -11,6 +11,8 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
@@ -66,9 +68,10 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
+            val firstSake = state.sakes.first().sake
             assertFalse(state.isLoading)
             assertEquals(1, state.sakes.size)
-            assertEquals("テスト銘柄", state.sakes.first().name)
+            assertEquals("テスト銘柄", firstSake.name)
             assertEquals("純米", state.gradeLabels[SakeGrade.JUNMAI.name])
             assertEquals(true, state.showImagePreview)
             assertEquals(null, state.error)
@@ -110,6 +113,64 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             assertEquals(false, viewModel.uiState.value.showImagePreview)
+        }
+
+    @Test
+    fun uiState_keepsPinnedSakeAtTopAndExposesLatestOverallReview() =
+        runTest {
+            val repository =
+                FakeSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = 1L,
+                                name = "B酒",
+                                grade = SakeGrade.JUNMAI,
+                            ),
+                            Sake(
+                                id = 2L,
+                                name = "A酒",
+                                grade = SakeGrade.GINJO,
+                                isPinned = true,
+                            ),
+                        ),
+                    summaries =
+                        listOf(
+                            SakeListSummary(
+                                sake =
+                                    Sake(
+                                        id = 2L,
+                                        name = "A酒",
+                                        grade = SakeGrade.GINJO,
+                                        isPinned = true,
+                                    ),
+                                latestOverallReview = null,
+                            ),
+                            SakeListSummary(
+                                sake =
+                                    Sake(
+                                        id = 1L,
+                                        name = "B酒",
+                                        grade = SakeGrade.JUNMAI,
+                                    ),
+                                latestOverallReview = OverallReview.GOOD,
+                            ),
+                        ),
+                )
+            val viewModel =
+                SakeListViewModel(
+                    repository,
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            val firstSake = state.sakes.first().sake
+            assertEquals(2L, firstSake.id)
+            assertEquals(OverallReview.GOOD, state.sakes.last().latestOverallReview)
+            assertEquals("好き", state.overallReviewLabels[OverallReview.GOOD.name])
         }
 
     @Test
@@ -182,7 +243,7 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(emptyList<Sake>(), state.sakes)
+            assertEquals(emptyList<SakeListSummary>(), state.sakes)
             assertEquals(null, state.pendingDeleteSake)
             assertEquals(null, state.deleteError)
             assertEquals(listOf(DELETE_SAKE_ID), sakeRepository.deletedIds)
@@ -223,7 +284,7 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            assertEquals(emptyList<Sake>(), state.sakes)
+            assertEquals(emptyList<SakeListSummary>(), state.sakes)
             assertEquals(R.string.error_delete_sake_image_cleanup, state.deleteError?.messageResId)
         }
 
@@ -317,13 +378,17 @@ class SakeListViewModelTest {
 
 private class FakeSakeRepository(
     initial: List<Sake>,
+    summaries: List<SakeListSummary>? = null,
     private val deleteResult: SakeDeleteResult = SakeDeleteResult(isDeleted = true),
     private val deleteFailure: Throwable? = null,
 ) : SakeRepository {
     private val stream = MutableStateFlow(initial)
+    private val summaryStream = MutableStateFlow(summaries ?: initial.map { sake -> SakeListSummary(sake = sake) })
     val deletedIds = mutableListOf<SakeId>()
 
     override fun observeSakes(): Flow<List<Sake>> = stream
+
+    override fun observeSakeListSummaries(): Flow<List<SakeListSummary>> = summaryStream
 
     override suspend fun getSake(id: SakeId): Sake? = stream.value.firstOrNull { it.id == id }
 
@@ -334,11 +399,36 @@ private class FakeSakeRepository(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                isPinned = input.isPinned,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
         stream.value = mutable.sortedBy { it.id }
+        summaryStream.value = stream.value.map { sake -> SakeListSummary(sake = sake) }
         return id
+    }
+
+    override suspend fun setPinned(
+        id: SakeId,
+        isPinned: Boolean,
+    ) {
+        stream.value =
+            stream.value.map { sake ->
+                if (sake.id == id) {
+                    sake.copy(isPinned = isPinned)
+                } else {
+                    sake
+                }
+            }
+        summaryStream.value =
+            summaryStream.value
+                .map { summary ->
+                    if (summary.sake.id == id) {
+                        summary.copy(sake = summary.sake.copy(isPinned = isPinned))
+                    } else {
+                        summary
+                    }
+                }.sortedWith(compareByDescending<SakeListSummary> { it.sake.isPinned }.thenBy { it.sake.name })
     }
 
     override suspend fun deleteSake(id: SakeId): SakeDeleteResult {
@@ -348,6 +438,7 @@ private class FakeSakeRepository(
         }
         deletedIds += id
         stream.value = stream.value.filterNot { sake -> sake.id == id }
+        summaryStream.value = summaryStream.value.filterNot { summary -> summary.sake.id == id }
         return deleteResult
     }
 }
@@ -355,9 +446,17 @@ private class FakeSakeRepository(
 private class FailingObserveSakeRepository : SakeRepository {
     override fun observeSakes(): Flow<List<Sake>> = flow { throw IllegalStateException("failed") }
 
+    override fun observeSakeListSummaries(): Flow<List<SakeListSummary>> =
+        flow { throw IllegalStateException("failed") }
+
     override suspend fun getSake(id: SakeId): Sake? = null
 
     override suspend fun upsertSake(input: SakeInput): SakeId = 1L
+
+    override suspend fun setPinned(
+        id: SakeId,
+        isPinned: Boolean,
+    ) = Unit
 
     override suspend fun deleteSake(id: SakeId): SakeDeleteResult = SakeDeleteResult(isDeleted = false)
 }
@@ -416,7 +515,7 @@ private class FakeMasterDataRepository : MasterDataRepository {
             prefectures = emptyList(),
             intensityLevels = emptyList(),
             tasteLevels = emptyList(),
-            overallReviews = emptyList(),
+            overallReviews = listOf(MasterOption(value = OverallReview.GOOD.name, label = "好き")),
             aromaCategories = emptyList(),
         )
 }

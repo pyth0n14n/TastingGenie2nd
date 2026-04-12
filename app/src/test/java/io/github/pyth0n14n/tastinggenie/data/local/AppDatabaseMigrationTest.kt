@@ -19,12 +19,14 @@ private const val MIGRATED_REVIEW_EPOCH_DAY = 20_000L
 private const val LEGACY_REVIEW_VISCOSITY = 4
 private const val LEGACY_DATABASE_VERSION_3 = 3
 private const val VERSION_3_IDENTITY_HASH = "da56d247c1fa344031cd57474b9c205b"
+private const val LEGACY_DATABASE_VERSION_4 = 4
+private const val VERSION_4_IDENTITY_HASH = "27982588b87f31977215b1657c8d2594"
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_4_preservesExistingSakeData() {
+    fun migration_1_5_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -37,6 +39,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_1_2,
                 AppDatabaseMigrations.MIGRATION_2_3,
                 AppDatabaseMigrations.MIGRATION_3_4,
+                AppDatabaseMigrations.MIGRATION_4_5,
             )
             val database = databaseBuilder.build()
 
@@ -45,6 +48,7 @@ class AppDatabaseMigrationTest {
             assertEquals("分類その他", migrated.typeOther)
             assertNull(migrated.gradeOther)
             assertNull(migrated.imageUri)
+            assertEquals(false, migrated.isPinned)
 
             database.close()
             context.deleteDatabase(databaseName)
@@ -52,7 +56,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_4_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_5_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -64,6 +68,7 @@ class AppDatabaseMigrationTest {
             databaseBuilder.addMigrations(
                 AppDatabaseMigrations.MIGRATION_2_3,
                 AppDatabaseMigrations.MIGRATION_3_4,
+                AppDatabaseMigrations.MIGRATION_4_5,
             )
             val database = databaseBuilder.build()
 
@@ -73,6 +78,7 @@ class AppDatabaseMigrationTest {
 
             assertEquals("移行前の酒", migratedSake.name)
             assertNull(migratedSake.imageUri)
+            assertEquals(false, migratedSake.isPinned)
             assertEquals("移行前レビュー", migratedReview.otherCautions)
             assertEquals(false, reviewColumns.contains("imageUri"))
             assertEquals(false, reviewColumns.contains("comment"))
@@ -84,7 +90,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_3_4_renamesReviewColumnsAndPreservesReviewValues() {
+    fun migration_3_5_renamesReviewColumnsAndPreservesReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-3-4-test.db"
@@ -93,7 +99,10 @@ class AppDatabaseMigrationTest {
             createVersion3Database(context = context, databaseName = databaseName)
 
             val databaseBuilder = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            databaseBuilder.addMigrations(AppDatabaseMigrations.MIGRATION_3_4)
+            databaseBuilder.addMigrations(
+                AppDatabaseMigrations.MIGRATION_3_4,
+                AppDatabaseMigrations.MIGRATION_4_5,
+            )
             val database = databaseBuilder.build()
 
             val migratedReview = requireNotNull(database.reviewDao().getById(MIGRATED_REVIEW_ID))
@@ -114,11 +123,35 @@ class AppDatabaseMigrationTest {
             assertEquals("SOUND", migratedReview.appearanceSoundness.name)
             assertEquals("SOUND", migratedReview.aromaSoundness.name)
             assertEquals("SOUND", migratedReview.tasteSoundness.name)
+            assertEquals(false, requireNotNull(database.sakeDao().getById(1L)).isPinned)
             assertEquals(false, reviewColumns.contains("color"))
             assertEquals(false, reviewColumns.contains("comment"))
             assertEquals(false, reviewColumns.contains("scentBase"))
             assertTrue(reviewColumns.contains("appearanceColor"))
             assertTrue(reviewColumns.contains("otherCautions"))
+
+            database.close()
+            context.deleteDatabase(databaseName)
+        }
+    }
+
+    @Test
+    fun migration_4_5_addsPinnedColumnWithDefaultFalse() {
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val databaseName = "migration-4-5-test.db"
+            context.deleteDatabase(databaseName)
+
+            createVersion4Database(context = context, databaseName = databaseName)
+
+            val databaseBuilder = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
+            databaseBuilder.addMigrations(AppDatabaseMigrations.MIGRATION_4_5)
+            val database = databaseBuilder.build()
+
+            val migratedSake = requireNotNull(database.sakeDao().getById(1L))
+
+            assertEquals("移行前の酒", migratedSake.name)
+            assertEquals(false, migratedSake.isPinned)
 
             database.close()
             context.deleteDatabase(databaseName)
@@ -330,6 +363,41 @@ class AppDatabaseMigrationTest {
         helper.writableDatabase.close()
         helper.close()
     }
+
+    private fun createVersion4Database(
+        context: Context,
+        databaseName: String,
+    ) {
+        val helper =
+            FrameworkSQLiteOpenHelperFactory().create(
+                SupportSQLiteOpenHelper.Configuration
+                    .builder(context)
+                    .name(databaseName)
+                    .callback(
+                        object : SupportSQLiteOpenHelper.Callback(LEGACY_DATABASE_VERSION_4) {
+                            override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                                db.execSQL(createVersion4SakesTableSql())
+                                db.execSQL(createVersion4ReviewsTableSql())
+                                db.execSQL(
+                                    "CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)",
+                                )
+                                db.execSQL(createRoomMasterTableSql())
+                                db.execSQL(version4IdentitySql())
+                                db.execSQL(insertVersion4SakeSql())
+                            }
+
+                            override fun onUpgrade(
+                                db: androidx.sqlite.db.SupportSQLiteDatabase,
+                                oldVersion: Int,
+                                newVersion: Int,
+                            ) = Unit
+                        },
+                    ).build(),
+            )
+
+        helper.writableDatabase.close()
+        helper.close()
+    }
 }
 
 private fun AppDatabase.reviewColumnNames(): Set<String> {
@@ -401,11 +469,91 @@ private fun version3IdentitySql(): String =
     "INSERT OR REPLACE INTO room_master_table (id,identity_hash) " +
         "VALUES(42, '$VERSION_3_IDENTITY_HASH')"
 
+private fun version4IdentitySql(): String =
+    "INSERT OR REPLACE INTO room_master_table (id,identity_hash) " +
+        "VALUES(42, '$VERSION_4_IDENTITY_HASH')"
+
 private fun createRoomMasterTableSql(): String =
     "CREATE TABLE IF NOT EXISTS room_master_table " +
         "(id INTEGER PRIMARY KEY,identity_hash TEXT)"
 
 private fun insertVersion3SakeSql(): String =
+    """
+    INSERT INTO `sakes` (
+        `id`, `name`, `grade`, `imageUri`, `gradeOther`, `type`, `typeOther`, `maker`,
+        `prefecture`, `alcohol`, `kojiMai`, `kojiPolish`, `kakeMai`, `kakePolish`,
+        `sakeDegree`, `acidity`, `amino`, `yeast`, `water`
+    ) VALUES (
+        1, '移行前の酒', 'JUNMAI', NULL, NULL, '[]', NULL, NULL, NULL, NULL, NULL, NULL,
+        NULL, NULL, NULL, NULL, NULL, NULL, NULL
+    )
+    """.trimIndent()
+
+private fun createVersion4SakesTableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `sakes` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `name` TEXT NOT NULL,
+        `grade` TEXT NOT NULL,
+        `imageUri` TEXT,
+        `gradeOther` TEXT,
+        `type` TEXT NOT NULL,
+        `typeOther` TEXT,
+        `maker` TEXT,
+        `prefecture` TEXT,
+        `alcohol` INTEGER,
+        `kojiMai` TEXT,
+        `kojiPolish` INTEGER,
+        `kakeMai` TEXT,
+        `kakePolish` INTEGER,
+        `sakeDegree` REAL,
+        `acidity` REAL,
+        `amino` REAL,
+        `yeast` TEXT,
+        `water` TEXT
+    )
+    """.trimIndent()
+
+private fun createVersion4ReviewsTableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `reviews` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `sakeId` INTEGER NOT NULL,
+        `dateEpochDay` INTEGER NOT NULL,
+        `bar` TEXT,
+        `price` INTEGER,
+        `volume` INTEGER,
+        `temperature` TEXT,
+        `scene` TEXT,
+        `dish` TEXT,
+        `appearanceSoundness` TEXT NOT NULL,
+        `appearanceColor` TEXT,
+        `appearanceViscosity` INTEGER,
+        `aromaSoundness` TEXT NOT NULL,
+        `aromaIntensity` TEXT,
+        `aromaExamples` TEXT NOT NULL,
+        `aromaMainNote` TEXT,
+        `aromaComplexity` TEXT,
+        `tasteSoundness` TEXT NOT NULL,
+        `tasteAttack` TEXT,
+        `tasteTextureRoundness` TEXT,
+        `tasteTextureSmoothness` TEXT,
+        `tasteMainNote` TEXT,
+        `tasteSweetness` TEXT,
+        `tasteSourness` TEXT,
+        `tasteBitterness` TEXT,
+        `tasteUmami` TEXT,
+        `tasteInPalateAroma` TEXT NOT NULL,
+        `tasteAftertaste` TEXT,
+        `tasteComplexity` TEXT,
+        `otherIndividuality` TEXT,
+        `otherCautions` TEXT,
+        `otherOverallReview` TEXT,
+        FOREIGN KEY(`sakeId`) REFERENCES `sakes`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+    )
+    """.trimIndent()
+
+private fun insertVersion4SakeSql(): String =
     """
     INSERT INTO `sakes` (
         `id`, `name`, `grade`, `imageUri`, `gradeOther`, `type`, `typeOther`, `maker`,
