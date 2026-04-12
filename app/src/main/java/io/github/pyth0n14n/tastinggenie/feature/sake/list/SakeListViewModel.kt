@@ -88,6 +88,7 @@ class SakeListViewModel
                                 sakes = sakes,
                                 gradeLabels = gradeLabels,
                                 overallReviewLabels = overallReviewLabels,
+                                showHelpHints = settings.showHelpHints,
                                 showImagePreview = settings.showImagePreview,
                             )
                         }

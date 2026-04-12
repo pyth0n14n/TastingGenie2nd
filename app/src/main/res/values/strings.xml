@@ -136,9 +136,12 @@
     <string name="message_import_success">JSONを読み込みました</string>
     <string name="content_review_image">レビュー画像</string>
     <string name="content_sake_image">酒画像</string>
+    <string name="content_edit_sake">酒を編集</string>
     <string name="content_delete_sake">酒を削除</string>
     <string name="content_pin_sake">酒を固定</string>
     <string name="content_unpin_sake">酒の固定を解除</string>
+    <string name="content_latest_overall_review">最新評価 %1$s</string>
+    <string name="content_latest_overall_review_none">最新評価なし</string>
     <string name="content_delete_review">レビューを削除</string>
     <string name="content_star_rating_option">%1$s %2$d</string>
     <string name="content_flavor_profile_cell">香り %1$s、味わい %2$s</string>
@@ -184,5 +187,4 @@
     <string name="error_invalid_percentage_field">%1$sは0〜100の整数で入力してください</string>
     <string name="error_invalid_date_field">%1$sを確認してください</string>
     <string name="message_required_field_hint">* は必須項目です</string>
-    <string name="label_latest_overall_review">最新評価: %1$s</string>
 </resources>

@@ -73,6 +73,7 @@ class SakeListViewModelTest {
             assertEquals(1, state.sakes.size)
             assertEquals("テスト銘柄", firstSake.name)
             assertEquals("純米", state.gradeLabels[SakeGrade.JUNMAI.name])
+            assertEquals(true, state.showHelpHints)
             assertEquals(true, state.showImagePreview)
             assertEquals(null, state.error)
         }
@@ -113,6 +114,25 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             assertEquals(false, viewModel.uiState.value.showImagePreview)
+        }
+
+    @Test
+    fun uiState_updatesWhenHelpHintSettingChanges() =
+        runTest {
+            val settingsRepository = FakeSettingsRepository()
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = emptyList()),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            settingsRepository.updateShowHelpHints(enabled = false)
+            advanceUntilIdle()
+
+            assertEquals(false, viewModel.uiState.value.showHelpHints)
         }
 
     @Test
