@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -37,10 +39,15 @@ private const val CARD_IMAGE_RATIO_WIDTH = 4f
 private const val CARD_IMAGE_RATIO_HEIGHT = 3f
 private const val CARD_PLACEHOLDER_ALPHA = 0.45f
 
+data class SakeListCardLabels(
+    val grade: String,
+    val latestOverallReview: String? = null,
+)
+
 @Composable
 fun SakeListCard(
     sake: Sake,
-    gradeLabel: String,
+    labels: SakeListCardLabels,
     showImagePreview: Boolean,
     itemActions: SakeListItemActions,
     modifier: Modifier = Modifier,
@@ -63,35 +70,90 @@ fun SakeListCard(
                 modifier = Modifier.padding(CARD_PADDING.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    text = sake.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = gradeLabel,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Row(
+                SakeCardHeader(sake = sake, itemActions = itemActions)
+                SakeCardMeta(labels = labels)
+                SakeCardActions(
+                    sakeId = sake.id,
+                    itemActions = itemActions,
                     modifier = Modifier.align(Alignment.End),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconButton(onClick = { itemActions.onDeleteSake(sake.id) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Delete,
-                            contentDescription = stringResource(R.string.content_delete_sake),
-                        )
-                    }
-                    TextButton(onClick = { itemActions.onEditSake(sake.id) }) {
-                        Text(text = stringResource(R.string.action_edit))
-                    }
-                }
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun SakeCardHeader(
+    sake: Sake,
+    itemActions: SakeListItemActions,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = sake.name,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) }) {
+            Icon(
+                imageVector = if (sake.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription =
+                    stringResource(
+                        if (sake.isPinned) {
+                            R.string.content_unpin_sake
+                        } else {
+                            R.string.content_pin_sake
+                        },
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun SakeCardMeta(labels: SakeListCardLabels) {
+    Text(
+        text = labels.grade,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+    labels.latestOverallReview?.takeIf { it.isNotBlank() }?.let { label ->
+        Text(
+            text = stringResource(R.string.label_latest_overall_review, label),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun SakeCardActions(
+    sakeId: Long,
+    itemActions: SakeListItemActions,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = { itemActions.onDeleteSake(sakeId) }) {
+            Icon(
+                imageVector = Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.content_delete_sake),
+            )
+        }
+        TextButton(onClick = { itemActions.onEditSake(sakeId) }) {
+            Text(text = stringResource(R.string.action_edit))
         }
     }
 }
