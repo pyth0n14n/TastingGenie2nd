@@ -759,9 +759,11 @@ class RecordingSakeImageRepository(
 
     override suspend fun deleteImage(imageUri: String?) {
         imageUri?.let { uri ->
-            deletedUris += uri
-            if (uri in deleteFailures) {
-                error("delete failed for $uri")
+            if (uri.startsWith("file:///images/sakes/") || uri.startsWith("file:///cache/images/sakes/capture/")) {
+                deletedUris += uri
+                if (uri in deleteFailures) {
+                    error("delete failed for $uri")
+                }
             }
         }
     }

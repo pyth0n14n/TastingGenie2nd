@@ -15,14 +15,17 @@ import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
+@Suppress("TooManyFunctions")
 class SakeEditViewModel
     @Inject
     constructor(
@@ -64,6 +67,7 @@ class SakeEditViewModel
         }
 
         fun onImageSelected(imageUri: String) {
+            val previousPendingSourceUri = uiState.value.pendingImageSourceUri
             updateEditableState { current ->
                 current.copy(
                     imagePreviewUri = imageUri,
@@ -72,9 +76,16 @@ class SakeEditViewModel
                     error = null,
                 )
             }
+            discardPendingImageSource(
+                scope = viewModelScope,
+                sakeImageRepository = sakeImageRepository,
+                sourceUri = previousPendingSourceUri,
+                keepUri = imageUri,
+            )
         }
 
         fun removeImage() {
+            val previousPendingSourceUri = uiState.value.pendingImageSourceUri
             updateEditableState { current ->
                 current.copy(
                     imagePreviewUri = null,
@@ -83,6 +94,11 @@ class SakeEditViewModel
                     error = null,
                 )
             }
+            discardPendingImageSource(
+                scope = viewModelScope,
+                sakeImageRepository = sakeImageRepository,
+                sourceUri = previousPendingSourceUri,
+            )
         }
 
         fun onGradeSelected(value: String) {
@@ -277,7 +293,41 @@ class SakeEditViewModel
                 }
             }
         }
+
+        override fun onCleared() {
+            cleanupPendingImageSourceOnClear(
+                sourceUri = _uiState.value.pendingImageSourceUri,
+                sakeImageRepository = sakeImageRepository,
+            )
+            super.onCleared()
+        }
     }
+
+private fun discardPendingImageSource(
+    scope: CoroutineScope,
+    sakeImageRepository: SakeImageRepository,
+    sourceUri: String?,
+    keepUri: String? = null,
+) {
+    if (sourceUri.isNullOrBlank() || sourceUri == keepUri) {
+        return
+    }
+    scope.launch {
+        runCatching { sakeImageRepository.deleteImage(sourceUri) }
+    }
+}
+
+private fun cleanupPendingImageSourceOnClear(
+    sourceUri: String?,
+    sakeImageRepository: SakeImageRepository,
+) {
+    if (sourceUri.isNullOrBlank()) {
+        return
+    }
+    runBlocking {
+        runCatching { sakeImageRepository.deleteImage(sourceUri) }
+    }
+}
 
 private fun SakeEditUiState.withMissingEditTarget(
     master: MasterDataBundle,

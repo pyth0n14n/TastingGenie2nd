@@ -53,6 +53,22 @@ class SakeImageRepositoryImplTest {
             assertTrue(unmanagedFile.exists())
         }
 
+    @Test
+    fun deleteImage_deletesOwnedCaptureFilesInCacheDirectory() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val captureFile =
+                File(context.cacheDir, "images/sakes/capture/captured.jpg").apply {
+                    parentFile?.mkdirs()
+                    writeText("captured")
+                }
+
+            repository.deleteImage(Uri.fromFile(captureFile).toString())
+
+            assertFalse(captureFile.exists())
+        }
+
     private fun createSourceFile(
         context: Context,
         name: String,

@@ -41,8 +41,8 @@
 7. `feat(review-taste-other)`: `tasteXxx` と `otherXxx`、4タイプ分類グリッド、双方向同期を実装する。
 8. `feat(sake-list-v5)`: `Sake.isPinned` を追加し、Room `4 -> 5`、backup schema `4 -> 5`、一覧上部固定と最新総合評価表示を入れる。
 9. `feat(sake-type)`: `FUTSUSHU` (普通酒) を追加し、分類 `OTHER` 自由記述欄の位置ずれを修正する。
-10. `feat(review-aroma-wheel)`: `aromaExamples` UI を aroma wheel に差し替える。画像/最終仕様到着後に着手する。
-11. `feat(image)`: gallery に加えて camera capture を追加する。
+10. `feat(image)`: gallery に加えて camera capture を追加する。
+11. `feat(review-aroma-wheel)`: `aromaExamples` UI を aroma wheel に差し替える。画像/最終仕様到着後に着手する。
 
 ## Test Plan
 - migration: 旧 review データが canonical 列へ正しく移り、`scentBase` が消え、`comment` が `otherCautions` へ移ること
