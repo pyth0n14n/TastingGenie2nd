@@ -138,8 +138,8 @@
     <string name="content_sake_image">酒画像</string>
     <string name="content_edit_sake">酒を編集</string>
     <string name="content_delete_sake">酒を削除</string>
-    <string name="content_favorite_sake">酒をお気に入りに追加</string>
-    <string name="content_unfavorite_sake">酒のお気に入りを解除</string>
+    <string name="content_pin_sake">酒を固定</string>
+    <string name="content_unpin_sake">酒の固定を解除</string>
     <string name="content_latest_overall_review">最新評価 %1$s</string>
     <string name="content_latest_overall_review_none">最新評価なし</string>
     <string name="content_delete_review">レビューを削除</string>

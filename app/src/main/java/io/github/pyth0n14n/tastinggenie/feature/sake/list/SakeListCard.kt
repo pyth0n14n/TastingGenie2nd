@@ -45,7 +45,6 @@ private const val CARD_IMAGE_RATIO_WIDTH = 4f
 private const val CARD_IMAGE_RATIO_HEIGHT = 3f
 private const val CARD_PLACEHOLDER_ALPHA = 0.45f
 private const val FAVORITE_ICON_SIZE = 20
-private const val FAVORITE_BUTTON_SIZE = 32
 private const val STAR_ICON_SIZE = 16
 
 data class SakeListCardLabels(
@@ -106,22 +105,20 @@ private fun SakeCardHeader(
         Text(
             text = sake.name,
             style = MaterialTheme.typography.titleMedium,
+            minLines = 2,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        IconButton(
-            onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) },
-            modifier = Modifier.size(FAVORITE_BUTTON_SIZE.dp),
-        ) {
+        IconButton(onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) }) {
             Icon(
                 imageVector = if (sake.isPinned) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription =
                     stringResource(
                         if (sake.isPinned) {
-                            R.string.content_unfavorite_sake
+                            R.string.content_unpin_sake
                         } else {
-                            R.string.content_favorite_sake
+                            R.string.content_pin_sake
                         },
                     ),
                 modifier = Modifier.size(FAVORITE_ICON_SIZE.dp),

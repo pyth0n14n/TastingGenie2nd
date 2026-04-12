@@ -184,11 +184,57 @@ class SakeListScreenTest {
         }
 
         composeRule.onNodeWithContentDescription("酒を編集").performClick()
-        composeRule.onNodeWithContentDescription("酒をお気に入りに追加").performClick()
+        composeRule.onNodeWithContentDescription("酒を固定").performClick()
         composeRule.runOnIdle {
             assertEquals(9L, editedId)
             assertEquals(9L to true, favoriteToggle)
         }
+    }
+
+    @Test
+    fun titleHeight_staysStableForShortAndLongNames() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                Sake(
+                                    id = 12L,
+                                    name = "短い名前",
+                                    grade = SakeGrade.JUNMAI,
+                                ),
+                                Sake(
+                                    id = 13L,
+                                    name = "とても長い銘柄名で二行に折り返されることを想定したテスト用の名前",
+                                    grade = SakeGrade.JUNMAI,
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                        onDeleteSake = {},
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        val shortBounds = composeRule.onNodeWithText("短い名前").fetchSemanticsNode().boundsInRoot
+        val longBounds =
+            composeRule
+                .onNodeWithText("とても長い銘柄名で二行に折り返されることを想定したテスト用の名前")
+                .fetchSemanticsNode()
+                .boundsInRoot
+        assertEquals(shortBounds.height, longBounds.height, 0.01f)
     }
 
     @Test

@@ -65,5 +65,5 @@
 ## Assumptions
 - review tab は icon-only で進める。可視テキストは外し、アクセシビリティ名で補う。
 - review の横スワイプ対応は `ReviewEdit` と `ReviewDetail` の両方を対象にする。
-- pin は機能としては「固定」のまま、見た目だけハートへ変更する。
+- pin は機能としては「固定」のまま、見た目だけハートへ変更する。アクセシビリティ文言は固定/固定解除を維持する。
 - `eye.xml / nose.xml / tongue.xml` は現行の vector drawable をそのまま利用し、追加変換作業は不要とする。
