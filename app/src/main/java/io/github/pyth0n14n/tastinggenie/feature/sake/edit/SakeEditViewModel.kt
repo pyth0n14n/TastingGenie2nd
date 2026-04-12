@@ -21,9 +21,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
+@Suppress("TooManyFunctions")
 class SakeEditViewModel
     @Inject
     constructor(
@@ -291,6 +293,14 @@ class SakeEditViewModel
                 }
             }
         }
+
+        override fun onCleared() {
+            cleanupPendingImageSourceOnClear(
+                sourceUri = _uiState.value.pendingImageSourceUri,
+                sakeImageRepository = sakeImageRepository,
+            )
+            super.onCleared()
+        }
     }
 
 private fun discardPendingImageSource(
@@ -303,6 +313,18 @@ private fun discardPendingImageSource(
         return
     }
     scope.launch {
+        runCatching { sakeImageRepository.deleteImage(sourceUri) }
+    }
+}
+
+private fun cleanupPendingImageSourceOnClear(
+    sourceUri: String?,
+    sakeImageRepository: SakeImageRepository,
+) {
+    if (sourceUri.isNullOrBlank()) {
+        return
+    }
+    runBlocking {
         runCatching { sakeImageRepository.deleteImage(sourceUri) }
     }
 }

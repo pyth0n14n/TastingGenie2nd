@@ -176,4 +176,31 @@ class SakeEditViewModelImageCleanupTest {
             assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.importedSources)
             assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
         }
+
+    @Test
+    fun onCleared_cleansUpPendingCapturedSource() =
+        runTest {
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onImageSelected(CAPTURED_IMAGE_URI)
+            advanceUntilIdle()
+            invokeOnCleared(viewModel)
+            advanceUntilIdle()
+
+            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    private fun invokeOnCleared(viewModel: SakeEditViewModel) {
+        val method = viewModel.javaClass.getDeclaredMethod("onCleared")
+        method.isAccessible = true
+        method.invoke(viewModel)
+    }
 }

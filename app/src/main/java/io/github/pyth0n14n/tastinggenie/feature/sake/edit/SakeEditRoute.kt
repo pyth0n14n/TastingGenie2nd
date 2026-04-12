@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +32,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
-import io.github.pyth0n14n.tastinggenie.image.PendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.image.createPendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.image.deletePendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
@@ -55,22 +55,22 @@ fun SakeEditRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var pendingCameraCapture by remember { mutableStateOf<PendingSakeCameraCapture?>(null) }
+    var pendingCameraCaptureSourceUri by rememberSaveable { mutableStateOf<String?>(null) }
     val imagePickerLauncher =
         rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
             uri?.toString()?.let(viewModel::onImageSelected)
         }
     val cameraCaptureLauncher =
         rememberLauncherForActivityResult(TakePicture()) { isSuccess ->
-            val capture = pendingCameraCapture
-            pendingCameraCapture = null
-            if (capture == null) {
+            val sourceUri = pendingCameraCaptureSourceUri
+            pendingCameraCaptureSourceUri = null
+            if (sourceUri == null) {
                 return@rememberLauncherForActivityResult
             }
             if (isSuccess) {
-                viewModel.onImageSelected(capture.sourceUri)
+                viewModel.onImageSelected(sourceUri)
             } else {
-                context.deletePendingSakeCameraCapture(capture.sourceUri)
+                context.deletePendingSakeCameraCapture(sourceUri)
             }
         }
     val callbacks =
@@ -84,7 +84,7 @@ fun SakeEditRoute(
             },
             onCaptureImageRequest = {
                 val capture = context.createPendingSakeCameraCapture()
-                pendingCameraCapture = capture
+                pendingCameraCaptureSourceUri = capture.sourceUri
                 cameraCaptureLauncher.launch(capture.launchUri)
             },
             onDeleteImage = viewModel::removeImage,
