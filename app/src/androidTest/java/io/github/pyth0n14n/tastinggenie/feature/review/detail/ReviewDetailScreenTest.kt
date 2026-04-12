@@ -1,10 +1,18 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -19,13 +27,18 @@ class ReviewDetailScreenTest {
         var openedReview: Pair<Long, Long>? = null
         composeRule.setContent {
             ReviewDetailScreen(
-                state =
-                    ReviewDetailUiState(
-                        isLoading = false,
-                        review = testReview(),
-                    ),
                 onBack = {},
-                onEditReview = { sakeId, reviewId -> openedReview = sakeId to reviewId },
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview(),
+                            ),
+                        onEditReview = { sakeId, reviewId -> openedReview = sakeId to reviewId },
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
             )
         }
 
@@ -37,16 +50,46 @@ class ReviewDetailScreenTest {
     fun imageAction_isNotShownOnDetailScreen() {
         composeRule.setContent {
             ReviewDetailScreen(
-                state =
-                    ReviewDetailUiState(
-                        isLoading = false,
-                        review = testReview(),
-                    ),
                 onBack = {},
-                onEditReview = { _, _ -> },
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview(),
+                            ),
+                        onEditReview = { _, _ -> },
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
             )
         }
 
-        composeRule.onNodeWithText("画像").assertDoesNotExist()
+        assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun swipeChangesVisibleDetailSection() {
+        composeRule.setContent {
+            var selectedSection by mutableStateOf(ReviewSection.BASIC)
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview(),
+                            ),
+                        onEditReview = { _, _ -> },
+                        selectedSection = selectedSection,
+                        onSectionSelected = { next -> selectedSection = next },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("日付: 2026-03-14").assertIsDisplayed()
+        composeRule.onNodeWithTag("review_detail_pager").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithText("色: CLEAR").assertIsDisplayed()
     }
 }

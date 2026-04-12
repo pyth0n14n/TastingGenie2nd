@@ -1,16 +1,24 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -18,24 +26,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
+import kotlinx.coroutines.launch
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
 private const val REVIEW_DATE_INDEX = 2
 private const val REVIEW_PRICE_INDEX = 4
 private const val REVIEW_VOLUME_INDEX = 5
+private const val REVIEW_EDIT_PAGER_TAG = "review_edit_pager"
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,6 +116,12 @@ fun ReviewEditScreen(
                 },
             )
         },
+        bottomBar = {
+            ReviewEditBottomBar(
+                state = content.state,
+                onSave = content.onSave,
+            )
+        },
     ) { padding ->
         ReviewEditBody(
             content = content,
@@ -125,9 +145,56 @@ private fun ReviewEditBody(
     content: ReviewEditScreenContent,
     modifier: Modifier = Modifier,
 ) {
+    val pagerState = rememberPagerState(initialPage = content.selectedSection.ordinal) { ReviewSection.entries.size }
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(content.selectedSection) {
+        if (pagerState.currentPage != content.selectedSection.ordinal) {
+            pagerState.animateScrollToPage(content.selectedSection.ordinal)
+        }
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            val section = ReviewSection.entries[page]
+            if (section != content.selectedSection) {
+                content.onSectionSelected(section)
+            }
+        }
+    }
+    Column(
+        modifier = modifier.fillMaxSize(),
+    ) {
+        ReviewSectionTabs(
+            selectedSection = content.selectedSection,
+            onSectionSelected = { next ->
+                content.onSectionSelected(next)
+                coroutineScope.launch {
+                    pagerState.animateScrollToPage(next.ordinal)
+                }
+            },
+        )
+        HorizontalPager(
+            state = pagerState,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .testTag(REVIEW_EDIT_PAGER_TAG),
+        ) { page ->
+            ReviewEditSectionPage(
+                content = content,
+                section = ReviewSection.entries[page],
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReviewEditSectionPage(
+    content: ReviewEditScreenContent,
+    section: ReviewSection,
+) {
     val listState = rememberLazyListState()
-    LaunchedEffect(content.state.validationFailureCount, content.selectedSection) {
-        if (content.selectedSection != ReviewSection.BASIC) {
+    LaunchedEffect(content.state.validationFailureCount, section) {
+        if (section != ReviewSection.BASIC) {
             return@LaunchedEffect
         }
         val targetIndex = content.state.firstInvalidFieldIndex()
@@ -135,40 +202,35 @@ private fun ReviewEditBody(
             listState.animateScrollToItem(index = targetIndex)
         }
     }
+    val formUiData =
+        ReviewEditFormUiData(
+            singleChoiceUiData =
+                SingleChoiceUiData(
+                    temperatureOptions = content.state.temperatureOptions.toOptions(),
+                    colorOptions = content.state.colorOptions.toOptions(),
+                    intensityOptions = content.state.intensityOptions.toOptions(),
+                    viscosityOptions = content.viscosityOptions,
+                ),
+            tasteOptions = content.state.tasteOptions.toOptions(),
+            overallReviewOptions = content.state.overallReviewOptions.toOptions(),
+            aromaUiData =
+                AromaUiData(
+                    categories = content.state.aromaCategories,
+                ),
+            volumeShortcutOptions = content.volumeShortcutOptions,
+        )
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         state = listState,
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
         reviewEditHeaderItems()
-        val formUiData =
-            ReviewEditFormUiData(
-                singleChoiceUiData =
-                    SingleChoiceUiData(
-                        temperatureOptions = content.state.temperatureOptions.toOptions(),
-                        colorOptions = content.state.colorOptions.toOptions(),
-                        intensityOptions = content.state.intensityOptions.toOptions(),
-                        viscosityOptions = content.viscosityOptions,
-                    ),
-                tasteOptions = content.state.tasteOptions.toOptions(),
-                overallReviewOptions = content.state.overallReviewOptions.toOptions(),
-                aromaUiData =
-                    AromaUiData(
-                        categories = content.state.aromaCategories,
-                    ),
-                volumeShortcutOptions = content.volumeShortcutOptions,
-            )
         reviewEditFormContent(
             state = content.state,
             onAction = content.onAction,
             uiData = formUiData,
-            selectedSection = content.selectedSection,
-            onSectionSelected = content.onSectionSelected,
-        )
-        reviewEditFooterItems(
-            state = content.state,
-            onSave = content.onSave,
+            selectedSection = section,
         )
     }
 }
@@ -210,32 +272,43 @@ private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditFooterItems(
+@Composable
+private fun ReviewEditBottomBar(
     state: ReviewEditUiState,
     onSave: () -> Unit,
 ) {
-    item(key = "error", contentType = "error") {
-        ReviewEditError(state = state)
-    }
-    item(key = "save", contentType = "save") {
-        ReviewEditSaveButton(
-            isSaving = state.isSaving,
-            isInputLocked = state.isInputLocked,
-            onSave = onSave,
-        )
+    Surface(
+        tonalElevation = 2.dp,
+        shadowElevation = 2.dp,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = SCREEN_PADDING.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ReviewEditError(state = state)
+            ReviewEditSaveButton(
+                isSaving = state.isSaving,
+                isInputLocked = state.isInputLocked,
+                onSave = onSave,
+            )
+        }
     }
 }
 
 @Composable
 private fun ReviewEditError(state: ReviewEditUiState) {
-    if (state.error == null) {
-        return
+    state.error?.let { error ->
+        Text(
+            text = stringResource(error.messageResId),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
     }
-    Text(
-        text = stringResource(state.error.messageResId),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.error,
-    )
 }
 
 @Composable

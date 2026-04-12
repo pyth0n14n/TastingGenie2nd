@@ -174,6 +174,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Simulate load failure; verify save disabled or shows error.
 
+### Problem: Review section switching depends on vertical scroll, hiding navigation and save actions mid-form.
+- **Example**: `ReviewEdit` puts the section tabs and save button inside the scrolling column, so long forms can hide both the active-section affordance and the save action.
+- **Preventive Measure**: Keep review section tabs outside the section list and sync them with a pager so both tap and horizontal swipe navigate sections. Keep the review save action in a fixed bottom bar that remains visible while the section content scrolls and while the IME is shown.
+- **Test Coverage**:
+  - Swipe `ReviewEdit` and `ReviewDetail` horizontally and verify the visible section changes while the selected tab stays in sync.
+  - Scroll or swipe within `ReviewEdit` and verify the save button remains visible and enabled/disabled state is preserved.
+
 ### Problem: Optional dropdowns cannot be cleared to null.
 - **Example**: Once selected, cannot deselect optional review fields.
 - **Root Cause**: From commit `503eb59` (test(review): cover PR4 viewmodel flows) - No "none" option in dropdowns.

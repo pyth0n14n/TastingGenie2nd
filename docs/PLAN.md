@@ -33,6 +33,7 @@
 - この不具合は表示順の回帰としてテストで固定する。画像欄の下へ落ちる再発を防ぐ。
 - docs 更新は `docs/PLAN.md` と `docs/spec/qa.md`。
 - テストは review save bar 常時表示、tab swipe、`OTHER` 欄位置の回帰を追加する。
+- 状態: 実施済み。
 
 ## PR13: `feat(image-ownership-cleanup)`
 - 方針はユーザー提示案を採用する。永続画像は「保存時にアプリ管理領域へ取り込み、その後はアプリが所有する」。
