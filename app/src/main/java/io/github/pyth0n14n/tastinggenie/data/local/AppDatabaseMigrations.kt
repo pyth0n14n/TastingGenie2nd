@@ -7,6 +7,7 @@ private const val DATABASE_VERSION_1 = 1
 private const val DATABASE_VERSION_2 = 2
 private const val DATABASE_VERSION_3 = 3
 private const val DATABASE_VERSION_4 = 4
+private const val DATABASE_VERSION_5 = 5
 
 object AppDatabaseMigrations {
     val MIGRATION_1_2: Migration =
@@ -28,6 +29,13 @@ object AppDatabaseMigrations {
         object : Migration(DATABASE_VERSION_3, DATABASE_VERSION_4) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 migrateReviewsToV4(db)
+            }
+        }
+
+    val MIGRATION_4_5: Migration =
+        object : Migration(DATABASE_VERSION_4, DATABASE_VERSION_5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `sakes` ADD COLUMN `isPinned` INTEGER NOT NULL DEFAULT 0")
             }
         }
 }

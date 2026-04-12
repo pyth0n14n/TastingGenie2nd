@@ -10,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AromaGroup
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
@@ -38,6 +39,9 @@ internal class RecordingSakeRepository(
 
     override fun observeSakes(): Flow<List<Sake>> = stream
 
+    override fun observeSakeListSummaries(): Flow<List<SakeListSummary>> =
+        stream.map { list -> list.map { SakeListSummary(it) } }
+
     override suspend fun getSake(id: SakeId): Sake? = stream.value.firstOrNull { it.id == id }
 
     override suspend fun upsertSake(input: SakeInput): SakeId {
@@ -48,12 +52,27 @@ internal class RecordingSakeRepository(
                 id = id,
                 name = input.name,
                 grade = input.grade,
+                isPinned = input.isPinned,
                 imageUri = input.imageUri,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
         stream.value = mutable
         return id
+    }
+
+    override suspend fun setPinned(
+        id: SakeId,
+        isPinned: Boolean,
+    ) {
+        stream.value =
+            stream.value.map { sake ->
+                if (sake.id == id) {
+                    sake.copy(isPinned = isPinned)
+                } else {
+                    sake
+                }
+            }
     }
 
     override suspend fun deleteSake(id: SakeId): SakeDeleteResult {

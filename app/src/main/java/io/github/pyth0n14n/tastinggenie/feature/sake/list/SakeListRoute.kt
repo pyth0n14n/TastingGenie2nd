@@ -41,6 +41,7 @@ data class SakeListItemActions(
     val onOpenSake: (Long) -> Unit,
     val onEditSake: (Long) -> Unit,
     val onDeleteSake: (Long) -> Unit,
+    val onTogglePinned: (Long, Boolean) -> Unit,
 )
 
 data class SakeListDeleteDialogActions(
@@ -71,6 +72,7 @@ fun SakeListRoute(
                 onOpenSake = onOpenSake,
                 onEditSake = onEditSake,
                 onDeleteSake = viewModel::requestDeleteSake,
+                onTogglePinned = viewModel::togglePinned,
             ),
         topBarActions = topBarActions,
         deleteDialogActions =
@@ -173,10 +175,17 @@ private fun SakeListContent(
                 verticalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
                 horizontalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
             ) {
-                items(items = state.sakes, key = { sake -> sake.id }) { sake ->
+                items(items = state.sakes, key = { item -> item.sake.id }) { item ->
                     SakeListCard(
-                        sake = sake,
-                        gradeLabel = state.gradeLabels[sake.grade.name] ?: sake.grade.name,
+                        sake = item.sake,
+                        labels =
+                            SakeListCardLabels(
+                                grade = state.gradeLabels[item.sake.grade.name] ?: item.sake.grade.name,
+                                latestOverallReview =
+                                    item.latestOverallReview
+                                        ?.name
+                                        ?.let { key -> state.overallReviewLabels[key] },
+                            ),
                         showImagePreview = state.showImagePreview,
                         itemActions = itemActions,
                     )

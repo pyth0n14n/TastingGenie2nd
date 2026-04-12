@@ -11,6 +11,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import kotlinx.coroutines.CancellationException
@@ -31,6 +32,9 @@ class SakeRepositoryImpl
     ) : SakeRepository {
         override fun observeSakes(): Flow<List<Sake>> = sakeDao.observeAll().map { list -> list.map { it.toDomain() } }
 
+        override fun observeSakeListSummaries(): Flow<List<SakeListSummary>> =
+            sakeDao.observeListSummaries().map { list -> list.map { it.toDomain() } }
+
         override suspend fun getSake(id: SakeId): Sake? = withContext(ioDispatcher) { sakeDao.getById(id)?.toDomain() }
 
         override suspend fun upsertSake(input: SakeInput): SakeId =
@@ -48,6 +52,14 @@ class SakeRepositoryImpl
                     }
                 }
             }
+
+        override suspend fun setPinned(
+            id: SakeId,
+            isPinned: Boolean,
+        ) = withContext(ioDispatcher) {
+            sakeDao.updatePinned(id = id, isPinned = isPinned)
+            Unit
+        }
 
         @Suppress("TooGenericExceptionCaught")
         override suspend fun deleteSake(id: SakeId): SakeDeleteResult =

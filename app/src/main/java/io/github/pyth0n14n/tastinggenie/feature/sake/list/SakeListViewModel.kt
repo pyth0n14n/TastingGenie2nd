@@ -42,12 +42,12 @@ class SakeListViewModel
 
         private fun loadInitial() {
             viewModelScope.launch {
-                val gradeLabels =
+                val labels =
                     runCatching {
-                        masterDataRepository
-                            .getMasterData()
-                            .sakeGrades
-                            .associate { option -> option.value to option.label }
+                        masterDataRepository.getMasterData().let { master ->
+                            master.sakeGrades.associate { option -> option.value to option.label } to
+                                master.overallReviews.associate { option -> option.value to option.label }
+                        }
                     }.getOrElse { throwable ->
                         _uiState.update {
                             it.copy(
@@ -62,9 +62,12 @@ class SakeListViewModel
                         return@launch
                     }
 
+                val gradeLabels = labels.first
+                val overallReviewLabels = labels.second
+
                 // DB監視結果をそのままUiStateへ反映し、一覧再表示を自動化する。
                 sakeRepository
-                    .observeSakes()
+                    .observeSakeListSummaries()
                     .combine(settingsRepository.observeSettings()) { sakes, settings -> sakes to settings }
                     .catch { throwable ->
                         _uiState.update {
@@ -84,6 +87,7 @@ class SakeListViewModel
                                 error = null,
                                 sakes = sakes,
                                 gradeLabels = gradeLabels,
+                                overallReviewLabels = overallReviewLabels,
                                 showImagePreview = settings.showImagePreview,
                             )
                         }
@@ -130,6 +134,31 @@ class SakeListViewModel
         }
 
         @Suppress("TooGenericExceptionCaught")
+        fun togglePinned(
+            sakeId: Long,
+            isPinned: Boolean,
+        ) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(deleteError = null) }
+                try {
+                    sakeRepository.setPinned(id = sakeId, isPinned = isPinned)
+                } catch (throwable: CancellationException) {
+                    throw throwable
+                } catch (throwable: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            deleteError =
+                                UiError(
+                                    messageResId = R.string.error_save_sake,
+                                    causeKey = throwable.message,
+                                ),
+                        )
+                    }
+                }
+            }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
         fun confirmDeleteSake() {
             val pendingDeleteSake = _uiState.value.pendingDeleteSake ?: return
             viewModelScope.launch {
@@ -158,7 +187,9 @@ class SakeListViewModel
         private suspend fun loadSakeForDeletion(sakeId: Long): DeleteTargetLoadResult =
             try {
                 val sake =
-                    _uiState.value.sakes.firstOrNull { existing -> existing.id == sakeId }
+                    _uiState.value.sakes
+                        .firstOrNull { existing -> existing.sake.id == sakeId }
+                        ?.sake
                         ?: sakeRepository.getSake(sakeId)
                 if (sake == null) {
                     DeleteTargetLoadResult.Missing

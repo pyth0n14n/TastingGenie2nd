@@ -84,7 +84,7 @@ class ImportExportRepositoryImplTest {
             val payload =
                 BackupPayload(
                     schemaVersion = CURRENT_SCHEMA_VERSION,
-                    sakes = listOf(sampleSerializableSake()),
+                    sakes = listOf(sampleSerializableSake().copy(isPinned = true)),
                     reviews = listOf(sampleSerializableReview()),
                 )
 
@@ -95,11 +95,39 @@ class ImportExportRepositoryImplTest {
             assertEquals("テスト酒", storedSake.name)
             assertEquals(SakeGrade.JUNMAI, storedSake.grade)
             assertEquals(null, storedSake.imageUri)
+            assertEquals(true, storedSake.isPinned)
             assertEquals(null, storedSake.gradeOther)
             assertTrue(storedSake.id != sampleSerializableSake().id)
             assertEquals(storedSake.id, storedReview.sakeId)
             assertTrue(storedReview.id != sampleSerializableReview().id)
             assertEquals(LocalDate.parse("2026-03-17").toEpochDay(), storedReview.dateEpochDay)
+        }
+
+    @Test
+    fun importJson_schemaVersion4DefaultsPinnedToFalse() =
+        runTest {
+            val repository = createRepository()
+            val rawJson =
+                """
+                {
+                  "schemaVersion": 4,
+                  "sakes": [
+                    {
+                      "id": 101,
+                      "name": "テスト酒",
+                      "grade": "${SakeGrade.JUNMAI.name}",
+                      "type": [],
+                      "maker": "酒蔵A"
+                    }
+                  ],
+                  "reviews": []
+                }
+                """.trimIndent()
+
+            repository.importJson(rawJson).getOrThrow()
+
+            val storedSake = database.sakeDao().getAllOnce().single()
+            assertEquals(false, storedSake.isPinned)
         }
 
     @Test
@@ -275,6 +303,7 @@ class ImportExportRepositoryImplTest {
             id = 101L,
             name = "テスト酒",
             grade = SakeGrade.JUNMAI.name,
+            isPinned = false,
             gradeOther = null,
             type = emptyList(),
             maker = "酒蔵A",
@@ -302,6 +331,7 @@ class ImportExportRepositoryImplTest {
                 id = sake.id,
                 name = sake.name,
                 grade = SakeGrade.valueOf(sake.grade),
+                isPinned = sake.isPinned,
                 imageUri = "file:///images/sakes/1.jpg",
                 gradeOther = sake.gradeOther,
                 type = emptyList(),

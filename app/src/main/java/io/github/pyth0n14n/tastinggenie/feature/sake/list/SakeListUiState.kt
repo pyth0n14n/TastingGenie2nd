@@ -1,6 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
-import io.github.pyth0n14n.tastinggenie.domain.model.Sake
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 
 data class SakeListUiState(
@@ -8,8 +8,9 @@ data class SakeListUiState(
     val error: UiError? = null,
     val deleteError: UiError? = null,
     val pendingDeleteSake: PendingDeleteSake? = null,
-    val sakes: List<Sake> = emptyList(),
+    val sakes: List<SakeListSummary> = emptyList(),
     val gradeLabels: Map<String, String> = emptyMap(),
+    val overallReviewLabels: Map<String, String> = emptyMap(),
     val showImagePreview: Boolean = true,
 )
 

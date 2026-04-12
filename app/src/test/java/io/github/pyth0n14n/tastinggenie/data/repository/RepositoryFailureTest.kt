@@ -8,6 +8,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import kotlinx.coroutines.flow.Flow
@@ -94,6 +95,9 @@ class RepositoryFailureTest {
 private class FailingSakeDao : SakeDao {
     override fun observeAll(): Flow<List<SakeEntity>> = flow { throw DaoFailureException("DAO failure") }
 
+    override fun observeListSummaries(): Flow<List<SakeListSummaryRow>> =
+        flow { throw DaoFailureException("DAO failure") }
+
     override suspend fun getById(id: Long): SakeEntity? = throw DaoFailureException("DAO failure")
 
     override suspend fun getAllOnce(): List<SakeEntity> = throw DaoFailureException("DAO failure")
@@ -103,6 +107,11 @@ private class FailingSakeDao : SakeDao {
     override suspend fun insertAll(entities: List<SakeEntity>): Unit = throw DaoFailureException("DAO failure")
 
     override suspend fun update(entity: SakeEntity): Int = throw DaoFailureException("DAO failure")
+
+    override suspend fun updatePinned(
+        id: Long,
+        isPinned: Boolean,
+    ): Int = throw DaoFailureException("DAO failure")
 
     override suspend fun deleteById(id: Long): Int = throw DaoFailureException("DAO failure")
 }

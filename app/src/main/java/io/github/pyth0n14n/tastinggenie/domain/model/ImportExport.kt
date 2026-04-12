@@ -2,7 +2,8 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 4
+const val CURRENT_SCHEMA_VERSION = 5
+const val LEGACY_SCHEMA_VERSION_4 = 4
 const val LEGACY_SCHEMA_VERSION_3 = 3
 
 @Serializable
@@ -24,6 +25,7 @@ data class SerializableSake(
     val id: Long,
     val name: String,
     val grade: String,
+    val isPinned: Boolean = false,
     val gradeOther: String? = null,
     val type: List<String>,
     val typeOther: String? = null,
