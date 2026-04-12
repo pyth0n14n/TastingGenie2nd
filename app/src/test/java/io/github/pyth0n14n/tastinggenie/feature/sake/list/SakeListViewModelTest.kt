@@ -543,6 +543,7 @@ private class FakeMasterDataRepository : MasterDataRepository {
                 listOf(
                     MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
                     MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
+                    MasterOption(value = SakeGrade.FUTSUSHU.name, label = "普通酒"),
                 ),
             classifications = emptyList(),
             temperatures = emptyList(),
