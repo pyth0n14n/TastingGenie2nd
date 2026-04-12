@@ -19,7 +19,9 @@ class SakeEditViewModelImageCleanupTest {
         private const val EXISTING_SAKE_ID = 7L
         private const val EXISTING_IMAGE_URI = "file:///images/sakes/existing.jpg"
         private const val IMPORTED_IMAGE_URI = "file:///images/sakes/imported.jpg"
-        private const val PICKED_IMAGE_URI = "content://picked/image/1"
+        private const val PICKED_IMAGE_URI = "file:///cache/images/sakes/capture/picked.jpg"
+        private const val CAPTURED_IMAGE_URI = "file:///cache/images/sakes/capture/captured.jpg"
+        private const val REPLACEMENT_CAPTURED_IMAGE_URI = "file:///cache/images/sakes/capture/replacement.jpg"
     }
 
     @get:Rule
@@ -105,5 +107,73 @@ class SakeEditViewModelImageCleanupTest {
             assertEquals(null, state.error)
             assertEquals(null, saved.imageUri)
             assertEquals(listOf(EXISTING_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
+    fun removeImage_cleansUpPendingCapturedSource() =
+        runTest {
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onImageSelected(CAPTURED_IMAGE_URI)
+            advanceUntilIdle()
+            viewModel.removeImage()
+            advanceUntilIdle()
+
+            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
+    fun replacingCapturedImage_cleansUpPreviousPendingCapture() =
+        runTest {
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onImageSelected(CAPTURED_IMAGE_URI)
+            advanceUntilIdle()
+            viewModel.onImageSelected(REPLACEMENT_CAPTURED_IMAGE_URI)
+            advanceUntilIdle()
+
+            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
+    fun save_withCapturedImage_cleansUpPendingCaptureAfterCommit() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(CAPTURED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(IMPORTED_IMAGE_URI, saved.imageUri)
+            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.importedSources)
+            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
         }
 }

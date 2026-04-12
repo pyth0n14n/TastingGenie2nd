@@ -164,6 +164,26 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun captureImageButton_callsOnCaptureImageRequest() {
+        var captureCalled = false
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(onCaptureImageRequest = { captureCalled = true }),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("カメラで撮影").performClick()
+        composeRule.runOnIdle { assertTrue(captureCalled) }
+    }
+
+    @Test
     fun deletingImage_requiresConfirmation() {
         var deleteCalled = false
         composeRule.setContent {
@@ -248,6 +268,7 @@ private fun defaultCallbacks(
     onClassificationToggled: (String) -> Unit = {},
     onPrefectureSelected: (String?) -> Unit = {},
     onPickImageRequest: () -> Unit = {},
+    onCaptureImageRequest: () -> Unit = {},
     onDeleteImage: () -> Unit = {},
 ): SakeEditCallbacks =
     SakeEditCallbacks(
@@ -256,5 +277,6 @@ private fun defaultCallbacks(
         onClassificationToggled = onClassificationToggled,
         onPrefectureSelected = onPrefectureSelected,
         onPickImageRequest = onPickImageRequest,
+        onCaptureImageRequest = onCaptureImageRequest,
         onDeleteImage = onDeleteImage,
     )
