@@ -5,6 +5,7 @@
 - `app/src/main/res/drawable/eye.xml`, `nose.xml`, `tongue.xml` が Android resource として使えるため、review tab の custom icon 前提に戻す。
 - 順序は `1. icon化 + sake一覧の視認性改善` → `2. review UX / OTHER欄 fix` → `3. 画像所有と cleanup 再設計`。
 - `review aroma wheel` はこの再編対象から外し、後続 PR に送る。
+- 実施済み: `PR11 feat(ui-icon-polish)`。残りは `PR12` と `PR13`。
 
 ## PR11: `feat(ui-icon-polish)`
 - sake 一覧の top bar を icon button 化する。
@@ -19,6 +20,7 @@
 - icon-only UI にする代わりに content description / semantics は既存日本語ラベルを必ず残す。
 - docs 更新は `docs/PLAN.md` と、必要なら `docs/spec/qa.md` の settings/reactive UI 観点まで。
 - テストは SakeList screen/viewmodel と review tab 表示の UI テストを更新する。
+- 状態: 実施済み。
 
 ## PR12: `fix(review-ux-polish)`
 - review edit の save ボタンをスクロール末尾から外し、固定 footer に移す。

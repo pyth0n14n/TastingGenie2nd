@@ -9,7 +9,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -109,12 +111,128 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("ヘルプ").performClick()
-        composeRule.onNodeWithText("設定").performClick()
+        composeRule.onNodeWithContentDescription("ヘルプ").performClick()
+        composeRule.onNodeWithContentDescription("設定").performClick()
         composeRule.runOnIdle {
             assertTrue(helpOpened)
             assertTrue(settingsOpened)
         }
+    }
+
+    @Test
+    fun helpHintsDisabled_hidesHelpAction() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        showHelpHints = false,
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                        onDeleteSake = {},
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("ヘルプ").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("設定").assertExists()
+    }
+
+    @Test
+    fun cardActions_useEditAndFavoriteIcons() {
+        var editedId: Long? = null
+        var favoriteToggle: Pair<Long, Boolean>? = null
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                Sake(
+                                    id = 9L,
+                                    name = "冬酒",
+                                    grade = SakeGrade.JUNMAI,
+                                    isPinned = false,
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = { editedId = it },
+                        onDeleteSake = {},
+                        onTogglePinned = { id, isPinned -> favoriteToggle = id to isPinned },
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("酒を編集").performClick()
+        composeRule.onNodeWithContentDescription("酒をお気に入りに追加").performClick()
+        composeRule.runOnIdle {
+            assertEquals(9L, editedId)
+            assertEquals(9L to true, favoriteToggle)
+        }
+    }
+
+    @Test
+    fun latestReview_usesStableStarRowWithAndWithoutValue() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake = Sake(id = 10L, name = "評価あり", grade = SakeGrade.JUNMAI),
+                                    latestOverallReview = OverallReview.GOOD,
+                                ),
+                                SakeListSummary(
+                                    sake = Sake(id = 11L, name = "評価なし", grade = SakeGrade.GINJO),
+                                    latestOverallReview = null,
+                                ),
+                            ),
+                        gradeLabels =
+                            mapOf(
+                                SakeGrade.JUNMAI.name to "純米",
+                                SakeGrade.GINJO.name to "吟醸",
+                            ),
+                        overallReviewLabels = mapOf(OverallReview.GOOD.name to "好き"),
+                    ),
+                onCreateSake = {},
+                itemActions =
+                    SakeListItemActions(
+                        onOpenSake = {},
+                        onEditSake = {},
+                        onDeleteSake = {},
+                    ),
+                topBarActions =
+                    SakeListTopBarActions(
+                        onOpenHelp = {},
+                        onOpenSettings = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("最新評価 好き").assertExists()
+        composeRule.onNodeWithContentDescription("最新評価なし").assertExists()
     }
 
     @Test

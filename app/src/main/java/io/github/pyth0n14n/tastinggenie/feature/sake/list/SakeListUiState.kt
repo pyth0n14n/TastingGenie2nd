@@ -11,6 +11,7 @@ data class SakeListUiState(
     val sakes: List<SakeListSummary> = emptyList(),
     val gradeLabels: Map<String, String> = emptyMap(),
     val overallReviewLabels: Map<String, String> = emptyMap(),
+    val showHelpHints: Boolean = true,
     val showImagePreview: Boolean = true,
 )
 

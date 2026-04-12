@@ -9,12 +9,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +45,7 @@ data class SakeListItemActions(
     val onOpenSake: (Long) -> Unit,
     val onEditSake: (Long) -> Unit,
     val onDeleteSake: (Long) -> Unit,
-    val onTogglePinned: (Long, Boolean) -> Unit,
+    val onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
 )
 
 data class SakeListDeleteDialogActions(
@@ -114,11 +118,19 @@ fun SakeListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.screen_sake_list)) },
                 actions = {
-                    TextButton(onClick = topBarActions.onOpenHelp) {
-                        Text(stringResource(R.string.screen_help))
+                    if (state.showHelpHints) {
+                        IconButton(onClick = topBarActions.onOpenHelp) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                                contentDescription = stringResource(R.string.screen_help),
+                            )
+                        }
                     }
-                    TextButton(onClick = topBarActions.onOpenSettings) {
-                        Text(stringResource(R.string.screen_settings))
+                    IconButton(onClick = topBarActions.onOpenSettings) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.screen_settings),
+                        )
                     }
                 },
             )
@@ -181,7 +193,8 @@ private fun SakeListContent(
                         labels =
                             SakeListCardLabels(
                                 grade = state.gradeLabels[item.sake.grade.name] ?: item.sake.grade.name,
-                                latestOverallReview =
+                                latestOverallReview = item.latestOverallReview,
+                                latestOverallReviewLabel =
                                     item.latestOverallReview
                                         ?.name
                                         ?.let { key -> state.overallReviewLabels[key] },
