@@ -133,15 +133,18 @@ class SakeListViewModel
             _uiState.update { it.copy(pendingDeleteSake = null) }
         }
 
+        @Suppress("TooGenericExceptionCaught")
         fun togglePinned(
             sakeId: Long,
             isPinned: Boolean,
         ) {
             viewModelScope.launch {
                 _uiState.update { it.copy(deleteError = null) }
-                runCatching {
+                try {
                     sakeRepository.setPinned(id = sakeId, isPinned = isPinned)
-                }.onFailure { throwable ->
+                } catch (throwable: CancellationException) {
+                    throw throwable
+                } catch (throwable: Exception) {
                     _uiState.update {
                         it.copy(
                             deleteError =

@@ -323,6 +323,39 @@ class SakeListViewModelTest {
         }
 
     @Test
+    fun togglePinned_doesNotExposeCancellationAsSaveError() =
+        runTest {
+            val sakeRepository =
+                FakeSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = DELETE_SAKE_ID,
+                                name = "固定対象",
+                                grade = SakeGrade.JUNMAI,
+                            ),
+                        ),
+                    setPinnedFailure = CancellationException("cancelled"),
+                )
+            val viewModel =
+                SakeListViewModel(
+                    sakeRepository,
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.togglePinned(DELETE_SAKE_ID, isPinned = true)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            val firstSake = state.sakes.first().sake
+            assertEquals(null, state.deleteError)
+            assertEquals(false, firstSake.isPinned)
+        }
+
+    @Test
     fun requestDeleteSake_ignoresStaleResultWhenLaterTapFinishesFirst() =
         runTest {
             val firstSakeId = DELETE_SAKE_ID
@@ -381,6 +414,7 @@ private class FakeSakeRepository(
     summaries: List<SakeListSummary>? = null,
     private val deleteResult: SakeDeleteResult = SakeDeleteResult(isDeleted = true),
     private val deleteFailure: Throwable? = null,
+    private val setPinnedFailure: Throwable? = null,
 ) : SakeRepository {
     private val stream = MutableStateFlow(initial)
     private val summaryStream = MutableStateFlow(summaries ?: initial.map { sake -> SakeListSummary(sake = sake) })
@@ -412,6 +446,7 @@ private class FakeSakeRepository(
         id: SakeId,
         isPinned: Boolean,
     ) {
+        setPinnedFailure?.let { throw it }
         stream.value =
             stream.value.map { sake ->
                 if (sake.id == id) {
