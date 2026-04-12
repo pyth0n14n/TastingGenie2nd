@@ -35,7 +35,7 @@ import org.junit.Test
 class SakeEditViewModelTest {
     companion object {
         private const val EXISTING_SAKE_ID = 7L
-        private const val GRADE_OPTION_COUNT = 3
+        private const val GRADE_OPTION_COUNT = 4
         private const val EXTENDED_OPTION_COUNT = 3
         private const val TEST_SAKE_DEGREE = 3.5F
         private const val TEST_ACIDITY = 1.4F
@@ -211,6 +211,29 @@ class SakeEditViewModelTest {
             val saved = repository.savedInputs.single()
             assertEquals(SakeGrade.OTHER, saved.grade)
             assertEquals("普通酒", saved.gradeOther)
+        }
+
+    @Test
+    fun save_withFutsushu_persistsNamedGradeWithoutFreeText() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.FUTSUSHU.name)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals(SakeGrade.FUTSUSHU, saved.grade)
+            assertEquals(null, saved.gradeOther)
         }
 
     @Test
@@ -751,6 +774,7 @@ class FakeMasterDataRepository : MasterDataRepository {
                 listOf(
                     MasterOption(value = SakeGrade.JUNMAI.name, label = "純米"),
                     MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
+                    MasterOption(value = SakeGrade.FUTSUSHU.name, label = "普通酒"),
                     MasterOption(value = SakeGrade.OTHER.name, label = "その他"),
                 ),
             classifications =

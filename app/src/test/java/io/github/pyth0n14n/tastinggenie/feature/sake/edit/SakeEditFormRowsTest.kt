@@ -12,6 +12,9 @@ class SakeEditFormRowsTest {
         private const val ALCOHOL_INDEX_WITHOUT_OPTIONAL_ROWS = 9
         private const val KAKE_POLISH_INDEX_WITH_OPTIONAL_ROWS = 15
         private const val FIRST_INVALID_INDEX_WITHOUT_OPTIONAL_ROWS = 9
+        private const val CLASSIFICATION_INDEX_WITH_OTHER = 4
+        private const val CLASSIFICATION_OTHER_INDEX = 5
+        private const val MAKER_INDEX_WITH_CLASSIFICATION_OTHER = 6
     }
 
     @Test
@@ -53,5 +56,17 @@ class SakeEditFormRowsTest {
     @Test
     fun firstInvalidFieldIndex_withoutValidationErrors_returnsNull() {
         assertNull(SakeEditUiState().firstInvalidFieldIndex())
+    }
+
+    @Test
+    fun visibleSakeEditRowKeys_placesClassificationOtherImmediatelyAfterClassification() {
+        val rowKeys =
+            SakeEditUiState(
+                classifications = listOf(SakeClassification.OTHER),
+            ).visibleSakeEditRowKeys()
+
+        assertEquals(SAKE_ROW_CLASSIFICATION, rowKeys[CLASSIFICATION_INDEX_WITH_OTHER])
+        assertEquals(SAKE_ROW_CLASSIFICATION_OTHER, rowKeys[CLASSIFICATION_OTHER_INDEX])
+        assertEquals(SAKE_ROW_MAKER, rowKeys[MAKER_INDEX_WITH_CLASSIFICATION_OTHER])
     }
 }
