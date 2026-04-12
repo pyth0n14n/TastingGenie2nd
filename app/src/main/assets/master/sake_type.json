@@ -8,6 +8,7 @@
     { "value": "TOKUBETSU_HONJOZO", "label": "特別本醸造" },
     { "value": "JUNMAI", "label": "純米" },
     { "value": "HONJOZO", "label": "本醸造" },
+    { "value": "FUTSUSHU", "label": "普通酒" },
     { "value": "OTHER", "label": "その他" }
   ]
 }

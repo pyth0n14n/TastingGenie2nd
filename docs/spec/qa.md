@@ -276,7 +276,14 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Expand classification groups and verify options are shown under the correct headings.
   - Select `OTHER` in sake classification and verify the free-text field appears.
+  - Verify the `OTHER` free-text field is rendered immediately below the classification selector, not below unrelated fields such as the image.
   - Select and clear prefecture; verify the field returns to `未選択`.
+
+### Problem: Sake type masters regress when a non-special-designation option is added.
+- **Example**: `普通酒` is forced into `OTHER` free text because the master list does not expose it as a first-class option.
+- **Preventive Measure**: When the source-of-truth master adds a named sake type such as `FUTSUSHU`, update the enum, asset master, fake master data, and save/load tests in the same PR.
+- **Test Coverage**:
+  - Select `普通酒` in sake type and verify save/load round-trips without using `種別（その他）`.
 
 ## 8. Validation and Error Handling
 

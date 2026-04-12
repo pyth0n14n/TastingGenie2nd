@@ -12,5 +12,6 @@ enum class SakeGrade {
     TOKUBETSU_HONJOZO,
     JUNMAI,
     HONJOZO,
+    FUTSUSHU,
     OTHER,
 }
