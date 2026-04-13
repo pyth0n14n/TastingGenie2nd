@@ -7,11 +7,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import org.junit.Assert.assertEquals
@@ -46,8 +48,52 @@ class ReviewDetailScreenTest {
 
         composeRule.onNodeWithText("編集").performClick()
         composeRule.runOnIdle {
-            assertEquals(Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE), openedReview)
+            assertEquals(
+                Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
+                openedReview,
+            )
         }
+    }
+
+    @Test
+    fun editAction_usesTappedSectionBeforePagerSettles() {
+        val tasteLabel =
+            composeRule.activity.getString(
+                R.string.label_review_section_taste,
+            )
+        var selectedSection by mutableStateOf(ReviewSection.BASIC)
+        var openedReview: Triple<Long, Long, ReviewSection>? = null
+        composeRule.mainClock.autoAdvance = false
+        composeRule.setContent {
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview(),
+                            ),
+                        onEditReview = { sakeId, reviewId, section ->
+                            openedReview = Triple(sakeId, reviewId, section)
+                        },
+                        selectedSection = selectedSection,
+                        onSectionSelected = { next -> selectedSection = next },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription(tasteLabel).performClick()
+        composeRule.mainClock.advanceTimeByFrame()
+        composeRule.onNodeWithText("編集").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(
+                Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
+                openedReview,
+            )
+        }
+        composeRule.mainClock.autoAdvance = true
     }
 
     @Test
