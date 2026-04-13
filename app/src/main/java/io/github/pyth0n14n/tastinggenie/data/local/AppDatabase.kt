@@ -15,7 +15,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
 
 @Database(
     entities = [SakeEntity::class, ReviewEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(

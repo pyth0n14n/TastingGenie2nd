@@ -6,11 +6,14 @@ import androidx.test.core.app.ApplicationProvider
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -30,6 +33,7 @@ import java.time.LocalDate
 class SakeRepositoryImplTest {
     private lateinit var database: AppDatabase
     private lateinit var imageRepository: RecordingImageRepository
+    private lateinit var settingsRepository: FakeSettingsRepository
     private lateinit var repository: SakeRepositoryImpl
 
     @Before
@@ -37,12 +41,14 @@ class SakeRepositoryImplTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         imageRepository = RecordingImageRepository()
+        settingsRepository = FakeSettingsRepository()
         repository =
             SakeRepositoryImpl(
                 database = database,
                 sakeDao = database.sakeDao(),
                 reviewDao = database.reviewDao(),
                 sakeImageRepository = imageRepository,
+                settingsRepository = settingsRepository,
                 ioDispatcher = UnconfinedTestDispatcher(),
             )
     }
@@ -154,13 +160,13 @@ class SakeRepositoryImplTest {
         }
 
     @Test
-    fun deleteSake_removesReviewsAndDeletesImage() =
+    fun deleteSake_removesReviewsAndLeavesImageCleanupToManualByDefault() =
         runTest {
             val sakeId =
                 database.sakeDao().insert(
                     createSake(
                         name = "削除対象",
-                        imageUri = "file:///images/sakes/target.jpg",
+                        imageUris = listOf("file:///images/sakes/target.jpg"),
                     ),
                 )
             database.reviewDao().insert(createReview(sakeId = sakeId, comment = "1件目"))
@@ -171,21 +177,41 @@ class SakeRepositoryImplTest {
             assertEquals(true, result.isDeleted)
             assertEquals(emptyList<Long>(), database.sakeDao().getAllOnce().map { it.id })
             assertEquals(emptyList<Long>(), database.reviewDao().getAllOnce().map { it.id })
-            assertEquals(listOf("file:///images/sakes/target.jpg"), imageRepository.deletedUris)
+            assertEquals(0, imageRepository.cleanupCalls)
+        }
+
+    @Test
+    fun deleteSake_runsUnusedCleanupWhenAutoDeleteEnabled() =
+        runTest {
+            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
+            val sakeId =
+                database.sakeDao().insert(
+                    createSake(
+                        name = "削除対象",
+                        imageUris = listOf("file:///images/sakes/target.jpg"),
+                    ),
+                )
+
+            val result = repository.deleteSake(sakeId)
+
+            assertEquals(true, result.isDeleted)
+            assertEquals(1, imageRepository.cleanupCalls)
+            assertEquals(false, result.hasImageCleanupError)
         }
 
     @Test
     fun deleteSake_surfacesImageCleanupFailureWithoutRollingBackDbDelete() =
         runTest {
+            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
             val imageUri = "file:///images/sakes/fail.jpg"
             val sakeId =
                 database.sakeDao().insert(
                     createSake(
                         name = "削除対象",
-                        imageUri = imageUri,
+                        imageUris = listOf(imageUri),
                     ),
                 )
-            imageRepository.deleteFailure = IllegalStateException("cleanup failed")
+            imageRepository.cleanupFailure = IllegalStateException("cleanup failed")
 
             val result = repository.deleteSake(sakeId)
 
@@ -198,15 +224,16 @@ class SakeRepositoryImplTest {
     @Test
     fun deleteSake_marksCleanupFailureEvenWhenExceptionMessageIsNull() =
         runTest {
+            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
             val imageUri = "file:///images/sakes/fail-null-message.jpg"
             val sakeId =
                 database.sakeDao().insert(
                     createSake(
                         name = "削除対象",
-                        imageUri = imageUri,
+                        imageUris = listOf(imageUri),
                     ),
                 )
-            imageRepository.deleteFailure = IllegalStateException()
+            imageRepository.cleanupFailure = IllegalStateException()
 
             val result = repository.deleteSake(sakeId)
 
@@ -218,14 +245,14 @@ class SakeRepositoryImplTest {
 
     private fun createSake(
         name: String,
-        imageUri: String? = null,
+        imageUris: List<String> = emptyList(),
         isPinned: Boolean = false,
     ): SakeEntity =
         SakeEntity(
             name = name,
             grade = SakeGrade.JUNMAI,
             isPinned = isPinned,
-            imageUri = imageUri,
+            imageUris = imageUris,
             gradeOther = null,
             type = emptyList(),
             typeOther = null,
@@ -287,16 +314,39 @@ class SakeRepositoryImplTest {
 private class RecordingImageRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository {
     val deletedUris = mutableListOf<String>()
     var deleteFailure: Throwable? = null
+    var cleanupFailure: Throwable? = null
+    var cleanupCalls: Int = 0
 
-    override suspend fun importImage(
-        sourceUri: String,
-        previousImageUri: String?,
-    ): String = sourceUri
+    override suspend fun importImage(sourceUri: String): String = sourceUri
 
     override suspend fun deleteImage(imageUri: String?) {
         imageUri?.let { uri ->
             deletedUris += uri
             deleteFailure?.let { throw it }
         }
+    }
+
+    override suspend fun cleanupUnusedImages(): Int {
+        cleanupCalls += 1
+        cleanupFailure?.let { throw it }
+        return cleanupCalls
+    }
+}
+
+private class FakeSettingsRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository {
+    private val stream = MutableStateFlow(AppSettings())
+
+    override fun observeSettings(): Flow<AppSettings> = stream
+
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
+
+    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 }

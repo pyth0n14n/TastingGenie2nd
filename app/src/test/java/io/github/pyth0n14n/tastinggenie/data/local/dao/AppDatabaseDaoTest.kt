@@ -171,7 +171,7 @@ class AppDatabaseDaoTest {
         SakeEntity(
             name = name,
             grade = SakeGrade.JUNMAI,
-            imageUri = null,
+            imageUris = emptyList(),
             gradeOther = null,
             type = emptyList(),
             typeOther = null,

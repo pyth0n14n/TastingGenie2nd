@@ -4,11 +4,15 @@ import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
+import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
+import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.image.SAKE_MANAGED_IMAGE_DIRECTORY
 import io.github.pyth0n14n.tastinggenie.image.ownedSakeImageFileOrNull
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
@@ -18,12 +22,10 @@ class SakeImageRepositoryImpl
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
+        private val sakeDao: SakeDao = NoOpSakeDao,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : SakeImageRepository {
-        override suspend fun importImage(
-            sourceUri: String,
-            previousImageUri: String?,
-        ): String =
+        override suspend fun importImage(sourceUri: String): String =
             withContext(ioDispatcher) {
                 val source = Uri.parse(sourceUri)
                 val targetFile = createManagedImageFile(source)
@@ -36,7 +38,6 @@ class SakeImageRepositoryImpl
                         input.copyTo(output)
                     }
                 }
-                deleteManagedImage(previousImageUri)
                 Uri.fromFile(targetFile).toString()
             }
 
@@ -45,6 +46,15 @@ class SakeImageRepositoryImpl
                 deleteManagedImage(imageUri)
             }
         }
+
+        override suspend fun cleanupUnusedImages(): Int =
+            withContext(ioDispatcher) {
+                val referencedUris = sakeDao.getAllOnce().flatMap { sake -> sake.imageUris }.toSet()
+                val managedDirectory = File(context.filesDir, SAKE_MANAGED_IMAGE_DIRECTORY)
+                managedDirectory.listFiles().orEmpty().count { file ->
+                    deleteIfUnused(file = file, referencedUris = referencedUris)
+                }
+            }
 
         private fun createManagedImageFile(source: Uri): File {
             val directory = File(context.filesDir, SAKE_MANAGED_IMAGE_DIRECTORY).apply { mkdirs() }
@@ -63,6 +73,17 @@ class SakeImageRepositoryImpl
                 targetFile.delete()
             }
         }
+
+        private fun deleteIfUnused(
+            file: File,
+            referencedUris: Set<String>,
+        ): Boolean {
+            val uri = Uri.fromFile(file).toString()
+            if (uri in referencedUris) {
+                return false
+            }
+            return file.delete()
+        }
     }
 
 private fun Uri.extensionOrNull(context: Context): String? {
@@ -75,4 +96,27 @@ private fun Uri.extensionOrNull(context: Context): String? {
     }
     val name = lastPathSegment.orEmpty()
     return name.substringAfterLast('.', "").lowercase().ifBlank { null }
+}
+
+private object NoOpSakeDao : SakeDao {
+    override fun observeAll() = flowOf(emptyList<SakeEntity>())
+
+    override fun observeListSummaries() = flowOf(emptyList<SakeListSummaryRow>())
+
+    override suspend fun getById(id: Long) = null
+
+    override suspend fun getAllOnce() = emptyList<SakeEntity>()
+
+    override suspend fun insert(entity: SakeEntity) = 0L
+
+    override suspend fun insertAll(entities: List<SakeEntity>) = Unit
+
+    override suspend fun update(entity: SakeEntity) = 0
+
+    override suspend fun updatePinned(
+        id: Long,
+        isPinned: Boolean,
+    ) = 0
+
+    override suspend fun deleteById(id: Long) = 0
 }

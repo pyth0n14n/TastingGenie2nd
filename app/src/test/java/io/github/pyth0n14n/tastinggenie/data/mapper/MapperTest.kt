@@ -110,20 +110,20 @@ class MapperTest {
     }
 
     @Test
-    fun sakeMapper_roundTrip_preservesEnumListAndImageUri() {
+    fun sakeMapper_roundTrip_preservesEnumListAndImageUris() {
         val input =
             SakeInput(
                 id = 5L,
                 name = "テスト銘柄",
                 grade = SakeGrade.JUNMAI_GINJO,
-                imageUri = "file:///images/sakes/1.jpg",
+                imageUris = listOf("file:///images/sakes/1.jpg"),
                 type = listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI),
                 prefecture = Prefecture.KYOTO,
             )
 
         val restored = input.toEntity().toDomain()
 
-        assertEquals("file:///images/sakes/1.jpg", restored.imageUri)
+        assertEquals(listOf("file:///images/sakes/1.jpg"), restored.imageUris)
         assertEquals(SakeGrade.JUNMAI_GINJO, restored.grade)
         assertEquals(listOf(SakeClassification.KIMOTO, SakeClassification.HIYAOROSHI), restored.type)
         assertEquals(Prefecture.KYOTO, restored.prefecture)

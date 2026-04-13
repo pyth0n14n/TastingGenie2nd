@@ -94,7 +94,7 @@ class ImportExportRepositoryImplTest {
             val storedReview = database.reviewDao().getAllOnce().single()
             assertEquals("テスト酒", storedSake.name)
             assertEquals(SakeGrade.JUNMAI, storedSake.grade)
-            assertEquals(null, storedSake.imageUri)
+            assertEquals(emptyList<String>(), storedSake.imageUris)
             assertEquals(true, storedSake.isPinned)
             assertEquals(null, storedSake.gradeOther)
             assertTrue(storedSake.id != sampleSerializableSake().id)
@@ -332,7 +332,7 @@ class ImportExportRepositoryImplTest {
                 name = sake.name,
                 grade = SakeGrade.valueOf(sake.grade),
                 isPinned = sake.isPinned,
-                imageUri = "file:///images/sakes/1.jpg",
+                imageUris = listOf("file:///images/sakes/1.jpg"),
                 gradeOther = sake.gradeOther,
                 type = emptyList(),
                 typeOther = null,

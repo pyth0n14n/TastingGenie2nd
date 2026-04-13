@@ -140,10 +140,9 @@ private class DaoFailureException(
 ) : IllegalStateException(message)
 
 private class NoOpSakeImageRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository {
-    override suspend fun importImage(
-        sourceUri: String,
-        previousImageUri: String?,
-    ): String = sourceUri
+    override suspend fun importImage(sourceUri: String): String = sourceUri
 
     override suspend fun deleteImage(imageUri: String?) = Unit
+
+    override suspend fun cleanupUnusedImages(): Int = 0
 }

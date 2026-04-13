@@ -6,9 +6,13 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     fun observeSettings(): Flow<AppSettings>
 
+    suspend fun getCurrentSettings(): AppSettings
+
     suspend fun updateShowHelpHints(enabled: Boolean)
 
     suspend fun updateShowImagePreview(enabled: Boolean)
 
     suspend fun updateShowReviewSoundness(enabled: Boolean)
+
+    suspend fun updateAutoDeleteUnusedImages(enabled: Boolean)
 }
