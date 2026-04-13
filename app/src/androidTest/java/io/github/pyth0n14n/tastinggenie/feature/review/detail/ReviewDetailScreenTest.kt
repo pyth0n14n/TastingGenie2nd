@@ -24,7 +24,7 @@ class ReviewDetailScreenTest {
 
     @Test
     fun editAction_opensEditor() {
-        var openedReview: Pair<Long, Long>? = null
+        var openedReview: Triple<Long, Long, ReviewSection>? = null
         composeRule.setContent {
             ReviewDetailScreen(
                 onBack = {},
@@ -35,15 +35,19 @@ class ReviewDetailScreenTest {
                                 isLoading = false,
                                 review = testReview(),
                             ),
-                        onEditReview = { sakeId, reviewId -> openedReview = sakeId to reviewId },
-                        selectedSection = ReviewSection.BASIC,
+                        onEditReview = { sakeId, reviewId, section ->
+                            openedReview = Triple(sakeId, reviewId, section)
+                        },
+                        selectedSection = ReviewSection.TASTE,
                         onSectionSelected = {},
                     ),
             )
         }
 
         composeRule.onNodeWithText("編集").performClick()
-        composeRule.runOnIdle { assertEquals(testReview().sakeId to testReview().id, openedReview) }
+        composeRule.runOnIdle {
+            assertEquals(Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE), openedReview)
+        }
     }
 
     @Test
@@ -58,7 +62,7 @@ class ReviewDetailScreenTest {
                                 isLoading = false,
                                 review = testReview(),
                             ),
-                        onEditReview = { _, _ -> },
+                        onEditReview = { _, _, _ -> },
                         selectedSection = ReviewSection.BASIC,
                         onSectionSelected = {},
                     ),
@@ -81,7 +85,7 @@ class ReviewDetailScreenTest {
                                 isLoading = false,
                                 review = testReview(),
                             ),
-                        onEditReview = { _, _ -> },
+                        onEditReview = { _, _, _ -> },
                         selectedSection = selectedSection,
                         onSectionSelected = { next -> selectedSection = next },
                     ),

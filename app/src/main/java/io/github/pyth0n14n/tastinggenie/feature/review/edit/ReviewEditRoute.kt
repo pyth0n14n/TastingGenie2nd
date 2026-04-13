@@ -2,6 +2,8 @@
 
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import androidx.compose.foundation.MutatePriority
+import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,23 +46,26 @@ import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
-private const val REVIEW_DATE_INDEX = 2
-private const val REVIEW_PRICE_INDEX = 4
-private const val REVIEW_VOLUME_INDEX = 5
+private const val REVIEW_DATE_INDEX = 1
+private const val REVIEW_PRICE_INDEX = 3
+private const val REVIEW_VOLUME_INDEX = 4
 private const val REVIEW_EDIT_PAGER_TAG = "review_edit_pager"
+private const val PAGER_SETTLE_TOLERANCE = 0.001f
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ReviewEditRoute(
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    initialSection: ReviewSection = ReviewSection.BASIC,
     viewModel: ReviewEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var selectedSectionName by rememberSaveable { mutableStateOf(ReviewSection.BASIC.name) }
+    var selectedSectionName by rememberSaveable { mutableStateOf(initialSection.name) }
     val selectedSection = ReviewSection.valueOf(selectedSectionName)
     LaunchedEffect(state.validationFailureCount) {
         if (state.validationErrors.isNotEmpty() && selectedSection != ReviewSection.BASIC) {
@@ -147,13 +153,17 @@ private fun ReviewEditBody(
 ) {
     val pagerState = rememberPagerState(initialPage = content.selectedSection.ordinal) { ReviewSection.entries.size }
     val coroutineScope = rememberCoroutineScope()
+    val visibleSection = pagerState.visibleSection(content.selectedSection)
     LaunchedEffect(content.selectedSection) {
-        if (pagerState.currentPage != content.selectedSection.ordinal) {
-            pagerState.animateScrollToPage(content.selectedSection.ordinal)
+        if (
+            pagerState.currentPage != content.selectedSection.ordinal ||
+            pagerState.currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE
+        ) {
+            pagerState.takeOverAndMoveToPage(content.selectedSection.ordinal)
         }
     }
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
+        snapshotFlow { pagerState.settledPage }.collect { page ->
             val section = ReviewSection.entries[page]
             if (section != content.selectedSection) {
                 content.onSectionSelected(section)
@@ -164,11 +174,11 @@ private fun ReviewEditBody(
         modifier = modifier.fillMaxSize(),
     ) {
         ReviewSectionTabs(
-            selectedSection = content.selectedSection,
+            selectedSection = visibleSection,
             onSectionSelected = { next ->
                 content.onSectionSelected(next)
                 coroutineScope.launch {
-                    pagerState.animateScrollToPage(next.ordinal)
+                    pagerState.takeOverAndMoveToPage(next.ordinal)
                 }
             },
         )
@@ -244,7 +254,7 @@ private fun volumeShortcutOptions(): List<DropdownOption> =
         DropdownOption(value = "1800", label = stringResource(R.string.label_volume_one_sho)),
     )
 
-private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
+internal fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
     if (validationErrors.isEmpty()) {
         return null
     }
@@ -253,6 +263,24 @@ private fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
         validationErrors.containsKey(ReviewValidationField.PRICE) -> REVIEW_PRICE_INDEX
         validationErrors.containsKey(ReviewValidationField.VOLUME) -> REVIEW_VOLUME_INDEX
         else -> null
+    }
+}
+
+private suspend fun PagerState.takeOverAndMoveToPage(targetPage: Int) {
+    stopScroll(MutatePriority.PreventUserInput)
+    if (currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE) {
+        scrollToPage(targetPage)
+    } else {
+        animateScrollToPage(targetPage)
+    }
+}
+
+private fun PagerState.visibleSection(fallbackSection: ReviewSection): ReviewSection {
+    val sections = ReviewSection.entries
+    return when {
+        targetPage in sections.indices && targetPage != settledPage -> sections[targetPage]
+        currentPage in sections.indices -> sections[currentPage]
+        else -> fallbackSection
     }
 }
 

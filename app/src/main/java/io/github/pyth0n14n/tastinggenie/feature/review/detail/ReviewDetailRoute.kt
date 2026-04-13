@@ -1,9 +1,12 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
+import androidx.compose.foundation.MutatePriority
+import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -29,14 +32,16 @@ import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 private const val REVIEW_DETAIL_PAGER_TAG = "review_detail_pager"
+private const val PAGER_SETTLE_TOLERANCE = 0.001f
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ReviewDetailRoute(
     onBack: () -> Unit,
-    onEditReview: (Long, Long) -> Unit,
+    onEditReview: (Long, Long, ReviewSection) -> Unit,
     refreshRequested: Boolean = false,
     onRefreshConsumed: () -> Unit = {},
     viewModel: ReviewDetailViewModel = hiltViewModel(),
@@ -71,13 +76,17 @@ fun ReviewDetailScreen(
 ) {
     val pagerState = rememberPagerState(initialPage = content.selectedSection.ordinal) { ReviewSection.entries.size }
     val coroutineScope = rememberCoroutineScope()
+    val visibleSection = pagerState.visibleSection(content.selectedSection)
     LaunchedEffect(content.selectedSection) {
-        if (pagerState.currentPage != content.selectedSection.ordinal) {
-            pagerState.animateScrollToPage(content.selectedSection.ordinal)
+        if (
+            pagerState.currentPage != content.selectedSection.ordinal ||
+            pagerState.currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE
+        ) {
+            pagerState.takeOverAndMoveToPage(content.selectedSection.ordinal)
         }
     }
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
+        snapshotFlow { pagerState.settledPage }.collect { page ->
             val section = ReviewSection.entries[page]
             if (section != content.selectedSection) {
                 content.onSectionSelected(section)
@@ -104,7 +113,11 @@ fun ReviewDetailScreen(
                 actions = {
                     val review = content.state.review
                     if (review != null) {
-                        TextButton(onClick = { content.onEditReview(review.sakeId, review.id) }) {
+                        TextButton(
+                            onClick = {
+                                content.onEditReview(review.sakeId, review.id, visibleSection)
+                            },
+                        ) {
                             Text(stringResource(R.string.action_edit))
                         }
                     }
@@ -118,11 +131,11 @@ fun ReviewDetailScreen(
             content.state.review != null ->
                 Column(modifier = Modifier.padding(padding)) {
                     ReviewSectionTabs(
-                        selectedSection = content.selectedSection,
+                        selectedSection = visibleSection,
                         onSectionSelected = { next ->
                             content.onSectionSelected(next)
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(next.ordinal)
+                                pagerState.takeOverAndMoveToPage(next.ordinal)
                             }
                         },
                     )
@@ -150,7 +163,25 @@ fun ReviewDetailScreen(
 
 data class ReviewDetailScreenContent(
     val state: ReviewDetailUiState,
-    val onEditReview: (Long, Long) -> Unit,
+    val onEditReview: (Long, Long, ReviewSection) -> Unit,
     val selectedSection: ReviewSection,
     val onSectionSelected: (ReviewSection) -> Unit,
 )
+
+private suspend fun PagerState.takeOverAndMoveToPage(targetPage: Int) {
+    stopScroll(MutatePriority.PreventUserInput)
+    if (currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE) {
+        scrollToPage(targetPage)
+    } else {
+        animateScrollToPage(targetPage)
+    }
+}
+
+private fun PagerState.visibleSection(fallbackSection: ReviewSection): ReviewSection {
+    val sections = ReviewSection.entries
+    return when {
+        targetPage in sections.indices && targetPage != settledPage -> sections[targetPage]
+        currentPage in sections.indices -> sections[currentPage]
+        else -> fallbackSection
+    }
+}
