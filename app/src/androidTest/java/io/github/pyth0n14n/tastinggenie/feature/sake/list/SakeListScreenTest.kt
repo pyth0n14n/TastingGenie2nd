@@ -1,9 +1,10 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.list
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertDoesNotExist
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -61,10 +62,13 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 42L,
-                                    name = "吟醸酒",
-                                    grade = SakeGrade.GINJO,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 42L,
+                                            name = "吟醸酒",
+                                            grade = SakeGrade.GINJO,
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
@@ -84,7 +88,7 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("吟醸").assertExists()
+        composeRule.onNodeWithText("吟醸").assertIsDisplayed()
         composeRule.onNodeWithText("吟醸酒").performClick()
         composeRule.runOnIdle { assertEquals(42L, openedId) }
     }
@@ -143,8 +147,8 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("ヘルプ").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("設定").assertExists()
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("ヘルプ").fetchSemanticsNodes().size)
+        composeRule.onNodeWithContentDescription("設定").assertIsDisplayed()
     }
 
     @Test
@@ -158,11 +162,14 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 9L,
-                                    name = "冬酒",
-                                    grade = SakeGrade.JUNMAI,
-                                    isPinned = false,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 9L,
+                                            name = "冬酒",
+                                            grade = SakeGrade.JUNMAI,
+                                            isPinned = false,
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
@@ -200,15 +207,21 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 12L,
-                                    name = "短い名前",
-                                    grade = SakeGrade.JUNMAI,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 12L,
+                                            name = "短い名前",
+                                            grade = SakeGrade.JUNMAI,
+                                        ),
                                 ),
-                                Sake(
-                                    id = 13L,
-                                    name = "とても長い銘柄名で二行に折り返されることを想定したテスト用の名前",
-                                    grade = SakeGrade.JUNMAI,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 13L,
+                                            name = "とても長い銘柄名で二行に折り返されることを想定したテスト用の名前",
+                                            grade = SakeGrade.JUNMAI,
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
@@ -277,8 +290,8 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("最新評価 好き").assertExists()
-        composeRule.onNodeWithContentDescription("最新評価なし").assertExists()
+        composeRule.onNodeWithContentDescription("最新評価 好き").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("最新評価なし").assertIsDisplayed()
     }
 
     @Test
@@ -290,11 +303,14 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 7L,
-                                    name = "夏酒",
-                                    grade = SakeGrade.JUNMAI,
-                                    imageUri = null,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 7L,
+                                            name = "夏酒",
+                                            grade = SakeGrade.JUNMAI,
+                                            imageUri = null,
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
@@ -315,7 +331,7 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("画像が登録されていません").assertExists()
+        composeRule.onNodeWithText("画像が登録されていません").assertIsDisplayed()
     }
 
     @Test
@@ -327,11 +343,14 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 8L,
-                                    name = "秋酒",
-                                    grade = SakeGrade.GINJO,
-                                    imageUri = "file:///images/sakes/autumn.jpg",
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 8L,
+                                            name = "秋酒",
+                                            grade = SakeGrade.GINJO,
+                                            imageUri = "file:///images/sakes/autumn.jpg",
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
@@ -352,8 +371,8 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("酒画像").assertDoesNotExist()
-        composeRule.onNodeWithText("画像が登録されていません").assertDoesNotExist()
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("酒画像").fetchSemanticsNodes().size)
+        assertEquals(0, composeRule.onAllNodesWithText("画像が登録されていません").fetchSemanticsNodes().size)
     }
 
     @Test
@@ -374,10 +393,13 @@ class SakeListScreenTest {
                             ),
                         sakes =
                             listOf(
-                                Sake(
-                                    id = 7L,
-                                    name = "夏酒",
-                                    grade = SakeGrade.JUNMAI,
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 7L,
+                                            name = "夏酒",
+                                            grade = SakeGrade.JUNMAI,
+                                        ),
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
@@ -404,7 +426,7 @@ class SakeListScreenTest {
 
         composeRule.onNodeWithContentDescription("酒を削除").performClick()
         composeRule.runOnIdle { assertTrue(deleteRequested) }
-        composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像も削除します。").assertExists()
+        composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像も削除します。").assertIsDisplayed()
         composeRule.onNodeWithText("確定").performClick()
         composeRule.runOnIdle { assertTrue(deleteConfirmed) }
     }
@@ -435,7 +457,7 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("酒は削除しましたが画像の削除に失敗しました").assertExists()
-        composeRule.onNodeWithText("登録された酒がありません").assertExists()
+        composeRule.onNodeWithText("酒は削除しましたが画像の削除に失敗しました").assertIsDisplayed()
+        composeRule.onNodeWithText("登録された酒がありません").assertIsDisplayed()
     }
 }

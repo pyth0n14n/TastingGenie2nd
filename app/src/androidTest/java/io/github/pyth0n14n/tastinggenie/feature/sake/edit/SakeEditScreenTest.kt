@@ -1,11 +1,13 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertExists
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeUp
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
@@ -64,6 +66,27 @@ class SakeEditScreenTest {
 
         composeRule.onNodeWithText("保存").performClick()
         composeRule.runOnIdle { assertTrue(saveCalled) }
+    }
+
+    @Test
+    fun saveButton_staysVisibleAfterScrollingForm() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithText("保存").assertIsDisplayed()
+        composeRule.onNodeWithTag("sake_edit_form").performTouchInput { swipeUp() }
+        composeRule.onNodeWithText("アルコール度数").assertIsDisplayed()
+        composeRule.onNodeWithText("保存").assertIsDisplayed()
     }
 
     @Test
@@ -254,7 +277,7 @@ class SakeEditScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("都道府県: 未選択").assertExists()
+        composeRule.onNodeWithText("都道府県: 未選択").assertIsDisplayed()
         composeRule.onNodeWithText("都道府県: 未選択").performClick()
         composeRule.onNodeWithText("[+] 北関東").performClick()
         composeRule.onNodeWithText("  ( ) 長野県").performClick()

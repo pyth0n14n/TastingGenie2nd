@@ -1,7 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.review
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
@@ -23,11 +23,11 @@ class ReviewSectionTabsTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("基本情報").assertExists()
-        composeRule.onNodeWithContentDescription("外観").assertExists()
-        composeRule.onNodeWithContentDescription("香り").assertExists()
-        composeRule.onNodeWithContentDescription("味わい").assertExists()
-        composeRule.onNodeWithContentDescription("その他").assertExists()
+        composeRule.onNodeWithContentDescription("基本情報").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("外観").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("香り").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("味わい").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("その他").assertIsDisplayed()
 
         composeRule.onNodeWithContentDescription("香り").performClick()
         composeRule.runOnIdle {

@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -13,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.pyth0n14n.tastinggenie.feature.help.HelpRoute
+import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.image.ReviewImageRoute
@@ -107,8 +109,13 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                 navArgument(AppDestination.ARG_SAKE_ID) {
                     type = NavType.LongType
                 },
+                navArgument(AppDestination.ARG_REVIEW_SECTION) {
+                    type = NavType.StringType
+                    defaultValue = "BASIC"
+                },
             ),
-    ) {
+    ) { backStackEntry ->
+        val initialSection = backStackEntry.reviewSectionArgument()
         ReviewEditRoute(
             onBack = { navController.popBackStack() },
             onSaved = {
@@ -117,6 +124,7 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                     ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
                 navController.popBackStack()
             },
+            initialSection = initialSection,
         )
     }
     composable(
@@ -129,8 +137,13 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                 navArgument(AppDestination.ARG_REVIEW_ID) {
                     type = NavType.LongType
                 },
+                navArgument(AppDestination.ARG_REVIEW_SECTION) {
+                    type = NavType.StringType
+                    defaultValue = "BASIC"
+                },
             ),
-    ) {
+    ) { backStackEntry ->
+        val initialSection = backStackEntry.reviewSectionArgument()
         ReviewEditRoute(
             onBack = { navController.popBackStack() },
             onSaved = {
@@ -139,6 +152,7 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
                     ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
                 navController.popBackStack()
             },
+            initialSection = initialSection,
         )
     }
 }
@@ -159,8 +173,14 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
                 .collectAsStateWithLifecycle()
         ReviewDetailRoute(
             onBack = { navController.popBackStack() },
-            onEditReview = { sakeId, reviewId ->
-                navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = reviewId))
+            onEditReview = { sakeId, reviewId, section ->
+                navController.navigate(
+                    AppDestination.reviewEditRoute(
+                        sakeId = sakeId,
+                        reviewId = reviewId,
+                        sectionName = section.name,
+                    ),
+                )
             },
             refreshRequested = refreshRequested,
             onRefreshConsumed = {
@@ -169,6 +189,12 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
         )
     }
 }
+
+private fun NavBackStackEntry.reviewSectionArgument(): ReviewSection =
+    arguments
+        ?.getString(AppDestination.ARG_REVIEW_SECTION)
+        ?.let { sectionName -> ReviewSection.entries.firstOrNull { section -> section.name == sectionName } }
+        ?: ReviewSection.BASIC
 
 private fun NavGraphBuilder.addReviewImageDestination(navController: NavHostController) {
     composable(

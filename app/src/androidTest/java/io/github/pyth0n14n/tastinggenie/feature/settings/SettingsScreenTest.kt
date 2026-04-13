@@ -25,6 +25,7 @@ class SettingsScreenTest {
                     SettingsScreenActions(
                         onToggleHelpHints = {},
                         onToggleImagePreview = {},
+                        onToggleReviewSoundness = {},
                         onExportJson = { exportClicked = true },
                         onImportJson = { importClicked = true },
                         onDismissMessage = {},
@@ -56,6 +57,7 @@ class SettingsScreenTest {
                     SettingsScreenActions(
                         onToggleHelpHints = {},
                         onToggleImagePreview = {},
+                        onToggleReviewSoundness = {},
                         onExportJson = {},
                         onImportJson = {},
                         onDismissMessage = { dismissCalled = true },

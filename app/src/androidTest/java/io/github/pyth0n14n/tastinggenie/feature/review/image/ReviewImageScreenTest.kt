@@ -1,11 +1,10 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.image
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertDoesNotExist
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -30,8 +29,8 @@ class ReviewImageScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("画像が登録されていません").assertDoesNotExist()
-        composeRule.onNodeWithContentDescription("レビュー画像").assertExists()
+        org.junit.Assert.assertEquals(0, composeRule.onAllNodesWithText("画像が登録されていません").fetchSemanticsNodes().size)
+        composeRule.onNodeWithContentDescription("レビュー画像").assertIsDisplayed()
     }
 
     /**

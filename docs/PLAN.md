@@ -29,10 +29,11 @@
 - 対象は `ReviewEdit` と `ReviewDetail` の両方に統一する。
 - tab tap と pager swipe は双方向同期する。
 - validation エラーで `BASIC` に戻す既存仕様は維持する。
-- sake edit の `種別=OTHER` 自由記述欄は、常に分類 selector の直下に表示されるよう固定する。
+- sake edit の `種別=OTHER` 自由記述欄は、常に種別 selector の直下に表示されるよう固定する。
 - この不具合は表示順の回帰としてテストで固定する。画像欄の下へ落ちる再発を防ぐ。
 - docs 更新は `docs/PLAN.md` と `docs/spec/qa.md`。
 - テストは review save bar 常時表示、tab swipe、`OTHER` 欄位置の回帰を追加する。
+- 状態: 実施済み。
 
 ## PR13: `feat(image-ownership-cleanup)`
 - 方針はユーザー提示案を採用する。永続画像は「保存時にアプリ管理領域へ取り込み、その後はアプリが所有する」。
@@ -54,7 +55,7 @@
 - Review UI: `Info / eye / nose / tongue / notes` の tab icon が表示され、content description は日本語ラベルになること。
 - Review UI: edit/detail の両方で tab tap と横スワイプが同期すること。
 - Review edit: 長いフォームでも save ボタンが常に画面下に見え、保存中 disable 表示も維持されること。
-- Sake edit: `OTHER` 自由記述欄が分類 selector 直下に表示され、画像欄の下へ移動しないこと。
+- Sake edit: `種別=OTHER` 自由記述欄が種別 selector 直下に表示され、画像欄の下へ移動しないこと。
 - Image: gallery/camera とも save 後は managed URI が保存されること。
 - Image: 画像差し替え時、既定設定では旧 managed file が即削除されず、DB 参照だけが更新されること。
 - Image: record 削除時、`autoDeleteUnusedImages=false` では file が残ること。

@@ -1,8 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -63,7 +63,7 @@ class ReviewListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("画像").assertDoesNotExist()
+        assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
     }
 
     @Test

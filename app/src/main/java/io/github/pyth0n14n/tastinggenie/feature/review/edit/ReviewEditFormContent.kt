@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
-import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 import io.github.pyth0n14n.tastinggenie.ui.common.DiscreteSliderField
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
@@ -21,14 +20,7 @@ fun LazyListScope.reviewEditFormContent(
     onAction: (ReviewEditAction) -> Unit,
     uiData: ReviewEditFormUiData,
     selectedSection: ReviewSection,
-    onSectionSelected: (ReviewSection) -> Unit,
 ) {
-    item(key = "review_section_tabs", contentType = "tabs") {
-        ReviewSectionTabs(
-            selectedSection = selectedSection,
-            onSectionSelected = onSectionSelected,
-        )
-    }
     when (selectedSection) {
         ReviewSection.BASIC ->
             addBasicInfoFields(

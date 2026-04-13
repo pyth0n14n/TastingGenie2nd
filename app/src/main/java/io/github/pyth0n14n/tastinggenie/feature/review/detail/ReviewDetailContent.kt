@@ -18,7 +18,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
-import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
@@ -87,12 +86,6 @@ fun ReviewDetailContent(
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
-        item(key = "review_section_tabs", contentType = "tabs") {
-            ReviewSectionTabs(
-                selectedSection = content.selectedSection,
-                onSectionSelected = content.onSectionSelected,
-            )
-        }
         if (content.selectedSection == ReviewSection.OTHER) {
             item(key = "flavor_profile_grid", contentType = "flavor_profile") {
                 ReviewFlavorProfileField(
@@ -132,7 +125,6 @@ data class ReviewDetailContentState(
     val sakeName: String,
     val labels: ReviewDetailLabels,
     val selectedSection: ReviewSection,
-    val onSectionSelected: (ReviewSection) -> Unit,
 )
 
 private fun MutableList<DetailRow>.addBasicRows(
