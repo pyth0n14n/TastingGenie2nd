@@ -82,6 +82,8 @@ fun SettingsRoute(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleImagePreview = viewModel::toggleImagePreview,
                 onToggleReviewSoundness = viewModel::toggleReviewSoundness,
+                onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
+                onCleanupUnusedImages = viewModel::cleanupUnusedImages,
                 onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
                 onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
                 onDismissMessage = viewModel::clearTransferFeedback,
@@ -158,45 +160,70 @@ fun SettingsScreen(
             )
         },
     ) { padding ->
-        Column(
+        SettingsContent(
+            state = state,
+            actions = actions,
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(SCREEN_PADDING.dp),
-            verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
+        )
+    }
+}
+
+@Composable
+private fun SettingsContent(
+    state: SettingsUiState,
+    actions: SettingsScreenActions,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
+    ) {
+        SettingSwitchRow(
+            label = stringResource(R.string.setting_help_hint),
+            checked = state.settings.showHelpHints,
+            onCheckedChange = actions.onToggleHelpHints,
+            enabled = !state.isProcessingTransfer,
+        )
+        SettingSwitchRow(
+            label = stringResource(R.string.setting_image_preview),
+            checked = state.settings.showImagePreview,
+            onCheckedChange = actions.onToggleImagePreview,
+            enabled = !state.isProcessingTransfer,
+        )
+        SettingSwitchRow(
+            label = stringResource(R.string.setting_review_soundness),
+            checked = state.settings.showReviewSoundness,
+            onCheckedChange = actions.onToggleReviewSoundness,
+            enabled = !state.isProcessingTransfer,
+        )
+        SettingSwitchRow(
+            label = stringResource(R.string.setting_auto_delete_unused_images),
+            checked = state.settings.autoDeleteUnusedImages,
+            onCheckedChange = actions.onToggleAutoDeleteUnusedImages,
+            enabled = !state.isProcessingTransfer,
+        )
+        Button(
+            onClick = actions.onCleanupUnusedImages,
+            enabled = !state.isProcessingTransfer,
         ) {
-            SettingSwitchRow(
-                label = stringResource(R.string.setting_help_hint),
-                checked = state.settings.showHelpHints,
-                onCheckedChange = actions.onToggleHelpHints,
-                enabled = !state.isProcessingTransfer,
+            Text(stringResource(R.string.action_cleanup_unused_images))
+        }
+        TransferActions(
+            isProcessingTransfer = state.isProcessingTransfer,
+            messageResId = state.messageResId,
+            onExportJson = actions.onExportJson,
+            onImportJson = actions.onImportJson,
+            onDismissMessage = actions.onDismissMessage,
+        )
+        state.error?.let { error ->
+            Text(
+                text = stringResource(error.messageResId),
+                color = MaterialTheme.colorScheme.error,
             )
-            SettingSwitchRow(
-                label = stringResource(R.string.setting_image_preview),
-                checked = state.settings.showImagePreview,
-                onCheckedChange = actions.onToggleImagePreview,
-                enabled = !state.isProcessingTransfer,
-            )
-            SettingSwitchRow(
-                label = stringResource(R.string.setting_review_soundness),
-                checked = state.settings.showReviewSoundness,
-                onCheckedChange = actions.onToggleReviewSoundness,
-                enabled = !state.isProcessingTransfer,
-            )
-            TransferActions(
-                isProcessingTransfer = state.isProcessingTransfer,
-                messageResId = state.messageResId,
-                onExportJson = actions.onExportJson,
-                onImportJson = actions.onImportJson,
-                onDismissMessage = actions.onDismissMessage,
-            )
-            state.error?.let { error ->
-                Text(
-                    text = stringResource(error.messageResId),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
         }
     }
 }
@@ -205,6 +232,8 @@ data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
     val onToggleImagePreview: (Boolean) -> Unit,
     val onToggleReviewSoundness: (Boolean) -> Unit,
+    val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
+    val onCleanupUnusedImages: () -> Unit,
     val onExportJson: () -> Unit,
     val onImportJson: () -> Unit,
     val onDismissMessage: () -> Unit,

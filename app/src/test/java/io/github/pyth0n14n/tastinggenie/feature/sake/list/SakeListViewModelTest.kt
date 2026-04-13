@@ -205,7 +205,7 @@ class SakeListViewModelTest {
                                     id = DELETE_SAKE_ID,
                                     name = "削除対象",
                                     grade = SakeGrade.JUNMAI,
-                                    imageUri = "file:///images/sakes/$DELETE_SAKE_ID.jpg",
+                                    imageUris = listOf("file:///images/sakes/$DELETE_SAKE_ID.jpg"),
                                 ),
                             ),
                     ),
@@ -581,6 +581,8 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override fun observeSettings(): Flow<AppSettings> = stream
 
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
     override suspend fun updateShowHelpHints(enabled: Boolean) {
         stream.value = stream.value.copy(showHelpHints = enabled)
     }
@@ -591,6 +593,10 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 }
 

@@ -121,7 +121,7 @@ class SakeListViewModel
                                             sakeId = target.sake.id,
                                             sakeName = target.sake.name,
                                             reviewCount = reviewCount,
-                                            hasImage = !target.sake.imageUri.isNullOrBlank(),
+                                            hasImage = target.sake.imageUris.isNotEmpty(),
                                         ),
                                 )
                             }

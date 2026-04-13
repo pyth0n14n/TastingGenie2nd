@@ -57,7 +57,7 @@ class ReviewImageViewModel
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            imageUri = sake.imageUri,
+                            imageUris = sake.imageUris,
                         )
                     }
                 }.onFailure { throwable ->

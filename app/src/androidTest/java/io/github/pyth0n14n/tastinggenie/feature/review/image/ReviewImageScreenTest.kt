@@ -23,7 +23,7 @@ class ReviewImageScreenTest {
                 state =
                     ReviewImageUiState(
                         isLoading = false,
-                        imageUri = imageUri,
+                        imageUris = listOf(imageUri),
                     ),
                 onBack = {},
             )

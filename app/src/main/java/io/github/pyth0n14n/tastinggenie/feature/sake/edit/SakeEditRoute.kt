@@ -121,7 +121,7 @@ fun SakeEditScreen(
         LoadingContent()
         return
     }
-    var isDeleteImageDialogVisible by remember { mutableStateOf(false) }
+    var deleteTargetImageUri by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val gradeOptions = state.gradeOptions.toOptions()
     val classificationGroups = state.classificationOptions.toClassificationGroups()
@@ -142,12 +142,12 @@ fun SakeEditScreen(
         },
     ) { padding ->
         DeleteSakeImageDialog(
-            isVisible = isDeleteImageDialogVisible,
+            isVisible = deleteTargetImageUri != null,
             onConfirm = {
-                callbacks.onDeleteImage()
-                isDeleteImageDialogVisible = false
+                deleteTargetImageUri?.let(callbacks.onDeleteImage)
+                deleteTargetImageUri = null
             },
-            onDismiss = { isDeleteImageDialogVisible = false },
+            onDismiss = { deleteTargetImageUri = null },
         )
         LazyColumn(
             modifier =
@@ -169,7 +169,7 @@ fun SakeEditScreen(
                         prefectureGroups = prefectureGroups,
                     ),
                 callbacks = callbacks,
-                onDeleteImageRequest = { isDeleteImageDialogVisible = true },
+                onDeleteImageRequest = { imageUri -> deleteTargetImageUri = imageUri },
             )
         }
     }
@@ -219,7 +219,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
     state: SakeEditUiState,
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
-    onDeleteImageRequest: () -> Unit,
+    onDeleteImageRequest: (String) -> Unit,
 ) {
     basicFields(
         state = state,
@@ -235,7 +235,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
     state: SakeEditUiState,
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
-    onDeleteImageRequest: () -> Unit,
+    onDeleteImageRequest: (String) -> Unit,
 ) {
     textFieldItem(
         labelRes = R.string.label_sake_name,
@@ -277,7 +277,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
     }
     item(key = SAKE_ROW_IMAGE) {
         SakeImageField(
-            imageUri = state.imagePreviewUri,
+            imageUris = state.imagePreviewUris,
             isSaving = state.isSaving,
             onPickImage = callbacks.onPickImageRequest,
             onCaptureImage = callbacks.onCaptureImageRequest,
@@ -354,7 +354,7 @@ data class SakeEditCallbacks(
     val onPrefectureSelected: (String?) -> Unit,
     val onPickImageRequest: () -> Unit,
     val onCaptureImageRequest: () -> Unit,
-    val onDeleteImage: () -> Unit,
+    val onDeleteImage: (String) -> Unit,
 )
 
 data class SakeEditFormUiData(

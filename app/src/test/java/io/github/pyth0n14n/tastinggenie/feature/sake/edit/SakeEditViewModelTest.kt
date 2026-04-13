@@ -257,7 +257,7 @@ class SakeEditViewModelTest {
             advanceUntilIdle()
 
             val saved = repository.savedInputs.single()
-            assertEquals(IMPORTED_IMAGE_URI, saved.imageUri)
+            assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
             assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
             assertTrue(imageRepository.deletedUris.isEmpty())
         }
@@ -273,7 +273,7 @@ class SakeEditViewModelTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.JUNMAI,
-                                imageUri = EXISTING_IMAGE_URI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
                             ),
                         ),
                 )
@@ -287,13 +287,13 @@ class SakeEditViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.removeImage()
+            viewModel.removeImage(EXISTING_IMAGE_URI)
             viewModel.save()
             advanceUntilIdle()
 
             val saved = repository.savedInputs.single()
-            assertEquals(null, saved.imageUri)
-            assertEquals(listOf(EXISTING_IMAGE_URI), imageRepository.deletedUris)
+            assertEquals(emptyList<String>(), saved.imageUris)
+            assertTrue(imageRepository.deletedUris.isEmpty())
         }
 
     @Test
@@ -544,7 +544,7 @@ class SakeEditViewModelTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.OTHER,
-                                imageUri = EXISTING_IMAGE_URI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
                                 gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
@@ -622,7 +622,7 @@ class SakeEditViewModelTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.OTHER,
-                                imageUri = EXISTING_IMAGE_URI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
                                 gradeOther = "普通酒",
                                 type = listOf(SakeClassification.KIMOTO, SakeClassification.OTHER),
                                 typeOther = "限定品",
@@ -654,8 +654,8 @@ class SakeEditViewModelTest {
             assertEquals(EXISTING_SAKE_ID, state.sakeId)
             assertEquals("既存銘柄", state.name)
             assertEquals(SakeGrade.OTHER, state.grade)
-            assertEquals(EXISTING_IMAGE_URI, state.imagePreviewUri)
-            assertEquals(EXISTING_IMAGE_URI, state.persistedImageUri)
+            assertEquals(listOf(EXISTING_IMAGE_URI), state.imagePreviewUris)
+            assertEquals(listOf(EXISTING_IMAGE_URI), state.persistedImageUris)
             assertEquals("普通酒", state.gradeOther)
             assertEquals(listOf(SakeClassification.KIMOTO, SakeClassification.OTHER), state.classifications)
             assertEquals("限定品", state.typeOther)
@@ -697,7 +697,7 @@ class RecordingSakeRepository(
                 name = input.name,
                 grade = input.grade,
                 isPinned = input.isPinned,
-                imageUri = input.imageUri,
+                imageUris = input.imageUris,
                 gradeOther = input.gradeOther,
                 type = input.type,
                 typeOther = input.typeOther,
@@ -748,11 +748,9 @@ class RecordingSakeImageRepository(
 ) : SakeImageRepository {
     val importedSources = mutableListOf<String>()
     val deletedUris = mutableListOf<String>()
+    var cleanupCalls = 0
 
-    override suspend fun importImage(
-        sourceUri: String,
-        previousImageUri: String?,
-    ): String {
+    override suspend fun importImage(sourceUri: String): String {
         importedSources += sourceUri
         return importedUri
     }
@@ -766,6 +764,15 @@ class RecordingSakeImageRepository(
                 }
             }
         }
+    }
+
+    override suspend fun cleanupUnusedImages(): Int {
+        cleanupCalls += 1
+        val failure = deleteFailures.firstOrNull()
+        if (failure != null) {
+            error("delete failed for $failure")
+        }
+        return 0
     }
 }
 

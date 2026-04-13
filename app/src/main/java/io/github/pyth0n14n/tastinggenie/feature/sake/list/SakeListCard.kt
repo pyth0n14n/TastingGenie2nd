@@ -74,7 +74,7 @@ fun SakeListCard(
             verticalArrangement = Arrangement.spacedBy(CARD_INNER_SPACING.dp),
         ) {
             if (showImagePreview) {
-                SakeCardImage(imageUri = sake.imageUri)
+                SakeCardImage(imageUri = sake.primaryImageUri)
             }
             Column(
                 modifier = Modifier.padding(CARD_PADDING.dp),

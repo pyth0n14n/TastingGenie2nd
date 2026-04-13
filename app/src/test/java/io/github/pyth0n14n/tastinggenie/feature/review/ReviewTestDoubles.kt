@@ -53,7 +53,7 @@ internal class RecordingSakeRepository(
                 name = input.name,
                 grade = input.grade,
                 isPinned = input.isPinned,
-                imageUri = input.imageUri,
+                imageUris = input.imageUris,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
         mutable.add(mapped)
@@ -221,7 +221,7 @@ internal fun testSake(
         id = id,
         name = name,
         grade = SakeGrade.JUNMAI,
-        imageUri = imageUri,
+        imageUris = imageUri?.let(::listOf).orEmpty(),
     )
 
 internal fun testReview(
