@@ -73,19 +73,26 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Export/import round-trip; verify images are not restored (show message_no_image).
 
-### Problem: Replacing or deleting an image mutates persisted files before save, so cancel or save failure loses the old image.
-- **Example**: SakeEdit imports a new image immediately and deletes the old managed file before the form save succeeds.
-- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import/delete during save. On save failure, clean up any newly imported managed image.
+### Problem: Replacing or deleting images mutates persisted files before save, so cancel or save failure loses the old managed set.
+- **Example**: SakeEdit imports a new image immediately and deletes an existing managed file before the form save succeeds.
+- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import during save. On save failure, clean up any newly imported managed images. With the default cleanup policy, save-time replace/delete should only update DB references; unused managed files are removed later by manual cleanup or the auto-cleanup setting.
 - **Test Coverage**:
-  - Pick a replacement image and cancel edit; verify the persisted image is unchanged.
-  - Simulate save failure after image import; verify the newly imported managed image is deleted.
-  - Delete an existing image and save; verify the old managed image is removed only after the save succeeds.
+  - Pick a replacement image and cancel edit; verify the persisted image set is unchanged.
+  - Simulate save failure after image import; verify the newly imported managed images are deleted.
+  - Delete an existing image and save with auto-cleanup OFF; verify the DB reference is removed while the old managed file remains.
 ### Problem: Post-save image cleanup failure is treated as a save failure even after the DB commit succeeded.
-- **Example**: SakeEdit saves a replacement image, then `deleteImage(oldUri)` throws and the screen reports `error_save_sake` while the DB already points at the new image.
-- **Preventive Measure**: Mark the DB write as committed before old-image cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
+- **Example**: SakeEdit saves a replacement image, then cleanup of unused managed files throws and the screen reports `error_save_sake` while the DB already points at the new image set.
+- **Preventive Measure**: Mark the DB write as committed before cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
 - **Test Coverage**:
-  - Replace an existing image and force old-image deletion to fail; verify the form still completes as saved.
-  - Delete an existing image and force file cleanup to fail; verify the DB save still completes and no false save error is shown.
+  - Replace an existing image and force unused-image cleanup to fail; verify the form still completes as saved.
+  - Delete an existing image and force cleanup to fail; verify the DB save still completes and no false save error is shown.
+### Problem: Manual/auto cleanup can delete the wrong files when multiple images are attached.
+- **Example**: `cleanupUnusedImages()` deletes a still-referenced second image because only the primary image URI is considered, or deletes external URIs selected from outside app storage.
+- **Preventive Measure**: Build the referenced set from every `Sake.imageUris` entry, not only the first preview image. Restrict cleanup to the app-managed image directory and never delete external URIs.
+- **Test Coverage**:
+  - Save a sake with multiple images and run manual cleanup; verify every referenced managed image remains.
+  - Keep one image referenced and one unreferenced in the managed directory; verify only the unreferenced file is deleted.
+  - Include an external URI in the DB and verify cleanup does not attempt to delete it.
 ### Problem: Review deletion is easy to mis-tap or hides the list when only the delete action failed.
 - **Example**: A user taps the trash icon by mistake, or `deleteReview` fails and ReviewList is replaced by a generic load error even though the existing rows are still valid.
 - **Preventive Measure**: Put review deletion behind a confirmation dialog, and keep delete failures separate from load failures so the list stays visible.
@@ -119,12 +126,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - From review list, tap image action; verify navigates to S5 and back to S2.
 
-### Problem: Null imageUri treated as error instead of empty state.
-- **Example**: S5 shows error_load_review for a review whose parent sake has no image.
+### Problem: Empty image list treated as error instead of empty state.
+- **Example**: S5 shows error_load_review for a review whose parent sake has no images.
 - **Root Cause**: From commit `1f6ba2e` (Fix edit mode lock when review seed load fails) - Threw on null without checking validity.
-- **Preventive Measure**: Treat nullable fields as valid empty states; only error on actual load failures.
+- **Preventive Measure**: Treat empty image collections as valid empty states; only error on actual load failures.
 - **Test Coverage**:
-  - Open S5 for review with no image; verify message_no_image displays.
+  - Open S5 for review with no images; verify message_no_image displays.
 
 ## 4. Data Consistency and Transactions
 
