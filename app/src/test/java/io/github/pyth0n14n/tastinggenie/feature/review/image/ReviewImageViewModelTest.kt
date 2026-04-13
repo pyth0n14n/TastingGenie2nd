@@ -24,7 +24,7 @@ class ReviewImageViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun loadImage_populatesImageUri() =
+    fun loadImage_populatesImageUris() =
         runTest {
             val viewModel =
                 ReviewImageViewModel(
@@ -39,7 +39,7 @@ class ReviewImageViewModelTest {
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals("file:///images/sakes/1.jpg", state.imageUri)
+            assertEquals(listOf("file:///images/sakes/1.jpg"), state.imageUris)
         }
 
     @Test
@@ -60,7 +60,7 @@ class ReviewImageViewModelTest {
         }
 
     @Test
-    fun loadImage_nullImageUri_keepsEmptyStateWithoutError() =
+    fun loadImage_withoutImages_keepsEmptyStateWithoutError() =
         runTest {
             val viewModel =
                 ReviewImageViewModel(
@@ -72,7 +72,7 @@ class ReviewImageViewModelTest {
 
             val state = viewModel.uiState.value
             assertFalse(state.isLoading)
-            assertEquals(null, state.imageUri)
+            assertEquals(emptyList<String>(), state.imageUris)
             assertEquals(null, state.error)
         }
 }

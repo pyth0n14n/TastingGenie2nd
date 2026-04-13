@@ -3,6 +3,8 @@ package io.github.pyth0n14n.tastinggenie.feature.review.image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,21 +55,33 @@ fun ReviewImageScreen(
         when {
             state.isLoading -> LoadingContent()
             state.error != null -> MessageContent(text = stringResource(state.error.messageResId))
-            state.imageUri.isNullOrBlank() -> MessageContent(text = stringResource(R.string.message_no_image))
+            state.imageUris.isEmpty() -> MessageContent(text = stringResource(R.string.message_no_image))
             else ->
-                Box(
+                ReviewImagePager(
+                    imageUris = state.imageUris,
                     modifier =
                         Modifier
                             .fillMaxSize()
                             .padding(padding),
-                ) {
-                    AsyncImage(
-                        model = state.imageUri,
-                        contentDescription = stringResource(R.string.content_review_image),
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit,
-                    )
-                }
+                )
+        }
+    }
+}
+
+@Composable
+private fun ReviewImagePager(
+    imageUris: List<String>,
+    modifier: Modifier = Modifier,
+) {
+    val pagerState = rememberPagerState { imageUris.size }
+    Box(modifier = modifier) {
+        HorizontalPager(state = pagerState) { page ->
+            AsyncImage(
+                model = imageUris[page],
+                contentDescription = stringResource(R.string.content_review_image),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
         }
     }
 }

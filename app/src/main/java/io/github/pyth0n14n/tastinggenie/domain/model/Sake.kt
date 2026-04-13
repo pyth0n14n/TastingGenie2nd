@@ -12,7 +12,7 @@ data class Sake(
     val name: String,
     val grade: SakeGrade,
     val isPinned: Boolean = false,
-    val imageUri: String? = null,
+    val imageUris: List<String> = emptyList(),
     val gradeOther: String? = null,
     val type: List<SakeClassification> = emptyList(),
     val typeOther: String? = null,
@@ -28,7 +28,10 @@ data class Sake(
     val amino: Float? = null,
     val yeast: String? = null,
     val water: String? = null,
-)
+) {
+    val primaryImageUri: String?
+        get() = imageUris.firstOrNull()
+}
 
 /**
  * 酒登録/編集の入力値。
@@ -38,7 +41,7 @@ data class SakeInput(
     val name: String,
     val grade: SakeGrade,
     val isPinned: Boolean = false,
-    val imageUri: String? = null,
+    val imageUris: List<String> = emptyList(),
     val gradeOther: String? = null,
     val type: List<SakeClassification> = emptyList(),
     val typeOther: String? = null,
@@ -54,4 +57,7 @@ data class SakeInput(
     val amino: Float? = null,
     val yeast: String? = null,
     val water: String? = null,
-)
+) {
+    val primaryImageUri: String?
+        get() = imageUris.firstOrNull()
+}

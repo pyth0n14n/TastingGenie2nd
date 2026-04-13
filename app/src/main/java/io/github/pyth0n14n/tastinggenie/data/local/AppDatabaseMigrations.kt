@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.data.local
 
 import androidx.room.migration.Migration
@@ -8,6 +10,7 @@ private const val DATABASE_VERSION_2 = 2
 private const val DATABASE_VERSION_3 = 3
 private const val DATABASE_VERSION_4 = 4
 private const val DATABASE_VERSION_5 = 5
+private const val DATABASE_VERSION_6 = 6
 
 object AppDatabaseMigrations {
     val MIGRATION_1_2: Migration =
@@ -36,6 +39,16 @@ object AppDatabaseMigrations {
         object : Migration(DATABASE_VERSION_4, DATABASE_VERSION_5) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE `sakes` ADD COLUMN `isPinned` INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+    val MIGRATION_5_6: Migration =
+        object : Migration(DATABASE_VERSION_5, DATABASE_VERSION_6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(createSakesV6TableSql())
+                db.execSQL(copySakesToV6Sql())
+                db.execSQL("DROP TABLE `sakes`")
+                db.execSQL("ALTER TABLE `sakes_new` RENAME TO `sakes`")
             }
         }
 }
@@ -202,4 +215,48 @@ private fun copyReviewsToV4Sql(): String =
         `sweet`, `sour`, `bitter`, `umami`, `scentMouth`,
         `sharp`, NULL, NULL, `comment`, `review`
     FROM `reviews`
+    """.trimIndent()
+
+private fun createSakesV6TableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `sakes_new` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `name` TEXT NOT NULL,
+        `grade` TEXT NOT NULL,
+        `isPinned` INTEGER NOT NULL,
+        `imageUris` TEXT NOT NULL,
+        `gradeOther` TEXT,
+        `type` TEXT NOT NULL,
+        `typeOther` TEXT,
+        `maker` TEXT,
+        `prefecture` TEXT,
+        `alcohol` INTEGER,
+        `kojiMai` TEXT,
+        `kojiPolish` INTEGER,
+        `kakeMai` TEXT,
+        `kakePolish` INTEGER,
+        `sakeDegree` REAL,
+        `acidity` REAL,
+        `amino` REAL,
+        `yeast` TEXT,
+        `water` TEXT
+    )
+    """.trimIndent()
+
+private fun copySakesToV6Sql(): String =
+    """
+    INSERT INTO `sakes_new` (
+        `id`, `name`, `grade`, `isPinned`, `imageUris`, `gradeOther`, `type`, `typeOther`, `maker`,
+        `prefecture`, `alcohol`, `kojiMai`, `kojiPolish`, `kakeMai`, `kakePolish`, `sakeDegree`,
+        `acidity`, `amino`, `yeast`, `water`
+    )
+    SELECT
+        `id`, `name`, `grade`, `isPinned`,
+        CASE
+            WHEN `imageUri` IS NULL OR TRIM(`imageUri`) = '' THEN '[]'
+            ELSE '["' || REPLACE(`imageUri`, '"', '""') || '"]'
+        END,
+        `gradeOther`, `type`, `typeOther`, `maker`, `prefecture`, `alcohol`, `kojiMai`, `kojiPolish`,
+        `kakeMai`, `kakePolish`, `sakeDegree`, `acidity`, `amino`, `yeast`, `water`
+    FROM `sakes`
     """.trimIndent()

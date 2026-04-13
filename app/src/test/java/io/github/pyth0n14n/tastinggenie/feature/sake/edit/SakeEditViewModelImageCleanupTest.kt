@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.lifecycle.SavedStateHandle
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
@@ -38,7 +39,7 @@ class SakeEditViewModelImageCleanupTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.JUNMAI,
-                                imageUri = EXISTING_IMAGE_URI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
                             ),
                         ),
                 )
@@ -53,6 +54,7 @@ class SakeEditViewModelImageCleanupTest {
                     sakeRepository = repository,
                     sakeImageRepository = imageRepository,
                     masterDataRepository = FakeMasterDataRepository(),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
                 )
             advanceUntilIdle()
 
@@ -64,9 +66,9 @@ class SakeEditViewModelImageCleanupTest {
             val saved = repository.savedInputs.single()
             assertTrue(state.isSaved)
             assertEquals(null, state.error)
-            assertEquals(IMPORTED_IMAGE_URI, saved.imageUri)
+            assertEquals(listOf(EXISTING_IMAGE_URI, IMPORTED_IMAGE_URI), saved.imageUris)
             assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
-            assertEquals(listOf(EXISTING_IMAGE_URI), imageRepository.deletedUris)
+            assertEquals(1, imageRepository.cleanupCalls)
         }
 
     @Test
@@ -80,7 +82,7 @@ class SakeEditViewModelImageCleanupTest {
                                 id = EXISTING_SAKE_ID,
                                 name = "既存銘柄",
                                 grade = SakeGrade.JUNMAI,
-                                imageUri = EXISTING_IMAGE_URI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
                             ),
                         ),
                 )
@@ -94,10 +96,11 @@ class SakeEditViewModelImageCleanupTest {
                     sakeRepository = repository,
                     sakeImageRepository = imageRepository,
                     masterDataRepository = FakeMasterDataRepository(),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
                 )
             advanceUntilIdle()
 
-            viewModel.removeImage()
+            viewModel.removeImage(EXISTING_IMAGE_URI)
             viewModel.save()
             advanceUntilIdle()
 
@@ -105,8 +108,45 @@ class SakeEditViewModelImageCleanupTest {
             val saved = repository.savedInputs.single()
             assertTrue(state.isSaved)
             assertEquals(null, state.error)
-            assertEquals(null, saved.imageUri)
-            assertEquals(listOf(EXISTING_IMAGE_URI), imageRepository.deletedUris)
+            assertEquals(emptyList<String>(), saved.imageUris)
+            assertEquals(1, imageRepository.cleanupCalls)
+        }
+
+    @Test
+    fun save_withMetadataOnlyChange_doesNotRunAutoCleanup() =
+        runTest {
+            val repository =
+                RecordingSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = EXISTING_SAKE_ID,
+                                name = "既存銘柄",
+                                grade = SakeGrade.JUNMAI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
+                                maker = "変更前",
+                            ),
+                        ),
+                )
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.MAKER, "変更後")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals("変更後", saved.maker)
+            assertEquals(listOf(EXISTING_IMAGE_URI), saved.imageUris)
+            assertEquals(0, imageRepository.cleanupCalls)
         }
 
     @Test
@@ -124,14 +164,14 @@ class SakeEditViewModelImageCleanupTest {
 
             viewModel.onImageSelected(CAPTURED_IMAGE_URI)
             advanceUntilIdle()
-            viewModel.removeImage()
+            viewModel.removeImage(CAPTURED_IMAGE_URI)
             advanceUntilIdle()
 
             assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
         }
 
     @Test
-    fun replacingCapturedImage_cleansUpPreviousPendingCapture() =
+    fun addingAnotherCapturedImage_keepsPreviousPendingCapture() =
         runTest {
             val imageRepository = RecordingSakeImageRepository()
             val viewModel =
@@ -148,7 +188,7 @@ class SakeEditViewModelImageCleanupTest {
             viewModel.onImageSelected(REPLACEMENT_CAPTURED_IMAGE_URI)
             advanceUntilIdle()
 
-            assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
+            assertTrue(imageRepository.deletedUris.isEmpty())
         }
 
     @Test
@@ -172,7 +212,7 @@ class SakeEditViewModelImageCleanupTest {
             advanceUntilIdle()
 
             val saved = repository.savedInputs.single()
-            assertEquals(IMPORTED_IMAGE_URI, saved.imageUri)
+            assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
             assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.importedSources)
             assertEquals(listOf(CAPTURED_IMAGE_URI), imageRepository.deletedUris)
         }
@@ -202,5 +242,25 @@ class SakeEditViewModelImageCleanupTest {
         val method = viewModel.javaClass.getDeclaredMethod("onCleared")
         method.isAccessible = true
         method.invoke(viewModel)
+    }
+}
+
+private class AutoDeleteSettingsRepository(
+    initial: AppSettings,
+) : io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository {
+    private val stream = kotlinx.coroutines.flow.MutableStateFlow(initial)
+
+    override fun observeSettings() = stream
+
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
+
+    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 }

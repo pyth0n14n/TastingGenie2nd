@@ -5,7 +5,7 @@
 - `app/src/main/res/drawable/eye.xml`, `nose.xml`, `tongue.xml` が Android resource として使えるため、review tab の custom icon 前提に戻す。
 - 順序は `1. icon化 + sake一覧の視認性改善` → `2. review UX / OTHER欄 fix` → `3. 画像所有と cleanup 再設計`。
 - `review aroma wheel` はこの再編対象から外し、後続 PR に送る。
-- 実施済み: `PR11 feat(ui-icon-polish)`。残りは `PR12` と `PR13`。
+- 実施済み: `PR11 feat(ui-icon-polish)`、`PR12 fix(review-ux-polish)`、`PR13 feat(image-ownership-cleanup)`。
 
 ## PR11: `feat(ui-icon-polish)`
 - sake 一覧の top bar を icon button 化する。
@@ -37,17 +37,20 @@
 
 ## PR13: `feat(image-ownership-cleanup)`
 - 方針はユーザー提示案を採用する。永続画像は「保存時にアプリ管理領域へ取り込み、その後はアプリが所有する」。
+- 画像は 1 酒につき複数登録できるようにし、永続化は `imageUris: List<String>` で扱う。
 - gallery 選択画像は save 時に managed 領域へ copy する。
 - camera 撮影画像は現行どおり一時 cache を使い、save 時に managed 化する。
-- 既定動作では、画像差し替え時とレコード削除時は DB の `imageUri` 参照だけを更新し、旧 managed file は即削除しない。
+- 既定動作では、画像差し替え時とレコード削除時は DB の `imageUris` 参照だけを更新し、旧 managed file は即削除しない。
 - Settings に `未参照アプリ内画像を削除` ボタンを追加する。
 - `AppSettings` に `autoDeleteUnusedImages: Boolean = false` を追加する。
 - `autoDeleteUnusedImages=true` のときだけ、差し替え保存後またはレコード削除後に未参照 managed image cleanup を自動実行する。
-- cleanup 対象は `sakes.imageUri` に存在しない app-managed URI のみ。外部 URI と参照中 URI は削除しない。
-- repository/DAO には「参照中 imageUri 一覧取得」と「未参照 managed image cleanup」の責務を追加する。
-- DataStore 設定追加は必要だが DB schema migration は不要とする。
+- cleanup 対象は `sakes.imageUris` に存在しない app-managed URI のみ。外部 URI と参照中 URI は削除しない。
+- repository/DAO には「参照中 imageUris 一覧取得」と「未参照 managed image cleanup」の責務を追加する。
+- DataStore 設定追加に加え、既存 `imageUri` を `imageUris` へ包み直す DB migration を追加する。
 - docs 更新は `docs/spec/data_model.md`、`docs/spec/master/image.md`、`docs/spec/qa.md`、`docs/PLAN.md`。
 - テストは gallery/camera save、replace、delete、manual cleanup、auto cleanup、save failure rollback を追加する。
+- 複数画像を登録できるように変更する
+- 状態: 実施済み。
 
 ## Test Plan
 - SakeList: Help setting OFF で help icon 非表示、settings icon は常時表示、heart icon の toggle で pin 状態が維持されること。
@@ -57,6 +60,7 @@
 - Review edit: 長いフォームでも save ボタンが常に画面下に見え、保存中 disable 表示も維持されること。
 - Sake edit: `種別=OTHER` 自由記述欄が種別 selector 直下に表示され、画像欄の下へ移動しないこと。
 - Image: gallery/camera とも save 後は managed URI が保存されること。
+- Image: gallery/camera を複数選択したときも save 後は managed URI 一覧が保存されること。
 - Image: 画像差し替え時、既定設定では旧 managed file が即削除されず、DB 参照だけが更新されること。
 - Image: record 削除時、`autoDeleteUnusedImages=false` では file が残ること。
 - Image: manual cleanup 実行で未参照 managed file のみ削除され、参照中 file と外部 URI は消えないこと。

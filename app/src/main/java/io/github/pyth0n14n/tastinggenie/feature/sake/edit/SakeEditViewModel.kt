@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
@@ -14,8 +15,8 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,6 +34,7 @@ class SakeEditViewModel
         private val sakeRepository: SakeRepository,
         private val sakeImageRepository: SakeImageRepository,
         private val masterDataRepository: MasterDataRepository,
+        private val settingsRepository: SettingsRepository = NoOpSettingsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SakeEditUiState())
         val uiState: StateFlow<SakeEditUiState> = _uiState.asStateFlow()
@@ -67,38 +69,30 @@ class SakeEditViewModel
         }
 
         fun onImageSelected(imageUri: String) {
-            val previousPendingSourceUri = uiState.value.pendingImageSourceUri
             updateEditableState { current ->
+                if (imageUri in current.imagePreviewUris) {
+                    return@updateEditableState current.copy(error = null)
+                }
                 current.copy(
-                    imagePreviewUri = imageUri,
-                    pendingImageSourceUri = imageUri,
-                    isImageMarkedForDeletion = false,
+                    imagePreviewUris = current.imagePreviewUris + imageUri,
+                    pendingImageSourceUris = current.pendingImageSourceUris + imageUri,
                     error = null,
                 )
             }
-            discardPendingImageSource(
-                scope = viewModelScope,
-                sakeImageRepository = sakeImageRepository,
-                sourceUri = previousPendingSourceUri,
-                keepUri = imageUri,
-            )
         }
 
-        fun removeImage() {
-            val previousPendingSourceUri = uiState.value.pendingImageSourceUri
+        fun removeImage(imageUri: String) {
+            val shouldCleanupPendingSource = uiState.value.pendingImageSourceUris.contains(imageUri)
             updateEditableState { current ->
                 current.copy(
-                    imagePreviewUri = null,
-                    pendingImageSourceUri = null,
-                    isImageMarkedForDeletion = true,
+                    imagePreviewUris = current.imagePreviewUris - imageUri,
+                    pendingImageSourceUris = current.pendingImageSourceUris - imageUri,
                     error = null,
                 )
             }
-            discardPendingImageSource(
-                scope = viewModelScope,
-                sakeImageRepository = sakeImageRepository,
-                sourceUri = previousPendingSourceUri,
-            )
+            if (shouldCleanupPendingSource) {
+                deleteImageSilently(imageUri)
+            }
         }
 
         fun onGradeSelected(value: String) {
@@ -222,11 +216,13 @@ class SakeEditViewModel
             viewModelScope.launch {
                 _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
+                    val settings = settingsRepository.getCurrentSettings()
                     saveSake(
                         snapshot = snapshot,
                         input = input,
                         sakeRepository = sakeRepository,
                         sakeImageRepository = sakeImageRepository,
+                        autoDeleteUnusedImages = settings.autoDeleteUnusedImages,
                     )
                 }.onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSaved = true) }
@@ -295,37 +291,31 @@ class SakeEditViewModel
         }
 
         override fun onCleared() {
-            cleanupPendingImageSourceOnClear(
-                sourceUri = _uiState.value.pendingImageSourceUri,
+            cleanupPendingImageSourcesOnClear(
+                sourceUris = _uiState.value.pendingImageSourceUris,
                 sakeImageRepository = sakeImageRepository,
             )
             super.onCleared()
         }
+
+        private fun deleteImageSilently(imageUri: String) {
+            viewModelScope.launch {
+                runCatching { sakeImageRepository.deleteImage(imageUri) }
+            }
+        }
     }
 
-private fun discardPendingImageSource(
-    scope: CoroutineScope,
-    sakeImageRepository: SakeImageRepository,
-    sourceUri: String?,
-    keepUri: String? = null,
-) {
-    if (sourceUri.isNullOrBlank() || sourceUri == keepUri) {
-        return
-    }
-    scope.launch {
-        runCatching { sakeImageRepository.deleteImage(sourceUri) }
-    }
-}
-
-private fun cleanupPendingImageSourceOnClear(
-    sourceUri: String?,
+private fun cleanupPendingImageSourcesOnClear(
+    sourceUris: List<String>,
     sakeImageRepository: SakeImageRepository,
 ) {
-    if (sourceUri.isNullOrBlank()) {
+    if (sourceUris.isEmpty()) {
         return
     }
     runBlocking {
-        runCatching { sakeImageRepository.deleteImage(sourceUri) }
+        sourceUris.forEach { sourceUri ->
+            runCatching { sakeImageRepository.deleteImage(sourceUri) }
+        }
     }
 }
 
@@ -346,6 +336,20 @@ private fun SakeEditUiState.withMissingEditTarget(
             ),
     )
 
+private object NoOpSettingsRepository : SettingsRepository {
+    override fun observeSettings() = MutableStateFlow(AppSettings())
+
+    override suspend fun getCurrentSettings() = AppSettings()
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
+
+    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit
+}
+
 private fun SakeEditUiState.withLoadedData(
     master: MasterDataBundle,
     existing: Sake?,
@@ -360,10 +364,9 @@ private fun SakeEditUiState.withLoadedData(
         isPinned = existing?.isPinned ?: false,
         name = existing?.name.orEmpty(),
         grade = existing?.grade,
-        imagePreviewUri = existing?.imageUri,
-        persistedImageUri = existing?.imageUri,
-        pendingImageSourceUri = null,
-        isImageMarkedForDeletion = false,
+        imagePreviewUris = existing?.imageUris.orEmpty(),
+        persistedImageUris = existing?.imageUris.orEmpty(),
+        pendingImageSourceUris = emptyList(),
         gradeOther = existing?.gradeOther.orEmpty(),
         classifications = existing?.type.orEmpty(),
         typeOther = existing?.typeOther.orEmpty(),

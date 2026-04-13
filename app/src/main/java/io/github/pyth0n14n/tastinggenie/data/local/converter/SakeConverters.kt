@@ -30,4 +30,15 @@ class SakeConverters {
 
     @TypeConverter
     fun fromClassificationList(value: List<SakeClassification>): String = Json.encodeToString(value)
+
+    @TypeConverter
+    fun toImageUriList(raw: String?): List<String> =
+        if (raw.isNullOrBlank()) {
+            emptyList()
+        } else {
+            Json.decodeFromString(raw)
+        }
+
+    @TypeConverter
+    fun fromImageUriList(value: List<String>): String = Json.encodeToString(value)
 }

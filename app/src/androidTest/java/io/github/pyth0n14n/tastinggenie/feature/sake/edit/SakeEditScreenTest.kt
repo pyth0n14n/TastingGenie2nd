@@ -214,10 +214,10 @@ class SakeEditScreenTest {
                 state =
                     SakeEditUiState(
                         isLoading = false,
-                        imagePreviewUri = "file:///images/sakes/preview.jpg",
+                        imagePreviewUris = listOf("file:///images/sakes/preview.jpg"),
                         gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
                     ),
-                callbacks = defaultCallbacks(onDeleteImage = { deleteCalled = true }),
+                callbacks = defaultCallbacks(onDeleteImage = { _ -> deleteCalled = true }),
                 onSave = {},
                 onBack = {},
             )
@@ -292,7 +292,7 @@ private fun defaultCallbacks(
     onPrefectureSelected: (String?) -> Unit = {},
     onPickImageRequest: () -> Unit = {},
     onCaptureImageRequest: () -> Unit = {},
-    onDeleteImage: () -> Unit = {},
+    onDeleteImage: (String) -> Unit = {},
 ): SakeEditCallbacks =
     SakeEditCallbacks(
         onTextChanged = onTextChanged,

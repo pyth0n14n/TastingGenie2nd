@@ -4,4 +4,5 @@ data class AppSettings(
     val showHelpHints: Boolean = true,
     val showImagePreview: Boolean = true,
     val showReviewSoundness: Boolean = true,
+    val autoDeleteUnusedImages: Boolean = false,
 )

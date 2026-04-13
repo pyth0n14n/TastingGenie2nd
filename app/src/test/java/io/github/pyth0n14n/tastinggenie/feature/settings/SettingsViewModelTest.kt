@@ -413,6 +413,8 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override fun observeSettings(): Flow<AppSettings> = stream
 
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
     override suspend fun updateShowHelpHints(enabled: Boolean) {
         stream.value = stream.value.copy(showHelpHints = enabled)
     }
@@ -423,6 +425,10 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 }
 
@@ -453,6 +459,8 @@ private class FakeImportExportRepository(
 private class FailingUpdateSettingsRepository : SettingsRepository {
     override fun observeSettings(): Flow<AppSettings> = flow { emit(AppSettings()) }
 
+    override suspend fun getCurrentSettings(): AppSettings = AppSettings()
+
     override suspend fun updateShowHelpHints(enabled: Boolean) {
         error("settings write failed")
     }
@@ -462,6 +470,10 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+        error("settings write failed")
+    }
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
         error("settings write failed")
     }
 }

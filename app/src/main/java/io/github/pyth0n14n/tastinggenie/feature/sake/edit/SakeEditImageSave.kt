@@ -9,57 +9,53 @@ internal suspend fun saveSake(
     input: SakeInput,
     sakeRepository: SakeRepository,
     sakeImageRepository: SakeImageRepository,
+    autoDeleteUnusedImages: Boolean,
 ) {
-    val previousImageUri = snapshot.persistedImageUri
-    var importedImageUri: String? = null
+    val importedImageUris = mutableListOf<String>()
     var isCommitted = false
     try {
-        val resolvedImageUri =
-            when {
-                !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
-                    importedImageUri =
-                        sakeImageRepository.importImage(
-                            sourceUri = snapshot.pendingImageSourceUri,
-                        )
-                    importedImageUri
+        val pendingSourceUris = snapshot.pendingImageSourceUris.distinct()
+        val importedImageMap =
+            pendingSourceUris.associateWith { sourceUri ->
+                sakeImageRepository.importImage(sourceUri).also { importedUri ->
+                    importedImageUris += importedUri
                 }
-
-                snapshot.isImageMarkedForDeletion -> null
-                else -> previousImageUri
             }
-        sakeRepository.upsertSake(input.copy(imageUri = resolvedImageUri))
+        val resolvedImageUris =
+            snapshot.imagePreviewUris
+                .map { imageUri -> importedImageMap[imageUri] ?: imageUri }
+                .distinct()
+        sakeRepository.upsertSake(input.copy(imageUris = resolvedImageUris))
         isCommitted = true
         cleanupCommittedImageMutation(
             snapshot = snapshot,
-            previousImageUri = previousImageUri,
-            importedImageUri = importedImageUri,
             sakeImageRepository = sakeImageRepository,
+            shouldCleanupUnusedImages = autoDeleteUnusedImages && snapshot.hasImageReferenceMutation(),
         )
     } finally {
-        if (!isCommitted && importedImageUri != null) {
-            // If save failed after importing a managed image, remove the orphaned copy.
-            sakeImageRepository.deleteImage(importedImageUri)
+        if (!isCommitted) {
+            importedImageUris.forEach { importedImageUri ->
+                // If save failed after importing managed images, remove the orphaned copies.
+                sakeImageRepository.deleteImage(importedImageUri)
+            }
         }
     }
 }
 
 private suspend fun cleanupCommittedImageMutation(
     snapshot: SakeEditUiState,
-    previousImageUri: String?,
-    importedImageUri: String?,
     sakeImageRepository: SakeImageRepository,
+    shouldCleanupUnusedImages: Boolean,
 ) {
-    // Old-image cleanup runs after the DB commit, so failures here must not flip the save result.
     runCatching {
-        when {
-            !snapshot.pendingImageSourceUri.isNullOrBlank() -> {
-                if (!previousImageUri.isNullOrBlank() && previousImageUri != importedImageUri) {
-                    sakeImageRepository.deleteImage(previousImageUri)
-                }
-                sakeImageRepository.deleteImage(snapshot.pendingImageSourceUri)
-            }
-
-            snapshot.isImageMarkedForDeletion -> sakeImageRepository.deleteImage(previousImageUri)
+        snapshot.pendingImageSourceUris.distinct().forEach { sourceUri ->
+            sakeImageRepository.deleteImage(sourceUri)
+        }
+        if (shouldCleanupUnusedImages) {
+            sakeImageRepository.cleanupUnusedImages()
         }
     }
 }
+
+private fun SakeEditUiState.hasImageReferenceMutation(): Boolean =
+    imagePreviewUris.distinct() != persistedImageUris.distinct()

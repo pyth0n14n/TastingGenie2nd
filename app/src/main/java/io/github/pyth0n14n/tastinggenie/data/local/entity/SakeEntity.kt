@@ -13,7 +13,7 @@ data class SakeEntity(
     val name: String,
     val grade: SakeGrade,
     val isPinned: Boolean = false,
-    val imageUri: String?,
+    val imageUris: List<String>,
     val gradeOther: String?,
     val type: List<SakeClassification>,
     val typeOther: String?,

@@ -392,12 +392,18 @@ private class FakeSettingsRepository(
 
     override fun observeSettings(): Flow<AppSettings> = stream
 
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
     override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
 
     override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 }
 

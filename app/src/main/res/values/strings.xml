@@ -127,13 +127,14 @@
     <string name="message_no_image">画像が登録されていません</string>
     <string name="message_review_count">%1$d件選択済み</string>
     <string name="message_confirm_delete_sake_image">この酒の画像を削除しますか？</string>
-    <string name="message_confirm_delete_sake_with_image">この酒を削除しますか？関連するレビュー %1$d 件と画像も削除します。</string>
+    <string name="message_confirm_delete_sake_with_image">この酒を削除しますか？関連するレビュー %1$d 件と画像参照も削除します。</string>
     <string name="message_confirm_delete_sake_without_image">この酒を削除しますか？関連するレビュー %1$d 件も削除します。</string>
     <string name="message_confirm_delete_review">このレビューを削除しますか？</string>
     <string name="message_saving">保存中...</string>
     <string name="message_processing_transfer">読み書き中...</string>
     <string name="message_export_success">JSONを書き出しました</string>
     <string name="message_import_success">JSONを読み込みました</string>
+    <string name="message_cleanup_unused_images_success">未参照のアプリ内画像を削除しました</string>
     <string name="content_review_image">レビュー画像</string>
     <string name="content_sake_image">酒画像</string>
     <string name="content_edit_sake">酒を編集</string>
@@ -149,9 +150,11 @@
     <string name="title_delete_sake_image">画像を削除</string>
     <string name="title_delete_review">レビューを削除</string>
     <string name="action_select_sake_image">画像を選択</string>
+    <string name="action_add_sake_image">画像を追加</string>
     <string name="action_replace_sake_image">画像を差し替え</string>
     <string name="action_capture_sake_image">カメラで撮影</string>
     <string name="action_delete_sake_image">画像を削除</string>
+    <string name="action_cleanup_unused_images">未参照アプリ内画像を削除</string>
     <string name="help_intro">用語の意味を確認しながら記録できるよう、主要な観点をまとめています。</string>
     <string name="help_color">色: 透明感や黄みの強さなど、見た目の印象です。</string>
     <string name="help_aroma">香り: 上立ち香、基調香、含み香の3段階で整理します。</string>
@@ -159,6 +162,7 @@
     <string name="setting_help_hint">ヘルプ導線を表示する</string>
     <string name="setting_image_preview">画像表示を有効にする</string>
     <string name="setting_review_soundness">健全度入力を表示する</string>
+    <string name="setting_auto_delete_unused_images">未参照アプリ内画像を自動削除する</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>
@@ -170,6 +174,7 @@
     <string name="error_delete_sake_image_cleanup">酒は削除しましたが画像の削除に失敗しました</string>
     <string name="error_delete_review">レビューの削除に失敗しました</string>
     <string name="error_save_settings">設定の保存に失敗しました</string>
+    <string name="error_cleanup_unused_images">未参照画像の削除に失敗しました</string>
     <string name="error_export_failed">JSONの書き出しに失敗しました</string>
     <string name="error_import_failed">JSONの読み込みに失敗しました</string>
     <string name="error_import_invalid_json">JSONが破損しています</string>

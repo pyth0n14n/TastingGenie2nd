@@ -83,7 +83,7 @@ class ReviewListViewModel
                 observeReviews(
                     sakeId = sakeId,
                     sakeName = sake.name,
-                    hasSakeImage = !sake.imageUri.isNullOrBlank(),
+                    hasSakeImage = sake.imageUris.isNotEmpty(),
                     overallReviewLabels = overallReviewLabels,
                 )
             }

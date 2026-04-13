@@ -309,7 +309,7 @@ class SakeListScreenTest {
                                             id = 7L,
                                             name = "夏酒",
                                             grade = SakeGrade.JUNMAI,
-                                            imageUri = null,
+                                            imageUris = emptyList(),
                                         ),
                                 ),
                             ),
@@ -349,7 +349,7 @@ class SakeListScreenTest {
                                             id = 8L,
                                             name = "秋酒",
                                             grade = SakeGrade.GINJO,
-                                            imageUri = "file:///images/sakes/autumn.jpg",
+                                            imageUris = listOf("file:///images/sakes/autumn.jpg"),
                                         ),
                                 ),
                             ),
@@ -426,7 +426,7 @@ class SakeListScreenTest {
 
         composeRule.onNodeWithContentDescription("酒を削除").performClick()
         composeRule.runOnIdle { assertTrue(deleteRequested) }
-        composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像も削除します。").assertIsDisplayed()
+        composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像参照も削除します。").assertIsDisplayed()
         composeRule.onNodeWithText("確定").performClick()
         composeRule.runOnIdle { assertTrue(deleteConfirmed) }
     }

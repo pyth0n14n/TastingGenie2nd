@@ -26,7 +26,7 @@ private const val VERSION_4_IDENTITY_HASH = "27982588b87f31977215b1657c8d2594"
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_5_preservesExistingSakeData() {
+    fun migration_1_6_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -40,6 +40,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_2_3,
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
+                AppDatabaseMigrations.MIGRATION_5_6,
             )
             val database = databaseBuilder.build()
 
@@ -47,7 +48,7 @@ class AppDatabaseMigrationTest {
             assertEquals("移行前の酒", migrated.name)
             assertEquals("分類その他", migrated.typeOther)
             assertNull(migrated.gradeOther)
-            assertNull(migrated.imageUri)
+            assertEquals(emptyList<String>(), migrated.imageUris)
             assertEquals(false, migrated.isPinned)
 
             database.close()
@@ -56,7 +57,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_5_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_6_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -69,6 +70,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_2_3,
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
+                AppDatabaseMigrations.MIGRATION_5_6,
             )
             val database = databaseBuilder.build()
 
@@ -77,7 +79,7 @@ class AppDatabaseMigrationTest {
             val reviewColumns = database.reviewColumnNames()
 
             assertEquals("移行前の酒", migratedSake.name)
-            assertNull(migratedSake.imageUri)
+            assertEquals(emptyList<String>(), migratedSake.imageUris)
             assertEquals(false, migratedSake.isPinned)
             assertEquals("移行前レビュー", migratedReview.otherCautions)
             assertEquals(false, reviewColumns.contains("imageUri"))
@@ -90,7 +92,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_3_5_renamesReviewColumnsAndPreservesReviewValues() {
+    fun migration_3_6_renamesReviewColumnsAndPreservesReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-3-4-test.db"
@@ -102,6 +104,7 @@ class AppDatabaseMigrationTest {
             databaseBuilder.addMigrations(
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
+                AppDatabaseMigrations.MIGRATION_5_6,
             )
             val database = databaseBuilder.build()
 
@@ -136,7 +139,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_4_5_addsPinnedColumnWithDefaultFalse() {
+    fun migration_4_6_addsPinnedColumnWithDefaultFalse() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-4-5-test.db"
@@ -145,7 +148,10 @@ class AppDatabaseMigrationTest {
             createVersion4Database(context = context, databaseName = databaseName)
 
             val databaseBuilder = Room.databaseBuilder(context, AppDatabase::class.java, databaseName)
-            databaseBuilder.addMigrations(AppDatabaseMigrations.MIGRATION_4_5)
+            databaseBuilder.addMigrations(
+                AppDatabaseMigrations.MIGRATION_4_5,
+                AppDatabaseMigrations.MIGRATION_5_6,
+            )
             val database = databaseBuilder.build()
 
             val migratedSake = requireNotNull(database.sakeDao().getById(1L))

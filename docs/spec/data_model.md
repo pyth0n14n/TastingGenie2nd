@@ -7,8 +7,9 @@
 - Review は 1 レコード = 1 件のテイスティングノートとして保持する
 - Review 内の評価項目は `common` / `appearance` / `aroma` / `taste` / `other` の論理グループで扱う
 - Review の永続化は 1 テーブルのままとし、列名は `appearanceXxx / aromaXxx / tasteXxx / otherXxx` で所属を明示する
-- 画像は URI ベースで `Sake.imageUri` にのみ保持する
-- 酒削除は SakeList から確認ダイアログ経由で実行し、紐づくレビューと画像を同時に削除する
+- 画像は URI ベースで `Sake.imageUris` に保持する
+- 酒削除は SakeList から確認ダイアログ経由で実行し、紐づくレビューを同時に削除する
+- 酒画像は保存時に app-managed URI へ取り込み、削除・差し替え時は既定で参照解除のみ行う
 - レビュー削除は ReviewList から確認ダイアログ経由で実行する
 - マスタデータは `docs/spec/master/*.md` を source of truth とし、実装では `assets/master/*.json` に反映する
 - `香味特性別分類` は `aromaIntensity × tasteComplexity` から導出する表示値であり、DB には保存しない
@@ -22,7 +23,7 @@
 | id | Long | PK |
 | name | String | 必須 |
 | grade | Enum | 必須 |
-| imageUri | String(URI) | 任意 |
+| imageUris | List<String(URI)> | 任意 |
 | gradeOther | String | 任意 |
 | type | List<Enum> | 任意 |
 | typeOther | String | 任意 |
@@ -109,9 +110,11 @@
 | showHelpHints | Boolean | 必須（既定値: true） |
 | showImagePreview | Boolean | 必須（既定値: true） |
 | showReviewSoundness | Boolean | 必須（既定値: true） |
+| autoDeleteUnusedImages | Boolean | 必須（既定値: false） |
 
 - `showReviewSoundness = false` のとき、UI は健全度入力を表示しない
 - 非表示時でも Review の 3 つの健全度は `SOUND` を既定値として扱う
+- `autoDeleteUnusedImages = true` のとき、酒削除時と画像差し替え保存時に未参照 app-managed 画像 cleanup を自動実行する
 
 ---
 
@@ -153,8 +156,10 @@ Sake (1) ---- (N) Review
 
 - `LocalDate` は日付として保存する
 - `List<Enum>` は JSON 文字列で永続化する
+- `imageUris: List<String>` も JSON 文字列で永続化する
 - Review の評価項目は 1 テーブル `reviews` に prefix 付き列で保持する
-- 画像は `Sake.imageUri` に 1 件保持する
+- 画像は `Sake.imageUris` に 0..N 件保持する
+- 一覧カードなど単一 preview が必要な画面では `imageUris.firstOrNull()` を代表画像として使う
 - `Review` は画像を直接保持しない
 - `香味特性別分類` は保存せず、画面表示時に導出する
 
