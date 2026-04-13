@@ -263,6 +263,34 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun onImageSelected_withDuplicateUri_keepsSinglePreviewAndSingleImport() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            val saved = repository.savedInputs.single()
+            assertEquals(listOf(PICKED_IMAGE_URI), state.imagePreviewUris)
+            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
+            assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
+        }
+
+    @Test
     fun save_withImageDeletion_deletesPersistedImageAfterSave() =
         runTest {
             val repository =

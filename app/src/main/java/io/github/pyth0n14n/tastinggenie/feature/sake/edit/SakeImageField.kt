@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -66,7 +66,10 @@ private fun SakeImagePreview(
         )
     } else {
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(items = imageUris, key = { imageUri -> imageUri }) { imageUri ->
+            itemsIndexed(
+                items = imageUris,
+                key = { index, imageUri -> "$index:$imageUri" },
+            ) { _, imageUri ->
                 Surface(shadowElevation = 1.dp) {
                     Box(modifier = Modifier.fillParentMaxWidth(IMAGE_PREVIEW_WIDTH_FRACTION)) {
                         AsyncImage(

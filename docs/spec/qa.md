@@ -80,12 +80,19 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Pick a replacement image and cancel edit; verify the persisted image set is unchanged.
   - Simulate save failure after image import; verify the newly imported managed images are deleted.
   - Delete an existing image and save with auto-cleanup OFF; verify the DB reference is removed while the old managed file remains.
+### Problem: Duplicate image picks create duplicate preview keys or orphan managed copies.
+- **Example**: The same gallery URI is selected twice, `LazyRow` receives duplicate keys, and save imports the same source twice even though only one DB reference survives.
+- **Preventive Measure**: Deduplicate image selections in the edit-session state before appending them. Save logic should import each pending source URI at most once, and preview lists should not depend on duplicate-unsafe keys.
+- **Test Coverage**:
+  - Select the same image URI twice and verify the preview still contains one item.
+  - Save after duplicate selection and verify the source is imported once and only one managed URI is persisted.
 ### Problem: Post-save image cleanup failure is treated as a save failure even after the DB commit succeeded.
 - **Example**: SakeEdit saves a replacement image, then cleanup of unused managed files throws and the screen reports `error_save_sake` while the DB already points at the new image set.
 - **Preventive Measure**: Mark the DB write as committed before cleanup, and treat committed cleanup as best-effort. Only rollback newly imported images when the save fails before the DB commit.
 - **Test Coverage**:
   - Replace an existing image and force unused-image cleanup to fail; verify the form still completes as saved.
   - Delete an existing image and force cleanup to fail; verify the DB save still completes and no false save error is shown.
+  - Save metadata only with auto-cleanup ON and verify no image cleanup runs.
 ### Problem: Manual/auto cleanup can delete the wrong files when multiple images are attached.
 - **Example**: `cleanupUnusedImages()` deletes a still-referenced second image because only the primary image URI is considered, or deletes external URIs selected from outside app storage.
 - **Preventive Measure**: Build the referenced set from every `Sake.imageUris` entry, not only the first preview image. Restrict cleanup to the app-managed image directory and never delete external URIs.

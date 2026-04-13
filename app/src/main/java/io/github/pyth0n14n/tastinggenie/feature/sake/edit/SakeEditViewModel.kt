@@ -70,6 +70,9 @@ class SakeEditViewModel
 
         fun onImageSelected(imageUri: String) {
             updateEditableState { current ->
+                if (imageUri in current.imagePreviewUris) {
+                    return@updateEditableState current.copy(error = null)
+                }
                 current.copy(
                     imagePreviewUris = current.imagePreviewUris + imageUri,
                     pendingImageSourceUris = current.pendingImageSourceUris + imageUri,

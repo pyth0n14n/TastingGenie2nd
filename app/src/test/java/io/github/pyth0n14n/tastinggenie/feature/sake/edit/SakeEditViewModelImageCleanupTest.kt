@@ -113,6 +113,43 @@ class SakeEditViewModelImageCleanupTest {
         }
 
     @Test
+    fun save_withMetadataOnlyChange_doesNotRunAutoCleanup() =
+        runTest {
+            val repository =
+                RecordingSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = EXISTING_SAKE_ID,
+                                name = "既存銘柄",
+                                grade = SakeGrade.JUNMAI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
+                                maker = "変更前",
+                            ),
+                        ),
+                )
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.MAKER, "変更後")
+            viewModel.save()
+            advanceUntilIdle()
+
+            val saved = repository.savedInputs.single()
+            assertEquals("変更後", saved.maker)
+            assertEquals(listOf(EXISTING_IMAGE_URI), saved.imageUris)
+            assertEquals(0, imageRepository.cleanupCalls)
+        }
+
+    @Test
     fun removeImage_cleansUpPendingCapturedSource() =
         runTest {
             val imageRepository = RecordingSakeImageRepository()

@@ -14,8 +14,9 @@ internal suspend fun saveSake(
     val importedImageUris = mutableListOf<String>()
     var isCommitted = false
     try {
+        val pendingSourceUris = snapshot.pendingImageSourceUris.distinct()
         val importedImageMap =
-            snapshot.pendingImageSourceUris.associateWith { sourceUri ->
+            pendingSourceUris.associateWith { sourceUri ->
                 sakeImageRepository.importImage(sourceUri).also { importedUri ->
                     importedImageUris += importedUri
                 }
@@ -29,7 +30,7 @@ internal suspend fun saveSake(
         cleanupCommittedImageMutation(
             snapshot = snapshot,
             sakeImageRepository = sakeImageRepository,
-            autoDeleteUnusedImages = autoDeleteUnusedImages,
+            shouldCleanupUnusedImages = autoDeleteUnusedImages && snapshot.hasImageReferenceMutation(),
         )
     } finally {
         if (!isCommitted) {
@@ -44,14 +45,17 @@ internal suspend fun saveSake(
 private suspend fun cleanupCommittedImageMutation(
     snapshot: SakeEditUiState,
     sakeImageRepository: SakeImageRepository,
-    autoDeleteUnusedImages: Boolean,
+    shouldCleanupUnusedImages: Boolean,
 ) {
     runCatching {
-        snapshot.pendingImageSourceUris.forEach { sourceUri ->
+        snapshot.pendingImageSourceUris.distinct().forEach { sourceUri ->
             sakeImageRepository.deleteImage(sourceUri)
         }
-        if (autoDeleteUnusedImages) {
+        if (shouldCleanupUnusedImages) {
             sakeImageRepository.cleanupUnusedImages()
         }
     }
 }
+
+private fun SakeEditUiState.hasImageReferenceMutation(): Boolean =
+    imagePreviewUris.distinct() != persistedImageUris.distinct()
