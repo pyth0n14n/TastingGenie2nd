@@ -13,6 +13,8 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
@@ -73,9 +75,87 @@ class SakeListViewModelTest {
             assertEquals(1, state.sakes.size)
             assertEquals("テスト銘柄", firstSake.name)
             assertEquals("純米", state.gradeLabels[SakeGrade.JUNMAI.name])
+            assertEquals("生酒", state.classificationLabels[SakeClassification.NAMA.name])
+            assertEquals("山形県", state.prefectureLabels[Prefecture.YAMAGATA.name])
             assertEquals(true, state.showHelpHints)
             assertEquals(true, state.showImagePreview)
             assertEquals(null, state.error)
+        }
+
+    @Test
+    fun updateSearchQuery_filtersDisplayedSakesByNameOrMaker() =
+        runTest {
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(
+                        initial =
+                            listOf(
+                                Sake(
+                                    id = 1L,
+                                    name = "十四代",
+                                    grade = SakeGrade.JUNMAI,
+                                    maker = "高木酒造",
+                                ),
+                                Sake(
+                                    id = 2L,
+                                    name = "而今",
+                                    grade = SakeGrade.GINJO,
+                                    maker = "木屋正酒造",
+                                ),
+                            ),
+                    ),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.updateSearchQuery("高木")
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals("高木", state.searchQuery)
+            assertEquals(listOf("十四代"), state.displayedSakes.map { it.sake.name })
+        }
+
+    @Test
+    fun selectSortMode_sortsDisplayedSakesByRatingWithinPinnedGroups() =
+        runTest {
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(
+                        initial = emptyList(),
+                        summaries =
+                            listOf(
+                                SakeListSummary(
+                                    sake = Sake(id = 1L, name = "A酒", grade = SakeGrade.JUNMAI),
+                                    latestOverallReview = OverallReview.NEUTRAL,
+                                ),
+                                SakeListSummary(
+                                    sake = Sake(id = 2L, name = "B酒", grade = SakeGrade.GINJO),
+                                    latestOverallReview = OverallReview.GOOD,
+                                ),
+                                SakeListSummary(
+                                    sake = Sake(id = 3L, name = "C酒", grade = SakeGrade.GINJO, isPinned = true),
+                                    latestOverallReview = OverallReview.NEUTRAL,
+                                ),
+                            ),
+                    ),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.selectSortMode(SakeListSortMode.RATING_DESC)
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf("C酒", "B酒", "A酒"),
+                viewModel.uiState.value
+                    .displayedSakes
+                    .map { it.sake.name },
+            )
         }
 
     @Test
@@ -565,10 +645,10 @@ private class FakeMasterDataRepository : MasterDataRepository {
                     MasterOption(value = SakeGrade.GINJO.name, label = "吟醸"),
                     MasterOption(value = SakeGrade.FUTSUSHU.name, label = "普通酒"),
                 ),
-            classifications = emptyList(),
+            classifications = listOf(MasterOption(value = SakeClassification.NAMA.name, label = "生酒")),
             temperatures = emptyList(),
             colors = emptyList(),
-            prefectures = emptyList(),
+            prefectures = listOf(MasterOption(value = Prefecture.YAMAGATA.name, label = "山形県")),
             intensityLevels = emptyList(),
             tasteLevels = emptyList(),
             overallReviews = listOf(MasterOption(value = OverallReview.GOOD.name, label = "好き")),

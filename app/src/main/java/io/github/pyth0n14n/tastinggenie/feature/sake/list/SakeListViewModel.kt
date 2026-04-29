@@ -45,8 +45,15 @@ class SakeListViewModel
                 val labels =
                     runCatching {
                         masterDataRepository.getMasterData().let { master ->
-                            master.sakeGrades.associate { option -> option.value to option.label } to
-                                master.overallReviews.associate { option -> option.value to option.label }
+                            SakeListLabels(
+                                gradeLabels = master.sakeGrades.associate { option -> option.value to option.label },
+                                classificationLabels =
+                                    master.classifications.associate { option -> option.value to option.label },
+                                prefectureLabels =
+                                    master.prefectures.associate { option -> option.value to option.label },
+                                overallReviewLabels =
+                                    master.overallReviews.associate { option -> option.value to option.label },
+                            )
                         }
                     }.getOrElse { throwable ->
                         _uiState.update {
@@ -61,9 +68,6 @@ class SakeListViewModel
                         }
                         return@launch
                     }
-
-                val gradeLabels = labels.first
-                val overallReviewLabels = labels.second
 
                 // DB監視結果をそのままUiStateへ反映し、一覧再表示を自動化する。
                 sakeRepository
@@ -86,14 +90,24 @@ class SakeListViewModel
                                 isLoading = false,
                                 error = null,
                                 sakes = sakes,
-                                gradeLabels = gradeLabels,
-                                overallReviewLabels = overallReviewLabels,
+                                gradeLabels = labels.gradeLabels,
+                                classificationLabels = labels.classificationLabels,
+                                prefectureLabels = labels.prefectureLabels,
+                                overallReviewLabels = labels.overallReviewLabels,
                                 showHelpHints = settings.showHelpHints,
                                 showImagePreview = settings.showImagePreview,
                             )
                         }
                     }
             }
+        }
+
+        fun updateSearchQuery(query: String) {
+            _uiState.update { it.copy(searchQuery = query) }
+        }
+
+        fun selectSortMode(sortMode: SakeListSortMode) {
+            _uiState.update { it.copy(sortMode = sortMode) }
         }
 
         fun requestDeleteSake(sakeId: Long) {
@@ -111,7 +125,7 @@ class SakeListViewModel
 
                         is DeleteTargetLoadResult.Loaded -> {
                             val reviewCount = loadReviewCountForDeletion(sakeId) ?: return@launch
-                            if (!isLatestDeleteRequest(requestId)) {
+                            if (requestId != latestDeleteRequestId) {
                                 return@launch
                             }
                             _uiState.update {
@@ -229,8 +243,6 @@ class SakeListViewModel
                 )
             }
         }
-
-        private fun isLatestDeleteRequest(requestId: Long): Boolean = requestId == latestDeleteRequestId
     }
 
 private sealed interface DeleteTargetLoadResult {
@@ -242,3 +254,10 @@ private sealed interface DeleteTargetLoadResult {
 
     data object Failed : DeleteTargetLoadResult
 }
+
+private data class SakeListLabels(
+    val gradeLabels: Map<String, String>,
+    val classificationLabels: Map<String, String>,
+    val prefectureLabels: Map<String, String>,
+    val overallReviewLabels: Map<String, String>,
+)

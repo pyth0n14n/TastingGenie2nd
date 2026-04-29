@@ -5,24 +5,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.StarOutline
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,17 +36,20 @@ import coil.compose.AsyncImage
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.ui.common.OverflowAction
+import io.github.pyth0n14n.tastinggenie.ui.common.OverflowActionsMenu
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipOutline
 
-private const val CARD_PADDING = 12
-private const val CARD_INNER_SPACING = 6
-private const val CARD_IMAGE_RATIO_WIDTH = 4f
-private const val CARD_IMAGE_RATIO_HEIGHT = 3f
-private const val CARD_PLACEHOLDER_ALPHA = 0.45f
-private const val FAVORITE_ICON_SIZE = 20
-private const val STAR_ICON_SIZE = 16
+private val ThumbnailSize = 56.dp
+private val ChipShape = RoundedCornerShape(4.dp)
 
 data class SakeListCardLabels(
     val grade: String,
+    val classifications: List<String> = emptyList(),
+    val prefecture: String? = null,
     val latestOverallReview: OverallReview? = null,
     val latestOverallReviewLabel: String? = null,
 )
@@ -61,178 +62,204 @@ fun SakeListCard(
     itemActions: SakeListItemActions,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(
+    Surface(
         modifier =
             modifier
                 .fillMaxWidth()
                 .clickable { itemActions.onOpenSake(sake.id) },
-        border = CardDefaults.outlinedCardBorder(),
-        elevation = CardDefaults.outlinedCardElevation(defaultElevation = 3.dp),
+        color = MaterialTheme.colorScheme.surface,
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(CARD_INNER_SPACING.dp),
-        ) {
-            if (showImagePreview) {
-                SakeCardImage(imageUri = sake.primaryImageUri)
-            }
-            Column(
-                modifier = Modifier.padding(CARD_PADDING.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                SakeCardHeader(sake = sake, itemActions = itemActions)
-                SakeCardMetaAndActions(
-                    labels = labels,
+                if (showImagePreview) {
+                    SakeListThumbnail(imageUri = sake.primaryImageUri)
+                }
+                SakeListItemBody(
                     sake = sake,
+                    labels = labels,
+                    modifier = Modifier.weight(1f),
+                )
+                SakeListTrailing(
+                    sake = sake,
+                    labels = labels,
                     itemActions = itemActions,
                 )
-                SakeCardLatestReview(labels = labels)
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }
 
 @Composable
-private fun SakeCardHeader(
+private fun SakeListItemBody(
     sake: Sake,
-    itemActions: SakeListItemActions,
+    labels: SakeListCardLabels,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier = modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Text(
             text = sake.name,
-            style = MaterialTheme.typography.titleMedium,
-            minLines = 2,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) }) {
-            Icon(
-                imageVector = if (sake.isPinned) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                contentDescription =
-                    stringResource(
-                        if (sake.isPinned) {
-                            R.string.content_unpin_sake
-                        } else {
-                            R.string.content_pin_sake
-                        },
-                    ),
-                modifier = Modifier.size(FAVORITE_ICON_SIZE.dp),
-                tint =
-                    if (sake.isPinned) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-            )
-        }
-    }
-}
-
-@Composable
-private fun SakeCardMetaAndActions(
-    labels: SakeListCardLabels,
-    sake: Sake,
-    itemActions: SakeListItemActions,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = labels.grade,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
         )
-        SakeCardActions(
-            sakeId = sake.id,
-            itemActions = itemActions,
+        SakeListChips(labels = labels)
+        sake.maker?.takeIf { it.isNotBlank() }?.let { maker ->
+            SakeListSupportingText(text = maker)
+        }
+        labels.prefecture?.let { prefecture ->
+            SakeListSupportingText(text = prefecture)
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun SakeListChips(labels: SakeListCardLabels) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        SakeAssistChip(
+            text = labels.grade,
+            containerColor = TastingSakeChipContainer,
+            outlineColor = TastingSakeChipOutline,
+        )
+        labels.classifications.forEach { classification ->
+            SakeAssistChip(
+                text = classification,
+                containerColor = TastingTypeChipContainer,
+                outlineColor = TastingTypeChipOutline,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SakeAssistChip(
+    text: String,
+    containerColor: androidx.compose.ui.graphics.Color,
+    outlineColor: androidx.compose.ui.graphics.Color,
+) {
+    Surface(
+        shape = ChipShape,
+        color = containerColor,
+        border = androidx.compose.foundation.BorderStroke(1.dp, outlineColor),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
 @Composable
-private fun SakeCardActions(
-    sakeId: Long,
+private fun SakeListSupportingText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun SakeListTrailing(
+    sake: Sake,
+    labels: SakeListCardLabels,
     itemActions: SakeListItemActions,
 ) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier =
+            Modifier
+                .width(64.dp)
+                .fillMaxHeight(),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        IconButton(onClick = { itemActions.onEditSake(sakeId) }) {
-            Icon(
-                imageVector = Icons.Outlined.Edit,
-                contentDescription = stringResource(R.string.content_edit_sake),
-            )
-        }
-        IconButton(onClick = { itemActions.onDeleteSake(sakeId) }) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(R.string.content_delete_sake),
-            )
-        }
+        SakeListRating(labels = labels)
+        OverflowActionsMenu(
+            actions =
+                listOf(
+                    OverflowAction(
+                        labelRes =
+                            if (sake.isPinned) {
+                                R.string.action_unpin_sake
+                            } else {
+                                R.string.action_pin_sake
+                            },
+                        onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) },
+                    ),
+                    OverflowAction(
+                        labelRes = R.string.action_edit,
+                        onClick = { itemActions.onEditSake(sake.id) },
+                    ),
+                    OverflowAction(
+                        labelRes = R.string.action_delete,
+                        onClick = { itemActions.onDeleteSake(sake.id) },
+                    ),
+                ),
+        )
     }
 }
 
 @Composable
-private fun SakeCardLatestReview(labels: SakeListCardLabels) {
-    val selectedIndex = labels.latestOverallReview?.ordinal
+private fun SakeListRating(labels: SakeListCardLabels) {
+    val ratingText = labels.latestOverallReview?.let { review -> "${review.ordinal + 1}.00" }
     val contentDescription =
         labels.latestOverallReviewLabel?.let { label ->
             stringResource(R.string.content_latest_overall_review, label)
         } ?: stringResource(R.string.content_latest_overall_review_none)
     Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .semantics { this.contentDescription = contentDescription },
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.semantics { this.contentDescription = contentDescription },
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        OverallReview.entries.forEachIndexed { index, _ ->
-            val isSelected = selectedIndex != null && index <= selectedIndex
-            Icon(
-                imageVector = if (isSelected) Icons.Filled.Star else Icons.Outlined.StarOutline,
-                contentDescription = null,
-                modifier = Modifier.size(STAR_ICON_SIZE.dp),
-                tint =
-                    if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.outlineVariant
-                    },
-            )
-        }
+        Icon(
+            imageVector = Icons.Filled.Star,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = ratingText ?: "-",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
 @Composable
-private fun SakeCardImage(imageUri: String?) {
-    val shape = CardDefaults.outlinedShape
+private fun SakeListThumbnail(imageUri: String?) {
     Box(
         modifier =
             Modifier
-                .fillMaxWidth()
-                .aspectRatio(CARD_IMAGE_RATIO_WIDTH / CARD_IMAGE_RATIO_HEIGHT)
-                .clip(shape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .size(ThumbnailSize)
+                .clip(RoundedCornerShape(0.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {
         if (imageUri.isNullOrBlank()) {
             Text(
-                text = stringResource(R.string.message_no_image),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = CARD_PLACEHOLDER_ALPHA),
-                modifier = Modifier.padding(CARD_PADDING.dp),
+                text = stringResource(R.string.label_sake_image),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(4.dp),
             )
         } else {
             AsyncImage(

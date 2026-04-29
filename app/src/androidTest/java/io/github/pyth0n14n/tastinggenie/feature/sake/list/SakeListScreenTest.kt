@@ -33,22 +33,11 @@ class SakeListScreenTest {
                         isLoading = false,
                         sakes = emptyList(),
                     ),
-                onCreateSake = { called = true },
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(onCreateSake = { called = true }),
             )
         }
 
-        composeRule.onNodeWithText("追加").performClick()
+        composeRule.onNodeWithContentDescription("追加").performClick()
         composeRule.runOnIdle { assertTrue(called) }
     }
 
@@ -73,18 +62,7 @@ class SakeListScreenTest {
                             ),
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = { openedId = it },
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(onOpenSake = { openedId = it }),
             )
         }
 
@@ -100,23 +78,18 @@ class SakeListScreenTest {
         composeRule.setContent {
             SakeListScreen(
                 state = SakeListUiState(isLoading = false),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
+                actions =
+                    screenActions(
                         onOpenHelp = { helpOpened = true },
                         onOpenSettings = { settingsOpened = true },
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("ヘルプ").performClick()
-        composeRule.onNodeWithContentDescription("設定").performClick()
+        composeRule.onNodeWithContentDescription("その他の操作").performClick()
+        composeRule.onNodeWithText("ヘルプ").performClick()
+        composeRule.onNodeWithContentDescription("その他の操作").performClick()
+        composeRule.onNodeWithText("設定").performClick()
         composeRule.runOnIdle {
             assertTrue(helpOpened)
             assertTrue(settingsOpened)
@@ -132,27 +105,17 @@ class SakeListScreenTest {
                         isLoading = false,
                         showHelpHints = false,
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
         assertEquals(0, composeRule.onAllNodesWithContentDescription("ヘルプ").fetchSemanticsNodes().size)
-        composeRule.onNodeWithContentDescription("設定").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("その他の操作").performClick()
+        composeRule.onNodeWithText("設定").assertIsDisplayed()
     }
 
     @Test
-    fun cardActions_useEditAndFavoriteIcons() {
+    fun itemOverflowActions_useEditAndPinActions() {
         var editedId: Long? = null
         var favoriteToggle: Pair<Long, Boolean>? = null
         composeRule.setContent {
@@ -174,28 +137,65 @@ class SakeListScreenTest {
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
+                actions =
+                    screenActions(
                         onEditSake = { editedId = it },
-                        onDeleteSake = {},
                         onTogglePinned = { id, isPinned -> favoriteToggle = id to isPinned },
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("酒を編集").performClick()
-        composeRule.onNodeWithContentDescription("酒を固定").performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onNodeWithText("編集").performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onNodeWithText("固定").performClick()
         composeRule.runOnIdle {
             assertEquals(9L, editedId)
             assertEquals(9L to true, favoriteToggle)
         }
+    }
+
+    @Test
+    fun searchField_filtersVisibleSakes() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        searchQuery = "高木",
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 1L,
+                                            name = "十四代",
+                                            grade = SakeGrade.JUNMAI,
+                                            maker = "高木酒造",
+                                        ),
+                                ),
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 2L,
+                                            name = "而今",
+                                            grade = SakeGrade.GINJO,
+                                            maker = "木屋正酒造",
+                                        ),
+                                ),
+                            ),
+                        gradeLabels =
+                            mapOf(
+                                SakeGrade.JUNMAI.name to "純米",
+                                SakeGrade.GINJO.name to "吟醸",
+                            ),
+                    ),
+                actions = screenActions(),
+            )
+        }
+
+        composeRule.onNodeWithText("十四代").assertIsDisplayed()
+        assertEquals(0, composeRule.onAllNodesWithText("而今").fetchSemanticsNodes().size)
     }
 
     @Test
@@ -226,18 +226,7 @@ class SakeListScreenTest {
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
@@ -275,18 +264,7 @@ class SakeListScreenTest {
                             ),
                         overallReviewLabels = mapOf(OverallReview.GOOD.name to "好き"),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
@@ -316,22 +294,11 @@ class SakeListScreenTest {
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
                         showImagePreview = true,
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
-        composeRule.onNodeWithText("画像が登録されていません").assertIsDisplayed()
+        composeRule.onNodeWithText("画像").assertIsDisplayed()
     }
 
     @Test
@@ -356,23 +323,12 @@ class SakeListScreenTest {
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
                         showImagePreview = false,
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
         assertEquals(0, composeRule.onAllNodesWithContentDescription("酒画像").fetchSemanticsNodes().size)
-        assertEquals(0, composeRule.onAllNodesWithText("画像が登録されていません").fetchSemanticsNodes().size)
+        assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
     }
 
     @Test
@@ -404,18 +360,7 @@ class SakeListScreenTest {
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = { deleteRequested = true },
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(onDeleteSake = { deleteRequested = true }),
                 deleteDialogActions =
                     SakeListDeleteDialogActions(
                         onDismiss = {},
@@ -424,7 +369,8 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("酒を削除").performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onNodeWithText("削除").performClick()
         composeRule.runOnIdle { assertTrue(deleteRequested) }
         composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像参照も削除します。").assertIsDisplayed()
         composeRule.onNodeWithText("確定").performClick()
@@ -442,18 +388,7 @@ class SakeListScreenTest {
                             UiError(messageResId = R.string.error_delete_sake_image_cleanup),
                         sakes = emptyList(),
                     ),
-                onCreateSake = {},
-                itemActions =
-                    SakeListItemActions(
-                        onOpenSake = {},
-                        onEditSake = {},
-                        onDeleteSake = {},
-                    ),
-                topBarActions =
-                    SakeListTopBarActions(
-                        onOpenHelp = {},
-                        onOpenSettings = {},
-                    ),
+                actions = screenActions(),
             )
         }
 
@@ -461,3 +396,28 @@ class SakeListScreenTest {
         composeRule.onNodeWithText("登録された酒がありません").assertIsDisplayed()
     }
 }
+
+private fun screenActions(
+    onCreateSake: () -> Unit = {},
+    onOpenSake: (Long) -> Unit = {},
+    onEditSake: (Long) -> Unit = {},
+    onDeleteSake: (Long) -> Unit = {},
+    onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
+    onOpenHelp: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
+): SakeListScreenActions =
+    SakeListScreenActions(
+        onCreateSake = onCreateSake,
+        itemActions =
+            SakeListItemActions(
+                onOpenSake = onOpenSake,
+                onEditSake = onEditSake,
+                onDeleteSake = onDeleteSake,
+                onTogglePinned = onTogglePinned,
+            ),
+        topBarActions =
+            SakeListTopBarActions(
+                onOpenHelp = onOpenHelp,
+                onOpenSettings = onOpenSettings,
+            ),
+    )
