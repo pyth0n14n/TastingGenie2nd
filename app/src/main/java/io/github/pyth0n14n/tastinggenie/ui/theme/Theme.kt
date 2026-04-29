@@ -1,6 +1,5 @@
 package io.github.pyth0n14n.tastinggenie.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -63,7 +62,7 @@ private val LightColorScheme =
 @Composable
 @Suppress("UNUSED_PARAMETER")
 fun TastingGenie2ndAndroidTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = false,
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
