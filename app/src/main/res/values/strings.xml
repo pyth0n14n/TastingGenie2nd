@@ -13,6 +13,7 @@
     <string name="action_back">戻る</string>
     <string name="action_edit">編集</string>
     <string name="action_delete">削除</string>
+    <string name="action_more">その他の操作</string>
     <string name="action_view_image">画像</string>
     <string name="action_export_json">JSONを書き出す</string>
     <string name="action_import_json">JSONを読み込む</string>
