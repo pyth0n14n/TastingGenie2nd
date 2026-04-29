@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
@@ -238,9 +239,10 @@ private fun SakeListItems(
                                 state.classificationLabels[classification.name] ?: classification.name
                             },
                         prefecture =
-                            item.sake.prefecture?.name?.let { key ->
-                                state.prefectureLabels[key] ?: key
-                            },
+                            sakePrefectureAndCityLabel(
+                                sake = item.sake,
+                                prefectureLabels = state.prefectureLabels,
+                            ),
                         latestOverallReview = item.latestOverallReview,
                         latestOverallReviewLabel =
                             item.latestOverallReview
@@ -337,3 +339,15 @@ private fun SakeListSortMode.labelRes(): Int =
         SakeListSortMode.NAME_ASC -> R.string.sort_sakes_name
         SakeListSortMode.RATING_DESC -> R.string.sort_sakes_rating
     }
+
+private fun sakePrefectureAndCityLabel(
+    sake: Sake,
+    prefectureLabels: Map<String, String>,
+): String? {
+    val prefectureLabel =
+        sake.prefecture?.name?.let { key ->
+            prefectureLabels[key] ?: key
+        }
+    val city = sake.city?.trim().takeIf { value -> !value.isNullOrEmpty() }
+    return listOfNotNull(prefectureLabel, city).takeIf { labels -> labels.isNotEmpty() }?.joinToString(" ")
+}

@@ -33,7 +33,9 @@ fun LabeledTextField(
         modifier = Modifier.fillMaxWidth(),
         singleLine = singleLine,
         isError = fieldState.isError,
+        keyboardOptions = fieldState.keyboardOptions,
         supportingText = supportingTextContent(fieldState.errorText),
+        suffix = fieldState.suffixText?.let { suffixText -> { Text(suffixText) } },
     )
 }
 

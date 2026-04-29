@@ -2,7 +2,9 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
@@ -37,13 +39,14 @@ fun LazyListScope.textFieldItem(
 }
 
 @androidx.compose.runtime.Composable
-private fun SakeTextFieldContent(
+internal fun SakeTextFieldContent(
     @StringRes labelRes: Int,
     state: SakeEditUiState,
     callbacks: SakeEditCallbacks,
     ui: SakeTextFieldUi,
 ) {
     val label = stringResource(labelRes)
+    val suffix = ui.presentation.suffixRes?.let { suffixRes -> stringResource(suffixRes) }
     LabeledTextField(
         label = label,
         value = ui.value,
@@ -57,6 +60,11 @@ private fun SakeTextFieldContent(
                             validationErrorText(label = label, error = error)
                         }
                     },
+                suffixText = suffix,
+                keyboardOptions =
+                    ui.presentation.keyboardType?.let { keyboardType ->
+                        KeyboardOptions(keyboardType = keyboardType)
+                    } ?: KeyboardOptions.Default,
             ),
     )
 }
@@ -64,6 +72,8 @@ private fun SakeTextFieldContent(
 data class SakeFieldPresentation(
     val validationField: SakeValidationField? = null,
     val required: Boolean = false,
+    @param:StringRes val suffixRes: Int? = null,
+    val keyboardType: KeyboardType? = null,
 )
 
 data class SakeTextFieldUi(

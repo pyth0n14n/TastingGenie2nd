@@ -19,6 +19,7 @@ private data class ParsedSakeNumbers(
     val kakePolish: Int?,
     val sakeDegree: Float?,
     val acidity: Float?,
+    val amino: Float?,
 )
 
 fun SakeEditUiState.toValidatedInput(): SakeInput? {
@@ -36,6 +37,7 @@ fun SakeEditUiState.toValidatedInput(): SakeInput? {
         typeOther = typeOther.normalizedOrNull()?.takeIf { classifications.contains(SakeClassification.OTHER) },
         maker = maker.normalizedOrNull(),
         prefecture = prefecture,
+        city = city.normalizedOrNull(),
         alcohol = parsedNumbers.alcohol,
         kojiMai = kojiMai.normalizedOrNull(),
         kojiPolish = parsedNumbers.kojiPolish,
@@ -43,6 +45,7 @@ fun SakeEditUiState.toValidatedInput(): SakeInput? {
         kakePolish = parsedNumbers.kakePolish,
         sakeDegree = parsedNumbers.sakeDegree,
         acidity = parsedNumbers.acidity,
+        amino = parsedNumbers.amino,
         yeast = yeast.normalizedOrNull(),
         water = water.normalizedOrNull(),
     )
@@ -71,6 +74,9 @@ fun SakeEditUiState.validationErrorsForSave(): Map<SakeValidationField, FieldVal
     if (!acidity.parseOptionalFloat().isValid) {
         errors[SakeValidationField.ACIDITY] = FieldValidationError.INVALID_NUMBER
     }
+    if (!amino.parseOptionalFloat().isValid) {
+        errors[SakeValidationField.AMINO] = FieldValidationError.INVALID_NUMBER
+    }
     return errors
 }
 
@@ -90,12 +96,14 @@ fun SakeTextField.toValidationField(): SakeValidationField? =
         SakeTextField.NAME -> SakeValidationField.NAME
         SakeTextField.SAKE_DEGREE -> SakeValidationField.SAKE_DEGREE
         SakeTextField.ACIDITY -> SakeValidationField.ACIDITY
+        SakeTextField.AMINO -> SakeValidationField.AMINO
         SakeTextField.KOJI_POLISH -> SakeValidationField.KOJI_POLISH
         SakeTextField.KAKE_POLISH -> SakeValidationField.KAKE_POLISH
         SakeTextField.ALCOHOL -> SakeValidationField.ALCOHOL
         SakeTextField.GRADE_OTHER,
         SakeTextField.TYPE_OTHER,
         SakeTextField.MAKER,
+        SakeTextField.CITY,
         SakeTextField.KOJI_MAI,
         SakeTextField.KAKE_MAI,
         SakeTextField.YEAST,
@@ -142,12 +150,14 @@ private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
     val kakePolish = kakePolish.parseOptionalPercentage()
     val sakeDegree = sakeDegree.parseOptionalFloat()
     val acidity = acidity.parseOptionalFloat()
+    val amino = amino.parseOptionalFloat()
     val allNumbersValid =
         alcohol.isValid &&
             kojiPolish.isValid &&
             kakePolish.isValid &&
             sakeDegree.isValid &&
-            acidity.isValid
+            acidity.isValid &&
+            amino.isValid
     return if (allNumbersValid) {
         ParsedSakeNumbers(
             alcohol = alcohol.value,
@@ -155,6 +165,7 @@ private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
             kakePolish = kakePolish.value,
             sakeDegree = sakeDegree.value,
             acidity = acidity.value,
+            amino = amino.value,
         )
     } else {
         null

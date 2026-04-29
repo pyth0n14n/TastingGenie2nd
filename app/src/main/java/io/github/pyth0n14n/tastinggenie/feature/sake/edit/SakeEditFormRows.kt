@@ -12,8 +12,10 @@ internal const val SAKE_ROW_CLASSIFICATION = "classification"
 internal const val SAKE_ROW_CLASSIFICATION_OTHER = "classification_other"
 internal const val SAKE_ROW_MAKER = "maker"
 internal const val SAKE_ROW_PREFECTURE = "prefecture"
+internal const val SAKE_ROW_CITY = "city"
 internal const val SAKE_ROW_SAKE_DEGREE = "sake_degree"
 internal const val SAKE_ROW_ACIDITY = "acidity"
+internal const val SAKE_ROW_AMINO = "amino"
 internal const val SAKE_ROW_ALCOHOL = "alcohol"
 internal const val SAKE_ROW_KOJI_MAI = "koji_mai"
 internal const val SAKE_ROW_KOJI_POLISH = "koji_polish"
@@ -23,6 +25,9 @@ internal const val SAKE_ROW_YEAST = "yeast"
 internal const val SAKE_ROW_WATER = "water"
 internal const val SAKE_ROW_ERROR = "error"
 internal const val SAKE_ROW_SAVE = "save"
+internal const val SAKE_SECTION_IMAGE = "section_image"
+internal const val SAKE_SECTION_BASIC = "section_basic"
+internal const val SAKE_SECTION_DETAIL = "section_detail"
 
 internal fun SakeEditUiState.firstInvalidFieldIndex(): Int? {
     if (validationErrors.isEmpty()) {
@@ -30,6 +35,27 @@ internal fun SakeEditUiState.firstInvalidFieldIndex(): Int? {
     }
     val invalidRowKeys = validationErrors.keys.mapTo(mutableSetOf(), ::validationFieldRowKey)
     return visibleSakeEditRowKeys().indexOfFirst { rowKey -> rowKey in invalidRowKeys }.takeIf { it >= 0 }
+}
+
+internal fun SakeEditUiState.firstInvalidSectionIndex(): Int? {
+    if (validationErrors.isEmpty()) {
+        return null
+    }
+    return when (validationErrors.keys.minByOrNull { field -> firstInvalidFieldIndexFor(field) }) {
+        SakeValidationField.NAME,
+        SakeValidationField.GRADE,
+        -> 1
+
+        SakeValidationField.SAKE_DEGREE,
+        SakeValidationField.ACIDITY,
+        SakeValidationField.AMINO,
+        SakeValidationField.KOJI_POLISH,
+        SakeValidationField.KAKE_POLISH,
+        SakeValidationField.ALCOHOL,
+        -> 2
+
+        null -> null
+    }
 }
 
 internal fun SakeEditUiState.visibleSakeEditRowKeys(): List<String> =
@@ -47,13 +73,15 @@ internal fun SakeEditUiState.visibleSakeEditRowKeys(): List<String> =
         }
         add(SAKE_ROW_MAKER)
         add(SAKE_ROW_PREFECTURE)
-        add(SAKE_ROW_SAKE_DEGREE)
-        add(SAKE_ROW_ACIDITY)
-        add(SAKE_ROW_ALCOHOL)
+        add(SAKE_ROW_CITY)
         add(SAKE_ROW_KOJI_MAI)
         add(SAKE_ROW_KOJI_POLISH)
         add(SAKE_ROW_KAKE_MAI)
         add(SAKE_ROW_KAKE_POLISH)
+        add(SAKE_ROW_SAKE_DEGREE)
+        add(SAKE_ROW_ACIDITY)
+        add(SAKE_ROW_AMINO)
+        add(SAKE_ROW_ALCOHOL)
         add(SAKE_ROW_YEAST)
         add(SAKE_ROW_WATER)
         add(SAKE_ROW_ERROR)
@@ -66,7 +94,11 @@ private fun validationFieldRowKey(field: SakeValidationField): String =
         SakeValidationField.GRADE -> SAKE_ROW_GRADE
         SakeValidationField.SAKE_DEGREE -> SAKE_ROW_SAKE_DEGREE
         SakeValidationField.ACIDITY -> SAKE_ROW_ACIDITY
+        SakeValidationField.AMINO -> SAKE_ROW_AMINO
         SakeValidationField.KOJI_POLISH -> SAKE_ROW_KOJI_POLISH
         SakeValidationField.KAKE_POLISH -> SAKE_ROW_KAKE_POLISH
         SakeValidationField.ALCOHOL -> SAKE_ROW_ALCOHOL
     }
+
+private fun SakeEditUiState.firstInvalidFieldIndexFor(field: SakeValidationField): Int =
+    visibleSakeEditRowKeys().indexOf(validationFieldRowKey(field)).takeIf { it >= 0 } ?: Int.MAX_VALUE

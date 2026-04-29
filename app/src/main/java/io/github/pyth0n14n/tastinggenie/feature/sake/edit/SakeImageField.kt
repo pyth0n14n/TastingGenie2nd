@@ -1,31 +1,53 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import io.github.pyth0n14n.tastinggenie.R
 
-private const val IMAGE_FIELD_HEIGHT = 180
-private const val IMAGE_PREVIEW_WIDTH_FRACTION = 0.85f
+private const val IMAGE_CARD_HEIGHT = 102
+private const val IMAGE_CARD_WIDTH = 120
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun SakeImageField(
     imageUris: List<String>,
     isSaving: Boolean,
@@ -33,98 +55,199 @@ fun SakeImageField(
     onCaptureImage: () -> Unit,
     onDeleteImageRequest: (String) -> Unit,
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            text = stringResource(R.string.label_sake_image),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        SakeImagePreview(
-            imageUris = imageUris,
-            onDeleteImageRequest = onDeleteImageRequest,
-        )
-        SakeImageActions(
-            hasImage = imageUris.isNotEmpty(),
-            isSaving = isSaving,
-            onPickImage = onPickImage,
-            onCaptureImage = onCaptureImage,
+    var isAddSheetVisible by remember { mutableStateOf(false) }
+    if (isAddSheetVisible) {
+        SakeImageSourceSheet(
+            onDismiss = { isAddSheetVisible = false },
+            onPickImage = {
+                isAddSheetVisible = false
+                onPickImage()
+            },
+            onCaptureImage = {
+                isAddSheetVisible = false
+                onCaptureImage()
+            },
         )
     }
-}
-
-@Composable
-private fun SakeImagePreview(
-    imageUris: List<String>,
-    onDeleteImageRequest: (String) -> Unit,
-) {
-    if (imageUris.isEmpty()) {
-        Text(
-            text = stringResource(R.string.message_no_image),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    } else {
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            itemsIndexed(
-                items = imageUris,
-                key = { index, imageUri -> "$index:$imageUri" },
-            ) { _, imageUri ->
-                Surface(shadowElevation = 1.dp) {
-                    Box(modifier = Modifier.fillParentMaxWidth(IMAGE_PREVIEW_WIDTH_FRACTION)) {
-                        AsyncImage(
-                            model = imageUri,
-                            contentDescription = stringResource(R.string.content_sake_image),
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(IMAGE_FIELD_HEIGHT.dp),
-                            contentScale = ContentScale.Fit,
-                        )
-                        TextButton(
-                            onClick = { onDeleteImageRequest(imageUri) },
-                            modifier = Modifier.padding(8.dp),
-                        ) {
-                            Text(stringResource(R.string.action_delete_sake_image))
-                        }
-                    }
-                }
-            }
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        item(key = "add_image") {
+            SakeImageAddCard(
+                isSaving = isSaving,
+                onAddImage = { isAddSheetVisible = true },
+            )
+        }
+        items(
+            items = imageUris,
+            key = { imageUri -> imageUri },
+        ) { imageUri ->
+            SakeImagePreviewCard(
+                imageUri = imageUri,
+                onDeleteImageRequest = onDeleteImageRequest,
+            )
         }
     }
 }
 
 @Composable
-private fun SakeImageActions(
-    hasImage: Boolean,
+private fun SakeImageAddCard(
     isSaving: Boolean,
+    onAddImage: () -> Unit,
+) {
+    val borderColor = MaterialTheme.colorScheme.outlineVariant
+    Box(
+        modifier =
+            Modifier
+                .width(IMAGE_CARD_WIDTH.dp)
+                .height(IMAGE_CARD_HEIGHT.dp)
+                .drawBehind {
+                    val strokeWidth = 1.dp.toPx()
+                    drawRoundRect(
+                        color = borderColor,
+                        cornerRadius = CornerRadius(4.dp.toPx()),
+                        style =
+                            Stroke(
+                                width = strokeWidth,
+                                pathEffect =
+                                    PathEffect.dashPathEffect(
+                                        intervals = floatArrayOf(3.dp.toPx(), 3.dp.toPx()),
+                                    ),
+                            ),
+                    )
+                }.clickable(enabled = !isSaving, onClick = onAddImage),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.AddAPhoto,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.action_add_sake_image),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.message_tap_to_select_image),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SakeImageSourceSheet(
+    onDismiss: () -> Unit,
     onPickImage: () -> Unit,
     onCaptureImage: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        OutlinedButton(
-            onClick = onPickImage,
-            enabled = !isSaving,
-            modifier = Modifier.weight(1f),
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                text =
-                    if (!hasImage) {
-                        stringResource(R.string.action_select_sake_image)
-                    } else {
-                        stringResource(R.string.action_add_sake_image)
-                    },
+            SakeImageSourceButton(
+                label = stringResource(R.string.action_pick_sake_image_from_folder),
+                icon = { Icon(imageVector = Icons.Outlined.FolderOpen, contentDescription = null) },
+                onClick = onPickImage,
+            )
+            SakeImageSourceButton(
+                label = stringResource(R.string.action_capture_sake_image),
+                icon = { Icon(imageVector = Icons.Outlined.CameraAlt, contentDescription = null) },
+                onClick = onCaptureImage,
             )
         }
-        OutlinedButton(
-            onClick = onCaptureImage,
-            enabled = !isSaving,
-            modifier = Modifier.weight(1f),
+    }
+}
+
+@Composable
+private fun SakeImageSourceButton(
+    label: String,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    TextButton(
+        onClick = onClick,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(stringResource(R.string.action_capture_sake_image))
+            icon()
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SakeImagePreviewCard(
+    imageUri: String,
+    onDeleteImageRequest: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.width(IMAGE_CARD_WIDTH.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Surface(
+            modifier =
+                Modifier
+                    .width(IMAGE_CARD_WIDTH.dp)
+                    .height(IMAGE_CARD_HEIGHT.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+        ) {
+            Box {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = stringResource(R.string.content_sake_image),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+        TextButton(
+            onClick = { onDeleteImageRequest(imageUri) },
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            modifier = Modifier.height(32.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = stringResource(R.string.action_delete_sake_image_short),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
         }
     }
 }
