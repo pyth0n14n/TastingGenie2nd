@@ -60,12 +60,24 @@ Follow project style guides:
 - Kotlin/Compose style: `docs/style/CODING_STYLE.md`
 - KDoc rules: `docs/style/KDOC_STYLE.md`
 - Linting rules: `docs/style/LINTING.md`
+- UI design constraints: `docs/style/UI_DESIGN_CONSTRAINTS.md`
 
 Additional constraints:
 
 - Do not change DB schema without a migration plan and tests.
 - Images must be handled via URI. No direct filesystem assumptions.
 - Do not swallow exceptions; expose failures via UI state.
+
+---
+
+## UI / Design Workflow
+
+- For Figma-driven UI work, treat the target Figma screen frame as the visual source of truth.
+- Record the target Figma frame name or URL in the PLAN or PR description.
+- If a screen has no completed Figma frame, keep the current UI or explicitly scope the design decision before changing it.
+- Prefer Material Design 3 components and project theme tokens over hardcoded colors, typography, or spacing.
+- Preserve existing behavior, navigation, validation, and data compatibility unless the UI change requires a minimal supporting state or repository change.
+- Do not remove existing secondary actions just because they are absent from Figma; move them to overflow or another secondary action area.
 
 ---
 
