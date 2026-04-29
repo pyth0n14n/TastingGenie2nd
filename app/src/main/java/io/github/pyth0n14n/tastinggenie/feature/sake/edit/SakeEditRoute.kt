@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.TakePicture
 import androidx.compose.foundation.layout.Arrangement
@@ -55,8 +56,10 @@ fun SakeEditRoute(
     val context = LocalContext.current
     var pendingCameraCaptureSourceUri by rememberSaveable { mutableStateOf<String?>(null) }
     val imagePickerLauncher =
-        rememberLauncherForActivityResult(PickVisualMedia()) { uri ->
-            uri?.toString()?.let(viewModel::onImageSelected)
+        rememberLauncherForActivityResult(PickMultipleVisualMedia()) { uris ->
+            uris.forEach { uri ->
+                viewModel.onImageSelected(uri.toString())
+            }
         }
     val cameraCaptureLauncher =
         rememberLauncherForActivityResult(TakePicture()) { isSuccess ->

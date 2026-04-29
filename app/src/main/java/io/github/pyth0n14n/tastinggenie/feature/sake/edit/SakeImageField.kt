@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,13 +16,21 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -46,11 +55,25 @@ fun SakeImageField(
     onCaptureImage: () -> Unit,
     onDeleteImageRequest: (String) -> Unit,
 ) {
+    var isAddSheetVisible by remember { mutableStateOf(false) }
+    if (isAddSheetVisible) {
+        SakeImageSourceSheet(
+            onDismiss = { isAddSheetVisible = false },
+            onPickImage = {
+                isAddSheetVisible = false
+                onPickImage()
+            },
+            onCaptureImage = {
+                isAddSheetVisible = false
+                onCaptureImage()
+            },
+        )
+    }
     LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         item(key = "add_image") {
             SakeImageAddCard(
                 isSaving = isSaving,
-                onPickImage = onPickImage,
+                onAddImage = { isAddSheetVisible = true },
             )
         }
         items(
@@ -68,7 +91,7 @@ fun SakeImageField(
 @Composable
 private fun SakeImageAddCard(
     isSaving: Boolean,
-    onPickImage: () -> Unit,
+    onAddImage: () -> Unit,
 ) {
     val borderColor = MaterialTheme.colorScheme.outlineVariant
     Box(
@@ -90,7 +113,7 @@ private fun SakeImageAddCard(
                                     ),
                             ),
                     )
-                }.clickable(enabled = !isSaving, onClick = onPickImage),
+                }.clickable(enabled = !isSaving, onClick = onAddImage),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -116,6 +139,62 @@ private fun SakeImageAddCard(
                 text = stringResource(R.string.message_tap_to_select_image),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SakeImageSourceSheet(
+    onDismiss: () -> Unit,
+    onPickImage: () -> Unit,
+    onCaptureImage: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            SakeImageSourceButton(
+                label = stringResource(R.string.action_pick_sake_image_from_folder),
+                icon = { Icon(imageVector = Icons.Outlined.FolderOpen, contentDescription = null) },
+                onClick = onPickImage,
+            )
+            SakeImageSourceButton(
+                label = stringResource(R.string.action_capture_sake_image),
+                icon = { Icon(imageVector = Icons.Outlined.CameraAlt, contentDescription = null) },
+                onClick = onCaptureImage,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SakeImageSourceButton(
+    label: String,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+) {
+    TextButton(
+        onClick = onClick,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            icon()
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }

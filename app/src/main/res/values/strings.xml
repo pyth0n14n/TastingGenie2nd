@@ -165,6 +165,7 @@
     <string name="title_delete_sake_image">画像を削除</string>
     <string name="title_delete_review">レビューを削除</string>
     <string name="action_select_sake_image">画像を選択</string>
+    <string name="action_pick_sake_image_from_folder">フォルダから選択</string>
     <string name="action_add_sake_image">画像を追加</string>
     <string name="action_replace_sake_image">画像を差し替え</string>
     <string name="action_capture_sake_image">カメラで撮影</string>

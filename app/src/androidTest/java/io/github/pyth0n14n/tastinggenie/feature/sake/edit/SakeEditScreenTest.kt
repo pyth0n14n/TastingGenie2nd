@@ -206,7 +206,8 @@ class SakeEditScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("画像を選択").performClick()
+        composeRule.onNodeWithText("画像を追加").performClick()
+        composeRule.onNodeWithText("フォルダから選択").performClick()
         composeRule.runOnIdle { assertTrue(pickCalled) }
     }
 
@@ -226,6 +227,7 @@ class SakeEditScreenTest {
             )
         }
 
+        composeRule.onNodeWithText("画像を追加").performClick()
         composeRule.onNodeWithText("カメラで撮影").performClick()
         composeRule.runOnIdle { assertTrue(captureCalled) }
     }
