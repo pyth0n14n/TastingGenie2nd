@@ -15,9 +15,6 @@
     <string name="action_edit">編集</string>
     <string name="action_delete">削除</string>
     <string name="action_more">その他の操作</string>
-    <string name="action_sort_sakes">酒を並び替え</string>
-    <string name="action_pin_sake">固定</string>
-    <string name="action_unpin_sake">固定を解除</string>
     <string name="action_view_image">画像</string>
     <string name="action_export_json">JSONを書き出す</string>
     <string name="action_import_json">JSONを読み込む</string>
