@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">TastingGenie2nd-Android</string>
     <string name="screen_sake_list">酒一覧</string>
+    <string name="screen_sake_list_title">利酒魔人 2nd</string>
     <string name="screen_sake_edit">酒登録/編集</string>
     <string name="screen_review_list">レビュー一覧</string>
     <string name="screen_review_edit">レビュー登録/編集</string>
@@ -14,6 +15,9 @@
     <string name="action_edit">編集</string>
     <string name="action_delete">削除</string>
     <string name="action_more">その他の操作</string>
+    <string name="action_sort_sakes">酒を並び替え</string>
+    <string name="action_pin_sake">固定</string>
+    <string name="action_unpin_sake">固定を解除</string>
     <string name="action_view_image">画像</string>
     <string name="action_export_json">JSONを書き出す</string>
     <string name="action_import_json">JSONを読み込む</string>
@@ -95,6 +99,10 @@
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
+    <string name="hint_sake_search">銘柄名・酒造名で検索</string>
+    <string name="sort_sakes_default">標準順</string>
+    <string name="sort_sakes_name">銘柄名順</string>
+    <string name="sort_sakes_rating">評価順</string>
     <string name="label_soundness_sound">健全</string>
     <string name="label_soundness_unsound">不健全</string>
     <string name="label_complexity_simple">シンプル</string>
@@ -124,6 +132,7 @@
     <string name="label_viscosity_4">強い</string>
     <string name="label_viscosity_5">とても強い</string>
     <string name="message_no_sakes">登録された酒がありません</string>
+    <string name="message_no_sakes_found">条件に一致する酒がありません</string>
     <string name="message_no_reviews">登録されたレビューがありません</string>
     <string name="message_no_image">画像が登録されていません</string>
     <string name="message_review_count">%1$d件選択済み</string>
