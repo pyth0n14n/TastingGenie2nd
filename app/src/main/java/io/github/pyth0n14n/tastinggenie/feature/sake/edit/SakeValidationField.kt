@@ -5,6 +5,7 @@ enum class SakeValidationField {
     GRADE,
     SAKE_DEGREE,
     ACIDITY,
+    AMINO,
     KOJI_POLISH,
     KAKE_POLISH,
     ALCOHOL,

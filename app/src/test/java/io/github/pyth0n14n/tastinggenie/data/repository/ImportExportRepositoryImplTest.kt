@@ -74,6 +74,7 @@ class ImportExportRepositoryImplTest {
             assertEquals(CURRENT_SCHEMA_VERSION, payload.schemaVersion)
             assertEquals(1, payload.sakes.size)
             assertEquals("テスト酒", payload.sakes.single().name)
+            assertEquals("諏訪市", payload.sakes.single().city)
             assertEquals(1, payload.reviews.size)
         }
 
@@ -97,6 +98,7 @@ class ImportExportRepositoryImplTest {
             assertEquals(emptyList<String>(), storedSake.imageUris)
             assertEquals(true, storedSake.isPinned)
             assertEquals(null, storedSake.gradeOther)
+            assertEquals("諏訪市", storedSake.city)
             assertTrue(storedSake.id != sampleSerializableSake().id)
             assertEquals(storedSake.id, storedReview.sakeId)
             assertTrue(storedReview.id != sampleSerializableReview().id)
@@ -307,6 +309,7 @@ class ImportExportRepositoryImplTest {
             gradeOther = null,
             type = emptyList(),
             maker = "酒蔵A",
+            city = "諏訪市",
         )
 
     private fun sampleSerializableReview(): SerializableReview =
@@ -338,6 +341,7 @@ class ImportExportRepositoryImplTest {
                 typeOther = null,
                 maker = sake.maker,
                 prefecture = null,
+                city = sake.city,
                 alcohol = null,
                 kojiMai = null,
                 kojiPolish = null,

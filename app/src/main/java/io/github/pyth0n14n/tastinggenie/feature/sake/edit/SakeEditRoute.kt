@@ -35,19 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.image.createPendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.image.deletePendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
-import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
-import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
-import io.github.pyth0n14n.tastinggenie.ui.common.GroupedSingleSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
-import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
-import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
-import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
@@ -127,7 +119,7 @@ fun SakeEditScreen(
     val classificationGroups = state.classificationOptions.toClassificationGroups()
     val prefectureGroups = state.prefectureOptions.toPrefectureGroups()
     LaunchedEffect(state.validationFailureCount) {
-        val targetIndex = state.firstInvalidFieldIndex()
+        val targetIndex = state.firstInvalidSectionIndex()
         if (targetIndex != null) {
             listState.animateScrollToItem(index = targetIndex)
         }
@@ -159,8 +151,7 @@ fun SakeEditScreen(
             contentPadding = PaddingValues(SCREEN_PADDING.dp),
             verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
         ) {
-            sakeEditHeaderItems()
-            formFields(
+            sakeEditSectionItems(
                 state = state,
                 uiData =
                     SakeEditFormUiData(
@@ -172,12 +163,6 @@ fun SakeEditScreen(
                 onDeleteImageRequest = { imageUri -> deleteTargetImageUri = imageUri },
             )
         }
-    }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditHeaderItems() {
-    item(key = SAKE_ROW_REQUIRED_HINT, contentType = "hint") {
-        RequiredFieldHint()
     }
 }
 
@@ -215,112 +200,30 @@ private fun SakeEditBottomBar(
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.formFields(
+private fun androidx.compose.foundation.lazy.LazyListScope.sakeEditSectionItems(
     state: SakeEditUiState,
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
     onDeleteImageRequest: (String) -> Unit,
 ) {
-    basicFields(
-        state = state,
-        uiData = uiData,
-        callbacks = callbacks,
-        onDeleteImageRequest = onDeleteImageRequest,
-    )
-    classificationFields(state = state, uiData = uiData, callbacks = callbacks)
-    metadataFields(state = state, callbacks = callbacks)
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.basicFields(
-    state: SakeEditUiState,
-    uiData: SakeEditFormUiData,
-    callbacks: SakeEditCallbacks,
-    onDeleteImageRequest: (String) -> Unit,
-) {
-    textFieldItem(
-        labelRes = R.string.label_sake_name,
-        state = state,
-        callbacks = callbacks,
-        ui =
-            SakeTextFieldUi(
-                value = state.name,
-                field = SakeTextField.NAME,
-                presentation = SakeFieldPresentation(validationField = SakeValidationField.NAME, required = true),
-            ),
-        itemKey = SAKE_ROW_NAME,
-    )
-    item(key = SAKE_ROW_GRADE) {
-        val label = stringResource(R.string.label_grade)
-        SimpleDropdown(
-            label = label,
-            selectedLabel = state.gradeOptions.selectedLabel(state.grade?.name),
-            options = uiData.gradeOptions,
-            onSelected = callbacks.onGradeSelected,
-            fieldState =
-                FormFieldState(
-                    required = true,
-                    errorText =
-                        state.validationErrors[SakeValidationField.GRADE]?.let { error ->
-                            validationErrorText(label = label, error = error)
-                        },
-                ),
-        )
-    }
-    if (state.grade == SakeGrade.OTHER) {
-        textFieldItem(
-            labelRes = R.string.label_grade_other,
+    item(key = SAKE_SECTION_IMAGE) {
+        SakeEditImageSection(
             state = state,
             callbacks = callbacks,
-            ui = SakeTextFieldUi(value = state.gradeOther, field = SakeTextField.GRADE_OTHER),
-            itemKey = SAKE_ROW_GRADE_OTHER,
-        )
-    }
-    item(key = SAKE_ROW_IMAGE) {
-        SakeImageField(
-            imageUris = state.imagePreviewUris,
-            isSaving = state.isSaving,
-            onPickImage = callbacks.onPickImageRequest,
-            onCaptureImage = callbacks.onCaptureImageRequest,
             onDeleteImageRequest = onDeleteImageRequest,
         )
     }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.classificationFields(
-    state: SakeEditUiState,
-    uiData: SakeEditFormUiData,
-    callbacks: SakeEditCallbacks,
-) {
-    item(key = SAKE_ROW_CLASSIFICATION) {
-        GroupedMultiSelectDropdown(
-            label = stringResource(R.string.label_classification),
-            groups = uiData.classificationGroups,
-            selectedValues = state.classifications.map { classification -> classification.name },
-            onToggle = callbacks.onClassificationToggled,
+    item(key = SAKE_SECTION_BASIC) {
+        SakeEditBasicInfoSection(
+            state = state,
+            uiData = uiData,
+            callbacks = callbacks,
         )
     }
-    if (state.classifications.contains(SakeClassification.OTHER)) {
-        textFieldItem(
-            labelRes = R.string.label_classification_other,
+    item(key = SAKE_SECTION_DETAIL) {
+        SakeEditDetailInfoSection(
             state = state,
             callbacks = callbacks,
-            ui = SakeTextFieldUi(value = state.typeOther, field = SakeTextField.TYPE_OTHER),
-            itemKey = SAKE_ROW_CLASSIFICATION_OTHER,
-        )
-    }
-    textFieldItem(
-        labelRes = R.string.label_maker,
-        state = state,
-        callbacks = callbacks,
-        ui = SakeTextFieldUi(value = state.maker, field = SakeTextField.MAKER),
-        itemKey = SAKE_ROW_MAKER,
-    )
-    item(key = SAKE_ROW_PREFECTURE) {
-        GroupedSingleSelectDropdown(
-            label = stringResource(R.string.label_prefecture),
-            groups = uiData.prefectureGroups,
-            selectedValue = state.prefecture?.name,
-            onSelected = callbacks.onPrefectureSelected,
         )
     }
 }

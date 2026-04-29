@@ -26,7 +26,7 @@ private const val VERSION_4_IDENTITY_HASH = "27982588b87f31977215b1657c8d2594"
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_6_preservesExistingSakeData() {
+    fun migration_1_7_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -41,15 +41,19 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
                 AppDatabaseMigrations.MIGRATION_5_6,
+                AppDatabaseMigrations.MIGRATION_6_7,
             )
             val database = databaseBuilder.build()
 
             val migrated = requireNotNull(database.sakeDao().getById(1L))
+            val sakeColumns = database.sakeColumnNames()
             assertEquals("移行前の酒", migrated.name)
             assertEquals("分類その他", migrated.typeOther)
             assertNull(migrated.gradeOther)
+            assertNull(migrated.city)
             assertEquals(emptyList<String>(), migrated.imageUris)
             assertEquals(false, migrated.isPinned)
+            assertTrue(sakeColumns.contains("city"))
 
             database.close()
             context.deleteDatabase(databaseName)
@@ -57,7 +61,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_6_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_7_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -71,6 +75,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
                 AppDatabaseMigrations.MIGRATION_5_6,
+                AppDatabaseMigrations.MIGRATION_6_7,
             )
             val database = databaseBuilder.build()
 
@@ -92,7 +97,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_3_6_renamesReviewColumnsAndPreservesReviewValues() {
+    fun migration_3_7_renamesReviewColumnsAndPreservesReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-3-4-test.db"
@@ -105,6 +110,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_3_4,
                 AppDatabaseMigrations.MIGRATION_4_5,
                 AppDatabaseMigrations.MIGRATION_5_6,
+                AppDatabaseMigrations.MIGRATION_6_7,
             )
             val database = databaseBuilder.build()
 
@@ -139,7 +145,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_4_6_addsPinnedColumnWithDefaultFalse() {
+    fun migration_4_7_addsPinnedColumnWithDefaultFalse() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-4-5-test.db"
@@ -151,6 +157,7 @@ class AppDatabaseMigrationTest {
             databaseBuilder.addMigrations(
                 AppDatabaseMigrations.MIGRATION_4_5,
                 AppDatabaseMigrations.MIGRATION_5_6,
+                AppDatabaseMigrations.MIGRATION_6_7,
             )
             val database = databaseBuilder.build()
 
@@ -404,6 +411,17 @@ class AppDatabaseMigrationTest {
         helper.writableDatabase.close()
         helper.close()
     }
+}
+
+private fun AppDatabase.sakeColumnNames(): Set<String> {
+    val columns = mutableSetOf<String>()
+    openHelper.writableDatabase.query("PRAGMA table_info(`sakes`)").use { cursor ->
+        val nameIndex = cursor.getColumnIndexOrThrow("name")
+        while (cursor.moveToNext()) {
+            columns += cursor.getString(nameIndex)
+        }
+    }
+    return columns
 }
 
 private fun AppDatabase.reviewColumnNames(): Set<String> {

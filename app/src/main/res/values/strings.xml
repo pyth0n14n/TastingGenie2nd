@@ -86,8 +86,10 @@
     <string name="label_grade_other">種別（その他）</string>
     <string name="label_maker">酒造</string>
     <string name="label_prefecture">都道府県</string>
+    <string name="label_city">市</string>
     <string name="label_sake_degree">日本酒度</string>
     <string name="label_acidity">酸度</string>
+    <string name="label_amino">アミノ酸度</string>
     <string name="label_koji_mai">麹米</string>
     <string name="label_koji_polish">麹米精米歩合</string>
     <string name="label_kake_mai">酒米</string>
@@ -96,6 +98,9 @@
     <string name="label_yeast">酵母</string>
     <string name="label_water">水</string>
     <string name="label_sake_image">画像</string>
+    <string name="label_sake_section_detail">詳細情報</string>
+    <string name="suffix_percent">%</string>
+    <string name="suffix_degree">度</string>
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
@@ -164,6 +169,8 @@
     <string name="action_replace_sake_image">画像を差し替え</string>
     <string name="action_capture_sake_image">カメラで撮影</string>
     <string name="action_delete_sake_image">画像を削除</string>
+    <string name="action_delete_sake_image_short">削除</string>
+    <string name="message_tap_to_select_image">（タップして選択）</string>
     <string name="action_cleanup_unused_images">未参照アプリ内画像を削除</string>
     <string name="help_intro">用語の意味を確認しながら記録できるよう、主要な観点をまとめています。</string>
     <string name="help_color">色: 透明感や黄みの強さなど、見た目の印象です。</string>

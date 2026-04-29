@@ -19,6 +19,7 @@ data class SakeEntity(
     val typeOther: String?,
     val maker: String?,
     val prefecture: Prefecture?,
+    val city: String? = null,
     val alcohol: Int?,
     val kojiMai: String?,
     val kojiPolish: Int?,

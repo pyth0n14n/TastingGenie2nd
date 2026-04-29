@@ -121,7 +121,7 @@ class SakeEditViewModelTest {
         }
 
     @Test
-    fun save_withExtendedInput_persistsClassificationMakerAndPrefecture() =
+    fun save_withExtendedInput_persistsClassificationMakerPrefectureAndCity() =
         runTest {
             val repository = RecordingSakeRepository()
             val viewModel =
@@ -140,6 +140,7 @@ class SakeEditViewModelTest {
             viewModel.onTextChanged(SakeTextField.TYPE_OTHER, "限定品")
             viewModel.onTextChanged(SakeTextField.MAKER, "蔵元A")
             viewModel.onPrefectureSelected(Prefecture.NAGANO.name)
+            viewModel.onTextChanged(SakeTextField.CITY, "諏訪市")
             viewModel.save()
             advanceUntilIdle()
 
@@ -148,6 +149,7 @@ class SakeEditViewModelTest {
             assertEquals("限定品", saved.typeOther)
             assertEquals("蔵元A", saved.maker)
             assertEquals(Prefecture.NAGANO, saved.prefecture)
+            assertEquals("諏訪市", saved.city)
         }
 
     @Test

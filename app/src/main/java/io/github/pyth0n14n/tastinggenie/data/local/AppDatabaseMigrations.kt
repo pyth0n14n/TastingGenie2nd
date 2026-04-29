@@ -11,6 +11,7 @@ private const val DATABASE_VERSION_3 = 3
 private const val DATABASE_VERSION_4 = 4
 private const val DATABASE_VERSION_5 = 5
 private const val DATABASE_VERSION_6 = 6
+private const val DATABASE_VERSION_7 = 7
 
 object AppDatabaseMigrations {
     val MIGRATION_1_2: Migration =
@@ -49,6 +50,13 @@ object AppDatabaseMigrations {
                 db.execSQL(copySakesToV6Sql())
                 db.execSQL("DROP TABLE `sakes`")
                 db.execSQL("ALTER TABLE `sakes_new` RENAME TO `sakes`")
+            }
+        }
+
+    val MIGRATION_6_7: Migration =
+        object : Migration(DATABASE_VERSION_6, DATABASE_VERSION_7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `sakes` ADD COLUMN `city` TEXT")
             }
         }
 }

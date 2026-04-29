@@ -15,7 +15,7 @@
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 6,
   "sakes": [],
   "reviews": []
 }
@@ -28,6 +28,7 @@
 - `schemaVersion` 必須
 - 未対応バージョンは読み込み失敗としてUIに表示
 - JSON破損時は読み込み失敗としてUIに表示
+- schemaVersion 6 は `sakes[].city` を任意項目として含める
 
 ---
 

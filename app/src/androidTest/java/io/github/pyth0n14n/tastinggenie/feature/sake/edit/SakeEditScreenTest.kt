@@ -2,10 +2,13 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
@@ -87,6 +90,27 @@ class SakeEditScreenTest {
         composeRule.onNodeWithTag("sake_edit_form").performTouchInput { swipeUp() }
         composeRule.onNodeWithText("アルコール度数").assertIsDisplayed()
         composeRule.onNodeWithText("保存").assertIsDisplayed()
+    }
+
+    @Test
+    fun formSections_areDisplayed() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onAllNodesWithText("画像")[0].assertIsDisplayed()
+        composeRule.onNodeWithText("基本情報").assertIsDisplayed()
+        composeRule.onNodeWithTag("sake_edit_form").performScrollToNode(hasText("詳細情報"))
+        composeRule.onNodeWithText("詳細情報").assertIsDisplayed()
     }
 
     @Test
@@ -253,6 +277,7 @@ class SakeEditScreenTest {
         composeRule.onNodeWithText("アルコール度数").assertIsDisplayed()
         composeRule.onNodeWithText("酵母").assertIsDisplayed()
         composeRule.onNodeWithText("水").assertIsDisplayed()
+        composeRule.onNodeWithText("市").assertIsDisplayed()
         composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
     }
 

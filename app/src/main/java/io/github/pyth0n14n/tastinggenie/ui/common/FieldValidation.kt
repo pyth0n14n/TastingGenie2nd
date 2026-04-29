@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.ui.common
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import io.github.pyth0n14n.tastinggenie.R
@@ -16,6 +17,8 @@ enum class FieldValidationError {
 data class FormFieldState(
     val required: Boolean = false,
     val errorText: String? = null,
+    val suffixText: String? = null,
+    val keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     val isError: Boolean
         get() = errorText != null

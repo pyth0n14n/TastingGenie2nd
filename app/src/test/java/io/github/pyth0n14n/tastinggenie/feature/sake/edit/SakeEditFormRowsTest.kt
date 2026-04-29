@@ -9,8 +9,8 @@ import org.junit.Test
 
 class SakeEditFormRowsTest {
     companion object {
-        private const val ALCOHOL_INDEX_WITHOUT_OPTIONAL_ROWS = 9
-        private const val KAKE_POLISH_INDEX_WITH_OPTIONAL_ROWS = 15
+        private const val ALCOHOL_INDEX_WITHOUT_OPTIONAL_ROWS = 15
+        private const val KAKE_POLISH_INDEX_WITH_OPTIONAL_ROWS = 13
         private const val FIRST_INVALID_INDEX_WITHOUT_OPTIONAL_ROWS = 9
         private const val GRADE_INDEX_WITH_OTHER = 2
         private const val GRADE_OTHER_INDEX = 3
@@ -59,6 +59,26 @@ class SakeEditFormRowsTest {
     @Test
     fun firstInvalidFieldIndex_withoutValidationErrors_returnsNull() {
         assertNull(SakeEditUiState().firstInvalidFieldIndex())
+    }
+
+    @Test
+    fun firstInvalidSectionIndex_mapsBasicValidationErrorsToBasicSection() {
+        val state =
+            SakeEditUiState(
+                validationErrors = mapOf(SakeValidationField.NAME to FieldValidationError.REQUIRED),
+            )
+
+        assertEquals(1, state.firstInvalidSectionIndex())
+    }
+
+    @Test
+    fun firstInvalidSectionIndex_mapsMetadataValidationErrorsToDetailSection() {
+        val state =
+            SakeEditUiState(
+                validationErrors = mapOf(SakeValidationField.ALCOHOL to FieldValidationError.INVALID_NUMBER),
+            )
+
+        assertEquals(2, state.firstInvalidSectionIndex())
     }
 
     @Test

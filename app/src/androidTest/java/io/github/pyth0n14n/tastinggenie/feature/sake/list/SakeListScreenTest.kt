@@ -13,6 +13,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -69,6 +70,36 @@ class SakeListScreenTest {
         composeRule.onNodeWithText("吟醸").assertIsDisplayed()
         composeRule.onNodeWithText("吟醸酒").performClick()
         composeRule.runOnIdle { assertEquals(42L, openedId) }
+    }
+
+    @Test
+    fun sakeItem_withCity_displaysPrefectureAndCity() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 42L,
+                                            name = "吟醸酒",
+                                            grade = SakeGrade.GINJO,
+                                            prefecture = Prefecture.NAGANO,
+                                            city = "諏訪市",
+                                        ),
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
+                        prefectureLabels = mapOf(Prefecture.NAGANO.name to "長野県"),
+                    ),
+                actions = screenActions(),
+            )
+        }
+
+        composeRule.onNodeWithText("長野県 諏訪市").assertIsDisplayed()
     }
 
     @Test

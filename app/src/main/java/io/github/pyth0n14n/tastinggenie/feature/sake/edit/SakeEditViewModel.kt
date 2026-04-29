@@ -48,23 +48,9 @@ class SakeEditViewModel
             value: String,
         ) {
             updateEditableState { current ->
-                val nextState =
-                    when (field) {
-                        SakeTextField.NAME -> current.copy(name = value)
-                        SakeTextField.GRADE_OTHER -> current.copy(gradeOther = value)
-                        SakeTextField.TYPE_OTHER -> current.copy(typeOther = value)
-                        SakeTextField.MAKER -> current.copy(maker = value)
-                        SakeTextField.SAKE_DEGREE -> current.copy(sakeDegree = value)
-                        SakeTextField.ACIDITY -> current.copy(acidity = value)
-                        SakeTextField.KOJI_MAI -> current.copy(kojiMai = value)
-                        SakeTextField.KOJI_POLISH -> current.copy(kojiPolish = value)
-                        SakeTextField.KAKE_MAI -> current.copy(kakeMai = value)
-                        SakeTextField.KAKE_POLISH -> current.copy(kakePolish = value)
-                        SakeTextField.ALCOHOL -> current.copy(alcohol = value)
-                        SakeTextField.YEAST -> current.copy(yeast = value)
-                        SakeTextField.WATER -> current.copy(water = value)
-                    }
-                nextState.clearValidationError(field.toValidationField())
+                current
+                    .withTextFieldValue(field = field, value = value)
+                    .clearValidationError(field.toValidationField())
             }
         }
 
@@ -305,6 +291,72 @@ class SakeEditViewModel
         }
     }
 
+private fun SakeEditUiState.withTextFieldValue(
+    field: SakeTextField,
+    value: String,
+): SakeEditUiState =
+    when (field) {
+        SakeTextField.NAME,
+        SakeTextField.GRADE_OTHER,
+        SakeTextField.TYPE_OTHER,
+        SakeTextField.MAKER,
+        SakeTextField.CITY,
+        -> withBasicTextFieldValue(field = field, value = value)
+
+        SakeTextField.SAKE_DEGREE,
+        SakeTextField.ACIDITY,
+        SakeTextField.AMINO,
+        SakeTextField.ALCOHOL,
+        -> withNumericTextFieldValue(field = field, value = value)
+
+        SakeTextField.KOJI_MAI,
+        SakeTextField.KOJI_POLISH,
+        SakeTextField.KAKE_MAI,
+        SakeTextField.KAKE_POLISH,
+        SakeTextField.YEAST,
+        SakeTextField.WATER,
+        -> withSourceTextFieldValue(field = field, value = value)
+    }
+
+private fun SakeEditUiState.withBasicTextFieldValue(
+    field: SakeTextField,
+    value: String,
+): SakeEditUiState =
+    when (field) {
+        SakeTextField.NAME -> copy(name = value)
+        SakeTextField.GRADE_OTHER -> copy(gradeOther = value)
+        SakeTextField.TYPE_OTHER -> copy(typeOther = value)
+        SakeTextField.MAKER -> copy(maker = value)
+        SakeTextField.CITY -> copy(city = value)
+        else -> this
+    }
+
+private fun SakeEditUiState.withNumericTextFieldValue(
+    field: SakeTextField,
+    value: String,
+): SakeEditUiState =
+    when (field) {
+        SakeTextField.SAKE_DEGREE -> copy(sakeDegree = value)
+        SakeTextField.ACIDITY -> copy(acidity = value)
+        SakeTextField.AMINO -> copy(amino = value)
+        SakeTextField.ALCOHOL -> copy(alcohol = value)
+        else -> this
+    }
+
+private fun SakeEditUiState.withSourceTextFieldValue(
+    field: SakeTextField,
+    value: String,
+): SakeEditUiState =
+    when (field) {
+        SakeTextField.KOJI_MAI -> copy(kojiMai = value)
+        SakeTextField.KOJI_POLISH -> copy(kojiPolish = value)
+        SakeTextField.KAKE_MAI -> copy(kakeMai = value)
+        SakeTextField.KAKE_POLISH -> copy(kakePolish = value)
+        SakeTextField.YEAST -> copy(yeast = value)
+        SakeTextField.WATER -> copy(water = value)
+        else -> this
+    }
+
 private fun cleanupPendingImageSourcesOnClear(
     sourceUris: List<String>,
     sakeImageRepository: SakeImageRepository,
@@ -372,8 +424,10 @@ private fun SakeEditUiState.withLoadedData(
         typeOther = existing?.typeOther.orEmpty(),
         maker = existing?.maker.orEmpty(),
         prefecture = existing?.prefecture,
+        city = existing?.city.orEmpty(),
         sakeDegree = existing?.sakeDegree?.toString().orEmpty(),
         acidity = existing?.acidity?.toString().orEmpty(),
+        amino = existing?.amino?.toString().orEmpty(),
         kojiMai = existing?.kojiMai.orEmpty(),
         kojiPolish = existing?.kojiPolish?.toString().orEmpty(),
         kakeMai = existing?.kakeMai.orEmpty(),

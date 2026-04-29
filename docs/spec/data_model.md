@@ -29,6 +29,7 @@
 | typeOther | String | 任意 |
 | maker | String | 任意 |
 | prefecture | Enum | 任意 |
+| city | String | 任意 |
 | alcohol | Int | 任意 |
 | kojiMai | String | 任意 |
 | kojiPolish | Int | 任意 |
