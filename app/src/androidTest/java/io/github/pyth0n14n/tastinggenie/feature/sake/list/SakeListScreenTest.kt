@@ -37,7 +37,7 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("+").performClick()
+        composeRule.onNodeWithContentDescription("追加").performClick()
         composeRule.runOnIdle { assertTrue(called) }
     }
 
