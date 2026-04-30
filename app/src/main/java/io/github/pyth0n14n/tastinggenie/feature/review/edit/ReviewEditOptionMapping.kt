@@ -19,3 +19,11 @@ fun List<MasterOption>.toAftertasteOptions(): List<DropdownOption> =
             label = aftertasteLabel(value = option.value) ?: option.label,
         )
     }
+
+fun List<MasterOption>.toPairingOptions(): List<DropdownOption> =
+    map { option ->
+        DropdownOption(
+            value = option.label,
+            label = option.label,
+        )
+    }
