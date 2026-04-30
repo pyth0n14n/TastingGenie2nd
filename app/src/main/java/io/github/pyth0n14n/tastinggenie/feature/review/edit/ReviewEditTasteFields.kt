@@ -9,7 +9,7 @@ internal fun LazyListScope.addTasteEvaluationFields(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.showReviewSoundness) {
-        steppedField(
+        steppedResourceField(
             labelRes = R.string.label_soundness,
             selectedValue = state.tasteSoundness.name,
             options = reviewSoundnessOptions(),
@@ -58,21 +58,21 @@ internal fun LazyListScope.addTasteTextureFields(
     state: ReviewEditUiState,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    steppedField(
+    steppedResourceField(
         labelRes = R.string.label_taste_attack,
         selectedValue = state.tasteAttack?.name,
         options = attackOptions(),
         field = ReviewSelectionField.TASTE_ATTACK,
         onAction = onAction,
     )
-    steppedField(
+    steppedResourceField(
         labelRes = R.string.label_taste_texture_roundness,
         selectedValue = state.tasteTextureRoundness?.name,
         options = textureRoundnessOptions(),
         field = ReviewSelectionField.TASTE_TEXTURE_ROUNDNESS,
         onAction = onAction,
     )
-    steppedField(
+    steppedResourceField(
         labelRes = R.string.label_taste_texture_smoothness,
         selectedValue = state.tasteTextureSmoothness?.name,
         options = textureSmoothnessOptions(),

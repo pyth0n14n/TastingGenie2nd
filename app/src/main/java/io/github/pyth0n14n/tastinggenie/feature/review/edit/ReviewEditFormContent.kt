@@ -118,7 +118,7 @@ private fun LazyListScope.addChoiceFields(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.showReviewSoundness) {
-        steppedField(
+        steppedResourceField(
             labelRes = R.string.label_soundness,
             selectedValue = state.appearanceSoundness.name,
             options = reviewSoundnessOptions(),
@@ -149,7 +149,7 @@ private fun LazyListScope.addAromaFields(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.showReviewSoundness) {
-        steppedField(
+        steppedResourceField(
             labelRes = R.string.label_soundness,
             selectedValue = state.aromaSoundness.name,
             options = reviewSoundnessOptions(),
@@ -177,7 +177,7 @@ private fun LazyListScope.addAromaFields(
         onAction = onAction,
         ui = ReviewTextFieldUi(value = state.aromaMainNote, field = ReviewTextField.AROMA_MAIN_NOTE),
     )
-    steppedField(
+    steppedResourceField(
         labelRes = R.string.label_aroma_complexity,
         selectedValue = state.aromaComplexity?.name,
         options = complexityOptions(),
@@ -206,7 +206,7 @@ private fun LazyListScope.addTasteFields(
         onAction = onAction,
         ui = ReviewTextFieldUi(value = state.tasteMainNote, field = ReviewTextField.TASTE_MAIN_NOTE),
     )
-    steppedField(
+    steppedResourceField(
         labelRes = R.string.label_taste_complexity,
         selectedValue = state.tasteComplexity?.name,
         options = complexityOptions(),

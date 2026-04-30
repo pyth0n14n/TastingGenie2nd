@@ -130,6 +130,7 @@
     <string name="label_attack_slightly_strong">やや強い</string>
     <string name="label_attack_strong">強い</string>
     <string name="label_texture_roundness_firm_tight">堅い・引き締まった</string>
+    <string name="label_texture_roundness_firm_tight_short">シャープ</string>
     <string name="label_texture_roundness_slightly_firm_sharp">ややシャープ</string>
     <string name="label_texture_roundness_balanced">中間</string>
     <string name="label_texture_roundness_slightly_soft_round">やや軟らかい</string>
@@ -139,6 +140,7 @@
     <string name="label_texture_smoothness_slightly_rough">やや粗い</string>
     <string name="label_texture_smoothness_balanced">中間</string>
     <string name="label_texture_smoothness_slightly_fine">ややキメ細やか</string>
+    <string name="label_texture_smoothness_slightly_fine_short">ややなめらか</string>
     <string name="label_texture_smoothness_smooth">なめらか</string>
     <string name="label_viscosity_1">とても弱い</string>
     <string name="label_viscosity_2">弱い</string>
