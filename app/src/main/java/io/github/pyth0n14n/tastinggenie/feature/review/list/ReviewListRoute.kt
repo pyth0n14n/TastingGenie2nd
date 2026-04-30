@@ -1,27 +1,20 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,8 +30,9 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 
-private const val LIST_SPACING = 8
+private val ScreenHorizontalPadding = 22.dp
 
 data class ReviewListActionHandlers(
     val onOpenReview: (Long) -> Unit,
@@ -93,35 +87,31 @@ fun ReviewListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (state.sakeName.isBlank()) {
-                            stringResource(R.string.screen_review_list)
-                        } else {
-                            state.sakeName
-                        },
-                    )
-                },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
+            TastingTopAppBar(
+                title =
+                    if (state.sakeName.isBlank()) {
+                        stringResource(R.string.screen_review_list)
+                    } else {
+                        state.sakeName
+                    },
+                onBack = onBack,
             )
         },
         floatingActionButton = {
+            val addActionLabel = stringResource(R.string.action_add)
             FloatingActionButton(
                 onClick = { state.sakeId?.let(onAddReview) },
             ) {
-                Text(text = stringResource(R.string.action_add))
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = addActionLabel,
+                )
             }
         },
     ) { padding ->
         when {
             state.isLoading -> LoadingContent()
             state.loadError != null -> MessageContent(text = stringResource(state.loadError.messageResId))
-            state.reviews.isEmpty() -> MessageContent(text = stringResource(R.string.message_no_reviews))
             else ->
                 ReviewListContent(
                     state = state,
@@ -144,71 +134,34 @@ private fun ReviewListContent(
         modifier =
             modifier
                 .fillMaxSize()
-                .padding(horizontal = LIST_SPACING.dp),
-        verticalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
+                .padding(horizontal = ScreenHorizontalPadding),
     ) {
+        ReviewStatsPanel(state = state)
         state.deleteError?.let { error ->
             Text(
                 text = stringResource(error.messageResId),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = LIST_SPACING.dp),
-            verticalArrangement = Arrangement.spacedBy(LIST_SPACING.dp),
-        ) {
-            items(items = state.reviews, key = { review -> review.id }) { review ->
-                ListItem(
-                    headlineContent = { Text(review.date.toString()) },
-                    supportingContent = {
-                        val text =
-                            review.otherOverallReview
-                                ?.name
-                                ?.let { state.overallReviewLabels[it] }
-                                .orEmpty()
-                        if (text.isNotBlank()) {
-                            Text(
-                                text = text,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        }
-                    },
-                    trailingContent = {
-                        ReviewListItemActions(
-                            hasSakeImage = state.hasSakeImage,
-                            onOpenImage = { actions.onOpenImage(review.id) },
-                            onDeleteRequest = { onDeleteRequest(review) },
-                        )
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { actions.onOpenReview(review.id) },
-                )
+        if (state.reviews.isEmpty()) {
+            MessageContent(text = stringResource(R.string.message_no_reviews))
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = 6.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
+                items(items = state.reviews, key = { review -> review.id }) { review ->
+                    ReviewTimelineItem(
+                        review = review,
+                        state = state,
+                        actions = actions,
+                        onDeleteRequest = { onDeleteRequest(review) },
+                    )
+                }
             }
-        }
-    }
-}
-
-@Composable
-private fun ReviewListItemActions(
-    hasSakeImage: Boolean,
-    onOpenImage: () -> Unit,
-    onDeleteRequest: () -> Unit,
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        if (hasSakeImage) {
-            TextButton(onClick = onOpenImage) {
-                Text(stringResource(R.string.action_view_image))
-            }
-        }
-        IconButton(onClick = onDeleteRequest) {
-            Icon(
-                imageVector = Icons.Filled.Delete,
-                contentDescription = stringResource(R.string.content_delete_review),
-            )
         }
     }
 }

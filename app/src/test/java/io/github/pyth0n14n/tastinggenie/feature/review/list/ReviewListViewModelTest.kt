@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFakeMasterDataRepository
@@ -24,6 +25,10 @@ import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewListViewModelTest {
+    private companion object {
+        const val RATED_AND_UNRATED_REVIEW_COUNT = 3
+    }
+
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
@@ -44,8 +49,38 @@ class ReviewListViewModelTest {
             assertEquals("テスト銘柄", state.sakeName)
             assertEquals(false, state.hasSakeImage)
             assertEquals(1, state.reviews.size)
+            assertEquals(1, state.reviewCount)
+            assertEquals("4.00", state.averageOverallReviewText)
             assertEquals("好き", state.overallReviewLabels["GOOD"])
+            assertEquals("常温", state.temperatureLabels["JOON"])
+            assertEquals("メロン", state.aromaLabels["MELON"])
+            assertEquals("強い", state.tasteLabels["STRONG"])
             assertEquals(null, state.loadError)
+        }
+
+    @Test
+    fun uiState_averageOverallReviewIgnoresUnratedReviews() =
+        runTest {
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository =
+                        RecordingReviewRepository(
+                            initial =
+                                listOf(
+                                    testReview(id = 1L, otherOverallReview = OverallReview.GOOD),
+                                    testReview(id = 2L, otherOverallReview = OverallReview.VERY_GOOD),
+                                    testReview(id = 3L, otherOverallReview = null),
+                                ),
+                        ),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(RATED_AND_UNRATED_REVIEW_COUNT, state.reviewCount)
+            assertEquals("4.50", state.averageOverallReviewText)
         }
 
     @Test
