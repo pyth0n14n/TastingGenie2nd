@@ -32,6 +32,8 @@
     <string name="label_price">価格</string>
     <string name="label_volume">量</string>
     <string name="label_temperature">温度</string>
+    <string name="title_temperature_picker">提供温度を選択</string>
+    <string name="message_temperature_picker">日本酒の提供温度を選んでください</string>
     <string name="label_review_section_appearance">外観</string>
     <string name="label_review_section_aroma">香り</string>
     <string name="label_review_section_taste">味</string>

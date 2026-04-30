@@ -1,7 +1,9 @@
 # 温度マスタ
 
 ## 選択方式
-- 10段階の scale bar
+- タップで Material Design 3 の modal bottom sheet を開き、一覧から選択する
+- bottom sheet 背面は scrim で暗くする
+- 一覧は温度ごとの色付きアイコン、表示名、目安温度、ラジオマークを表示する
 - 任意
 - 対象項目は `temperature`
 

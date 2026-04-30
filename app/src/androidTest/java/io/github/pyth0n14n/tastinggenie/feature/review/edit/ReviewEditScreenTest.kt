@@ -17,6 +17,7 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -174,6 +175,48 @@ class ReviewEditScreenTest {
                 .fetchSemanticsNode()
                 .boundsInRoot.top
         assertEquals(priceTop, volumeTop)
+    }
+
+    @Test
+    fun temperature_opensBottomSheetAndSelectsOption() {
+        var selectedTemperature: String? = null
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state =
+                            ReviewEditUiState(
+                                isLoading = false,
+                                temperatureOptions =
+                                    listOf(
+                                        MasterOption(value = Temperature.YUKIBIE.name, label = "雪冷え"),
+                                        MasterOption(value = Temperature.NURUKAN.name, label = "ぬる燗"),
+                                    ),
+                            ),
+                        onAction = { action ->
+                            if (action is ReviewEditAction.SelectionChanged) {
+                                selectedTemperature = action.value
+                            }
+                        },
+                        onSave = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("未選択").performClick()
+        composeRule.onNodeWithText("提供温度を選択").assertIsDisplayed()
+        composeRule.onNodeWithText("5℃").assertIsDisplayed()
+        composeRule.onNodeWithText("40℃").assertIsDisplayed()
+        composeRule.onNodeWithText("ぬる燗").performClick()
+
+        composeRule.runOnIdle {
+            assertEquals(Temperature.NURUKAN.name, selectedTemperature)
+        }
     }
 }
 

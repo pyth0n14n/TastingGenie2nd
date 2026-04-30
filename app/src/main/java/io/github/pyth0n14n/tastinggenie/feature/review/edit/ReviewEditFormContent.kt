@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
-import io.github.pyth0n14n.tastinggenie.ui.common.DiscreteSliderField
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
@@ -97,7 +96,7 @@ private fun LazyListScope.addBasicVolumeAndTemperatureFields(
 ) {
     item {
         val label = reviewTextResource(R.string.label_temperature)
-        DiscreteSliderField(
+        TemperaturePickerField(
             label = label,
             options = uiData.singleChoiceUiData.temperatureOptions,
             selectedValue = state.temperature?.name,
