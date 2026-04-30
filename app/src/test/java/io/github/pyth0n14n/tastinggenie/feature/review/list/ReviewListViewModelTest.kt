@@ -51,10 +51,10 @@ class ReviewListViewModelTest {
             assertEquals(1, state.reviews.size)
             assertEquals(1, state.reviewCount)
             assertEquals("4.00", state.averageOverallReviewText)
-            assertEquals("好き", state.overallReviewLabels["GOOD"])
+            assertEquals("やや良い", state.overallReviewLabels["GOOD"])
             assertEquals("常温", state.temperatureLabels["JOON"])
             assertEquals("メロン", state.aromaLabels["MELON"])
-            assertEquals("強い", state.tasteLabels["STRONG"])
+            assertEquals("やや強い", state.tasteLabels["STRONG"])
             assertEquals(null, state.loadError)
         }
 

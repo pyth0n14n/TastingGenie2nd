@@ -2,7 +2,18 @@
 
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
@@ -11,7 +22,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
-import io.github.pyth0n14n.tastinggenie.ui.common.ShortcutTextField
+import io.github.pyth0n14n.tastinggenie.ui.common.ShortcutChips
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
@@ -57,13 +68,14 @@ private fun LazyListScope.addBasicInfoFields(
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    addBasicMetadataFields(state = state, onAction = onAction)
+    addBasicMetadataFields(state = state, uiData = uiData, onAction = onAction)
     addBasicVolumeAndTemperatureFields(state = state, uiData = uiData, onAction = onAction)
-    addBasicSceneAndDishFields(state = state, onAction = onAction)
+    addBasicDishAndPairingFields(state = state, uiData = uiData, onAction = onAction)
 }
 
 private fun LazyListScope.addBasicMetadataFields(
     state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     dateField(
@@ -71,22 +83,10 @@ private fun LazyListScope.addBasicMetadataFields(
         value = state.date,
         onAction = onAction,
     )
-    textField(
+    priceAndVolumeFields(
         state = state,
-        labelRes = R.string.label_bar,
+        shortcuts = uiData.volumeShortcutOptions,
         onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.bar, field = ReviewTextField.BAR),
-    )
-    textField(
-        state = state,
-        labelRes = R.string.label_price,
-        onAction = onAction,
-        ui =
-            ReviewTextFieldUi(
-                value = state.price,
-                field = ReviewTextField.PRICE,
-                validationField = ReviewValidationField.PRICE,
-            ),
     )
 }
 
@@ -95,30 +95,6 @@ private fun LazyListScope.addBasicVolumeAndTemperatureFields(
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    item {
-        val label = reviewTextResource(R.string.label_volume)
-        ShortcutTextField(
-            label = label,
-            value = state.volume,
-            shortcuts = uiData.volumeShortcutOptions,
-            onValueChange = { next ->
-                onAction(ReviewEditAction.TextChanged(field = ReviewTextField.VOLUME, value = next))
-            },
-            fieldState =
-                FormFieldState(
-                    errorText =
-                        state.validationErrors[ReviewValidationField.VOLUME]?.let { error ->
-                            val range = reviewValidationRange(ReviewValidationField.VOLUME)
-                            validationErrorText(
-                                label = label,
-                                error = error,
-                                minValue = range?.first,
-                                maxValue = range?.last,
-                            )
-                        },
-                ),
-        )
-    }
     item {
         val label = reviewTextResource(R.string.label_temperature)
         DiscreteSliderField(
@@ -216,7 +192,7 @@ private fun LazyListScope.addTasteFields(
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    addTasteEvaluationFields(state = state, tasteOptions = uiData.tasteOptions, onAction = onAction)
+    addTasteEvaluationFields(state = state, uiData = uiData, onAction = onAction)
     addTasteTextureFields(state = state, onAction = onAction)
     aromaField(
         labelRes = R.string.label_scent_mouth,
@@ -251,9 +227,16 @@ private fun LazyListScope.addNoteFields(
         onAction = onAction,
         ui = ReviewTextFieldUi(value = state.otherIndividuality, field = ReviewTextField.OTHER_INDIVIDUALITY),
     )
+    textField(
+        state = state,
+        labelRes = R.string.label_cautions,
+        onAction = onAction,
+        ui = ReviewTextFieldUi(value = state.otherCautions, field = ReviewTextField.OTHER_CAUTIONS),
+        singleLine = false,
+    )
     item {
         LabeledTextField(
-            label = reviewTextResource(R.string.label_cautions),
+            label = reviewTextResource(R.string.label_comment),
             value = state.comment,
             onValueChange = { next ->
                 onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COMMENT, value = next))
@@ -261,10 +244,6 @@ private fun LazyListScope.addNoteFields(
             singleLine = false,
         )
     }
-    flavorProfileField(
-        state = state,
-        onAction = onAction,
-    )
     overallReviewField(
         selectedValue = state.review?.name,
         options = overallReviewOptions,
@@ -298,21 +277,119 @@ private fun LazyListScope.dateField(
     }
 }
 
-private fun LazyListScope.addBasicSceneAndDishFields(
+private fun LazyListScope.priceAndVolumeFields(
     state: ReviewEditUiState,
+    shortcuts: List<DropdownOption>,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    item {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    ReviewBasicNumberField(
+                        ui =
+                            ReviewNumberFieldUi(
+                                labelRes = R.string.label_price,
+                                value = state.price,
+                                field = ReviewTextField.PRICE,
+                                validationField = ReviewValidationField.PRICE,
+                                suffixRes = R.string.suffix_yen,
+                            ),
+                        state = state,
+                        onAction = onAction,
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    ReviewBasicNumberField(
+                        ui =
+                            ReviewNumberFieldUi(
+                                labelRes = R.string.label_volume,
+                                value = state.volume,
+                                field = ReviewTextField.VOLUME,
+                                validationField = ReviewValidationField.VOLUME,
+                                suffixRes = R.string.suffix_ml,
+                            ),
+                        state = state,
+                        onAction = onAction,
+                    )
+                }
+            }
+            ShortcutChips(
+                shortcuts = shortcuts,
+                selectedValue = state.volume,
+                onSelected = { next ->
+                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.VOLUME, value = next))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ReviewBasicNumberField(
+    ui: ReviewNumberFieldUi,
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    val label = reviewTextResource(ui.labelRes)
+    LabeledTextField(
+        label = label,
+        value = ui.value,
+        onValueChange = { next ->
+            onAction(ReviewEditAction.TextChanged(field = ui.field, value = next))
+        },
+        fieldState =
+            FormFieldState(
+                errorText =
+                    state.validationErrors[ui.validationField]?.let { error ->
+                        val range = reviewValidationRange(ui.validationField)
+                        validationErrorText(
+                            label = label,
+                            error = error,
+                            minValue = range?.first,
+                            maxValue = range?.last,
+                        )
+                    },
+                suffixText = stringResource(ui.suffixRes),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            ),
+    )
+}
+
+private data class ReviewNumberFieldUi(
+    val labelRes: Int,
+    val value: String,
+    val field: ReviewTextField,
+    val validationField: ReviewValidationField,
+    val suffixRes: Int,
+)
+
+private fun LazyListScope.addBasicDishAndPairingFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     textField(
         state = state,
-        labelRes = R.string.label_scene,
+        labelRes = R.string.label_bar,
         onAction = onAction,
-        ui = ReviewTextFieldUi(value = state.scene, field = ReviewTextField.SCENE),
+        ui = ReviewTextFieldUi(value = state.bar, field = ReviewTextField.BAR),
     )
     textField(
         state = state,
         labelRes = R.string.label_dish,
         onAction = onAction,
         ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
+    )
+    textChoiceField(
+        labelRes = R.string.label_scene,
+        selectedValue = state.scene,
+        options = uiData.pairingOptions,
+        field = ReviewTextField.SCENE,
+        onAction = onAction,
     )
 }
 
@@ -321,6 +398,7 @@ private fun LazyListScope.textField(
     labelRes: Int,
     onAction: (ReviewEditAction) -> Unit,
     ui: ReviewTextFieldUi,
+    singleLine: Boolean = true,
 ) {
     item {
         val label = reviewTextResource(labelRes)
@@ -345,6 +423,26 @@ private fun LazyListScope.textField(
                             }
                         },
                 ),
+            singleLine = singleLine,
+        )
+    }
+}
+
+private fun LazyListScope.textChoiceField(
+    labelRes: Int,
+    selectedValue: String,
+    options: List<DropdownOption>,
+    field: ReviewTextField,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    item {
+        ReviewEditChoiceField(
+            label = reviewTextResource(labelRes),
+            options = options,
+            selectedValue = selectedValue.takeIf { it.isNotBlank() },
+            onValueChanged = { next ->
+                onAction(ReviewEditAction.TextChanged(field = field, value = next.orEmpty()))
+            },
         )
     }
 }
@@ -401,9 +499,11 @@ data class SingleChoiceUiData(
 data class ReviewEditFormUiData(
     val singleChoiceUiData: SingleChoiceUiData,
     val tasteOptions: List<DropdownOption>,
+    val aftertasteOptions: List<DropdownOption>,
     val overallReviewOptions: List<DropdownOption>,
     val aromaUiData: AromaUiData,
     val volumeShortcutOptions: List<DropdownOption>,
+    val pairingOptions: List<DropdownOption>,
 )
 
 private data class ReviewTextFieldUi(

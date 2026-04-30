@@ -133,6 +133,7 @@ internal class RecordingReviewRepository(
                 tasteComplexity = input.tasteComplexity,
                 otherIndividuality = input.otherIndividuality,
                 otherCautions = input.otherCautions,
+                otherFreeComment = input.otherFreeComment,
                 otherOverallReview = input.otherOverallReview,
             )
         val mutable = stream.value.toMutableList().apply { removeAll { it.id == id } }
@@ -175,27 +176,27 @@ internal class ReviewFakeMasterDataRepository : MasterDataRepository {
             prefectures = emptyList(),
             intensityLevels =
                 listOf(
-                    MasterOption(value = IntensityLevel.VERY_WEAK.name, label = "とても弱い"),
-                    MasterOption(value = IntensityLevel.WEAK.name, label = "弱い"),
+                    MasterOption(value = IntensityLevel.VERY_WEAK.name, label = "弱い"),
+                    MasterOption(value = IntensityLevel.WEAK.name, label = "やや弱い"),
                     MasterOption(value = IntensityLevel.MEDIUM.name, label = "中程度"),
-                    MasterOption(value = IntensityLevel.STRONG.name, label = "強い"),
-                    MasterOption(value = IntensityLevel.VERY_STRONG.name, label = "とても強い"),
+                    MasterOption(value = IntensityLevel.STRONG.name, label = "やや強い"),
+                    MasterOption(value = IntensityLevel.VERY_STRONG.name, label = "強い"),
                 ),
             tasteLevels =
                 listOf(
-                    MasterOption(value = TasteLevel.VERY_WEAK.name, label = "とても弱い"),
-                    MasterOption(value = TasteLevel.WEAK.name, label = "弱い"),
+                    MasterOption(value = TasteLevel.VERY_WEAK.name, label = "弱い"),
+                    MasterOption(value = TasteLevel.WEAK.name, label = "やや弱い"),
                     MasterOption(value = TasteLevel.MEDIUM.name, label = "中程度"),
-                    MasterOption(value = TasteLevel.STRONG.name, label = "強い"),
-                    MasterOption(value = TasteLevel.VERY_STRONG.name, label = "とても強い"),
+                    MasterOption(value = TasteLevel.STRONG.name, label = "やや強い"),
+                    MasterOption(value = TasteLevel.VERY_STRONG.name, label = "強い"),
                 ),
             overallReviews =
                 listOf(
-                    MasterOption(value = OverallReview.VERY_BAD.name, label = "嫌い"),
-                    MasterOption(value = OverallReview.BAD.name, label = "そうでもない"),
-                    MasterOption(value = OverallReview.NEUTRAL.name, label = "普通"),
-                    MasterOption(value = OverallReview.GOOD.name, label = "好き"),
-                    MasterOption(value = OverallReview.VERY_GOOD.name, label = "大好き"),
+                    MasterOption(value = OverallReview.VERY_BAD.name, label = "悪い"),
+                    MasterOption(value = OverallReview.BAD.name, label = "やや悪い"),
+                    MasterOption(value = OverallReview.NEUTRAL.name, label = "中程度"),
+                    MasterOption(value = OverallReview.GOOD.name, label = "やや良い"),
+                    MasterOption(value = OverallReview.VERY_GOOD.name, label = "良い"),
                 ),
             aromaCategories =
                 listOf(

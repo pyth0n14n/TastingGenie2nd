@@ -222,12 +222,14 @@ private fun ReviewEditSectionPage(
                     viscosityOptions = content.viscosityOptions,
                 ),
             tasteOptions = content.state.tasteOptions.toOptions(),
+            aftertasteOptions = content.state.tasteOptions.toAftertasteOptions(),
             overallReviewOptions = content.state.overallReviewOptions.toOptions(),
             aromaUiData =
                 AromaUiData(
                     categories = content.state.aromaCategories,
                 ),
             volumeShortcutOptions = content.volumeShortcutOptions,
+            pairingOptions = content.state.overallReviewOptions.toOptions(),
         )
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -268,11 +270,7 @@ internal fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
 
 private suspend fun PagerState.takeOverAndMoveToPage(targetPage: Int) {
     stopScroll(MutatePriority.PreventUserInput)
-    if (currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE) {
-        scrollToPage(targetPage)
-    } else {
-        animateScrollToPage(targetPage)
-    }
+    scrollToPage(targetPage)
 }
 
 private fun PagerState.visibleSection(fallbackSection: ReviewSection): ReviewSection {

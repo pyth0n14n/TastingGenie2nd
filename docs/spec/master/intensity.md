@@ -7,8 +7,8 @@
 
 | value | 表示名 |
 |--------|--------|
-| VERY_WEAK | とても弱い |
-| WEAK | 弱い |
+| VERY_WEAK | 弱い |
+| WEAK | やや弱い |
 | MEDIUM | 中程度 |
-| STRONG | 強い |
-| VERY_STRONG | とても強い |
+| STRONG | やや強い |
+| VERY_STRONG | 強い |

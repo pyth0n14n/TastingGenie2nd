@@ -2,11 +2,10 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.compose.foundation.lazy.LazyListScope
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 
 internal fun LazyListScope.addTasteEvaluationFields(
     state: ReviewEditUiState,
-    tasteOptions: List<DropdownOption>,
+    uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.showReviewSoundness) {
@@ -21,35 +20,35 @@ internal fun LazyListScope.addTasteEvaluationFields(
     steppedField(
         labelRes = R.string.label_sweet,
         selectedValue = state.sweet?.name,
-        options = tasteOptions,
+        options = uiData.tasteOptions,
         field = ReviewSelectionField.SWEET,
         onAction = onAction,
     )
     steppedField(
         labelRes = R.string.label_sour,
         selectedValue = state.sour?.name,
-        options = tasteOptions,
+        options = uiData.tasteOptions,
         field = ReviewSelectionField.SOUR,
         onAction = onAction,
     )
     steppedField(
         labelRes = R.string.label_bitter,
         selectedValue = state.bitter?.name,
-        options = tasteOptions,
+        options = uiData.tasteOptions,
         field = ReviewSelectionField.BITTER,
         onAction = onAction,
     )
     steppedField(
         labelRes = R.string.label_umami,
         selectedValue = state.umami?.name,
-        options = tasteOptions,
+        options = uiData.tasteOptions,
         field = ReviewSelectionField.UMAMI,
         onAction = onAction,
     )
     steppedField(
         labelRes = R.string.label_sharp,
         selectedValue = state.sharp?.name,
-        options = tasteOptions,
+        options = uiData.aftertasteOptions,
         field = ReviewSelectionField.SHARP,
         onAction = onAction,
     )

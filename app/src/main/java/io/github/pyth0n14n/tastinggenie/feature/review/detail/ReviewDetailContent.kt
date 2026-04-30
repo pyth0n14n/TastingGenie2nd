@@ -18,6 +18,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
+import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
@@ -62,6 +63,7 @@ fun ReviewDetailContent(
             scene = stringResource(R.string.label_scene),
             dish = stringResource(R.string.label_dish),
             cautions = stringResource(R.string.label_cautions),
+            freeComment = stringResource(R.string.label_comment),
             overallReview = stringResource(R.string.label_overall_review),
         )
     val viscosityLabels =
@@ -220,7 +222,7 @@ private fun MutableList<DetailRow>.addTasteRows(
     addIfNotBlank(label = textLabels.umami, value = review.tasteUmami?.let { labels.taste[it.name] ?: it.name })
     addIfNotBlank(
         label = textLabels.aftertaste,
-        value = review.tasteAftertaste?.let { labels.taste[it.name] ?: it.name },
+        value = review.tasteAftertaste?.let { aftertasteLabel(it.name) ?: labels.taste[it.name] ?: it.name },
     )
     addIfNotBlank(label = textLabels.tasteComplexity, value = review.tasteComplexity?.toLabel())
 }
@@ -232,6 +234,7 @@ private fun MutableList<DetailRow>.addOtherRows(
 ) {
     addIfNotBlank(label = textLabels.individuality, value = review.otherIndividuality)
     addIfNotBlank(label = textLabels.cautions, value = review.otherCautions)
+    addIfNotBlank(label = textLabels.freeComment, value = review.otherFreeComment)
     addIfNotBlank(
         label = textLabels.overallReview,
         value = review.otherOverallReview?.let { labels.overallReview[it.name] ?: it.name },
@@ -311,6 +314,7 @@ private data class ReviewDetailTextLabels(
     val scene: String,
     val dish: String,
     val cautions: String,
+    val freeComment: String,
     val overallReview: String,
 )
 

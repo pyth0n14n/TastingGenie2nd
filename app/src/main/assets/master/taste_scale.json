@@ -1,9 +1,9 @@
 {
   "items": [
-    { "value": "VERY_WEAK", "label": "とても弱い" },
-    { "value": "WEAK", "label": "弱い" },
+    { "value": "VERY_WEAK", "label": "弱い" },
+    { "value": "WEAK", "label": "やや弱い" },
     { "value": "MEDIUM", "label": "中程度" },
-    { "value": "STRONG", "label": "強い" },
-    { "value": "VERY_STRONG", "label": "とても強い" }
+    { "value": "STRONG", "label": "やや強い" },
+    { "value": "VERY_STRONG", "label": "強い" }
   ]
 }

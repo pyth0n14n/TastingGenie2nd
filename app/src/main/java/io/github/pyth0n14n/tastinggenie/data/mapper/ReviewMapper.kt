@@ -38,6 +38,7 @@ fun ReviewEntity.toDomain(): Review =
         tasteComplexity = tasteComplexity,
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview,
     )
 
@@ -74,5 +75,6 @@ fun ReviewInput.toEntity(): ReviewEntity =
         tasteComplexity = tasteComplexity,
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview,
     )

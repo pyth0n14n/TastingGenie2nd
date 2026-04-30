@@ -9,6 +9,6 @@
 |--------|--------|
 | VERY_BAD | 悪い |
 | BAD | やや悪い |
-| NEUTRAL | 普通 |
-| GOOD | 良い |
-| VERY_GOOD | とても良い |
+| NEUTRAL | 中程度 |
+| GOOD | やや良い |
+| VERY_GOOD | 良い |

@@ -48,6 +48,7 @@ data class Review(
     val tasteComplexity: ComplexityLevel? = null,
     val otherIndividuality: String? = null,
     val otherCautions: String? = null,
+    val otherFreeComment: String? = null,
     val otherOverallReview: OverallReview? = null,
 )
 
@@ -86,5 +87,6 @@ data class ReviewInput(
     val tasteComplexity: ComplexityLevel? = null,
     val otherIndividuality: String? = null,
     val otherCautions: String? = null,
+    val otherFreeComment: String? = null,
     val otherOverallReview: OverallReview? = null,
 )

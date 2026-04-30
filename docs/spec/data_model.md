@@ -56,7 +56,7 @@
 | price | Int (1..1,000,000) | 任意 |
 | volume | Int(mL, 1..25,000) | 任意 |
 | temperature | Enum | 任意 |
-| scene | String | 任意 |
+| scene | String（料理との相性） | 任意 |
 | dish | String | 任意 |
 
 ### 3.2 Appearance
@@ -100,6 +100,7 @@
 |------|----|------|
 | otherIndividuality | String | 任意 |
 | otherCautions | String | 任意 |
+| otherFreeComment | String | 任意 |
 | otherOverallReview | Enum | 任意 |
 
 ---

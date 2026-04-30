@@ -108,6 +108,7 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         tasteComplexity = tasteComplexity?.name,
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview?.name,
     )
 
@@ -143,6 +144,7 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         tasteComplexity = tasteComplexity.toNullableEnum<ComplexityLevel>(),
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
     )
 
