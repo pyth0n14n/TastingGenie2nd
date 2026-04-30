@@ -71,6 +71,8 @@
     <string name="label_cautions">留意点</string>
     <string name="label_comment">コメント</string>
     <string name="label_overall_review">総合評価</string>
+    <string name="label_average_review">平均評価</string>
+    <string name="label_review_count">レビュー数</string>
     <string name="label_flavor_profile">香味特性別分類</string>
     <string name="label_flavor_profile_soushu">爽酒</string>
     <string name="label_flavor_profile_kunshu">薫酒</string>
@@ -101,6 +103,7 @@
     <string name="label_sake_section_detail">詳細情報</string>
     <string name="suffix_percent">%</string>
     <string name="suffix_degree">度</string>
+    <string name="suffix_review_count">件</string>
     <string name="label_unselected">未選択</string>
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>

@@ -17,6 +17,8 @@ internal fun testReview(
     id: Long = TEST_REVIEW_ID,
     sakeId: Long = TEST_SAKE_ID,
     date: LocalDate = LocalDate.parse(TEST_REVIEW_DATE),
+    otherOverallReview: OverallReview? = OverallReview.GOOD,
+    tasteInPalateAroma: List<Aroma> = emptyList(),
 ): Review =
     Review(
         id = id,
@@ -26,6 +28,7 @@ internal fun testReview(
         appearanceColor = SakeColor.CLEAR,
         aromaIntensity = IntensityLevel.WEAK,
         aromaExamples = listOf(Aroma.MELON),
+        tasteInPalateAroma = tasteInPalateAroma,
         tasteSweetness = TasteLevel.STRONG,
-        otherOverallReview = OverallReview.GOOD,
+        otherOverallReview = otherOverallReview,
     )

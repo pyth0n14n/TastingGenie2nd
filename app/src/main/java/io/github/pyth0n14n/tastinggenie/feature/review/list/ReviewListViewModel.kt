@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
@@ -17,11 +18,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ReviewListViewModel
-    @Inject
+    @javax.inject.Inject
     constructor(
         private val savedStateHandle: SavedStateHandle,
         private val sakeRepository: SakeRepository,
@@ -49,7 +49,7 @@ class ReviewListViewModel
                     return@launch
                 }
 
-                val overallReviewLabels = loadOverallReviewLabels(sakeId) ?: return@launch
+                val labels = loadReviewListLabels(sakeId) ?: return@launch
                 val sake =
                     runCatching { sakeRepository.getSake(sakeId) }.getOrElse { throwable ->
                         _uiState.update {
@@ -84,17 +84,14 @@ class ReviewListViewModel
                     sakeId = sakeId,
                     sakeName = sake.name,
                     hasSakeImage = sake.imageUris.isNotEmpty(),
-                    overallReviewLabels = overallReviewLabels,
+                    labels = labels,
                 )
             }
         }
 
-        private suspend fun loadOverallReviewLabels(sakeId: Long): Map<String, String>? =
+        private suspend fun loadReviewListLabels(sakeId: Long): ReviewListLabels? =
             runCatching {
-                masterDataRepository
-                    .getMasterData()
-                    .overallReviews
-                    .associate { option -> option.value to option.label }
+                masterDataRepository.getMasterData().toReviewListLabels()
             }.getOrElse { throwable ->
                 _uiState.update {
                     it.copy(
@@ -114,7 +111,7 @@ class ReviewListViewModel
             sakeId: Long,
             sakeName: String,
             hasSakeImage: Boolean,
-            overallReviewLabels: Map<String, String>,
+            labels: ReviewListLabels,
         ) {
             reviewRepository
                 .observeReviews(sakeId)
@@ -125,7 +122,10 @@ class ReviewListViewModel
                             sakeId = sakeId,
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
-                            overallReviewLabels = overallReviewLabels,
+                            overallReviewLabels = labels.overallReviewLabels,
+                            temperatureLabels = labels.temperatureLabels,
+                            aromaLabels = labels.aromaLabels,
+                            tasteLabels = labels.tasteLabels,
                             loadError =
                                 UiError(
                                     messageResId = R.string.error_load_reviews,
@@ -143,7 +143,10 @@ class ReviewListViewModel
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
                             reviews = reviews,
-                            overallReviewLabels = overallReviewLabels,
+                            overallReviewLabels = labels.overallReviewLabels,
+                            temperatureLabels = labels.temperatureLabels,
+                            aromaLabels = labels.aromaLabels,
+                            tasteLabels = labels.tasteLabels,
                             isSakeMissing = false,
                         )
                     }
@@ -185,3 +188,21 @@ class ReviewListViewModel
     }
 
 private fun SavedStateHandle.reviewListSakeId(): Long = get<Long>(AppDestination.ARG_SAKE_ID) ?: AppDestination.NO_ID
+
+private data class ReviewListLabels(
+    val overallReviewLabels: Map<String, String>,
+    val temperatureLabels: Map<String, String>,
+    val aromaLabels: Map<String, String>,
+    val tasteLabels: Map<String, String>,
+)
+
+private fun MasterDataBundle.toReviewListLabels(): ReviewListLabels =
+    ReviewListLabels(
+        overallReviewLabels = overallReviews.associate { option -> option.value to option.label },
+        temperatureLabels = temperatures.associate { option -> option.value to option.label },
+        aromaLabels =
+            aromaCategories
+                .flatMap { category -> category.items }
+                .associate { option -> option.value to option.label },
+        tasteLabels = tasteLevels.associate { option -> option.value to option.label },
+    )
