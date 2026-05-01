@@ -190,7 +190,6 @@
     <string name="help_taste">味: 甘味、酸味、苦味、旨味、余韻を5段階で記録します。</string>
     <string name="setting_help_hint">ヘルプ導線を表示する</string>
     <string name="setting_help_hint_short">ヘルプ表示</string>
-    <string name="setting_image_preview">画像表示を有効にする</string>
     <string name="setting_review_soundness">健全度入力を表示する</string>
     <string name="setting_review_soundness_short">健全度</string>
     <string name="setting_review_soundness_default_sound">デフォルトで健全</string>

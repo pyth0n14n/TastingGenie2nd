@@ -56,23 +56,6 @@ class SettingsViewModel
             }
         }
 
-        fun toggleImagePreview(enabled: Boolean) {
-            viewModelScope.launch {
-                runCatching { settingsRepository.updateShowImagePreview(enabled) }
-                    .onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_save_settings,
-                                        causeKey = throwable.message,
-                                    ),
-                            )
-                        }
-                    }
-            }
-        }
-
         fun toggleReviewSoundness(enabled: Boolean) {
             viewModelScope.launch {
                 runCatching { settingsRepository.updateShowReviewSoundness(enabled) }

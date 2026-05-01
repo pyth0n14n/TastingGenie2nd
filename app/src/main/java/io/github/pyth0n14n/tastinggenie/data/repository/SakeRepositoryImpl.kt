@@ -103,8 +103,6 @@ private object NoOpSettingsRepository : SettingsRepository {
 
     override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
 
-    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
-
     override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
 
     override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit

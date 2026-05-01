@@ -249,7 +249,6 @@ private fun SakeListItems(
                                 ?.name
                                 ?.let { key -> state.overallReviewLabels[key] },
                     ),
-                showImagePreview = state.showImagePreview,
                 itemActions = itemActions,
             )
         }

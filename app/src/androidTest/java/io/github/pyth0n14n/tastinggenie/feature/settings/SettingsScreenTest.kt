@@ -84,7 +84,7 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithText("バックアップから復元").performClick()
         composeRule.onNodeWithText("バックアップから復元しますか？").assertIsDisplayed()
-        composeRule.onNodeWithText("復元すると既存のデータが失われます。").assertIsDisplayed()
+        composeRule.onNodeWithText("復元すると現在のデータが失われます。").assertIsDisplayed()
         composeRule.onNodeWithText("復元する").performClick()
 
         composeRule.runOnIdle { assertTrue(importClicked) }
@@ -132,7 +132,6 @@ private fun emptySettingsActions(
     onDismissMessage: () -> Unit = {},
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
-    onToggleImagePreview = {},
     onToggleReviewSoundness = {},
     onToggleAutoDeleteUnusedImages = {},
     onCleanupUnusedImages = {},

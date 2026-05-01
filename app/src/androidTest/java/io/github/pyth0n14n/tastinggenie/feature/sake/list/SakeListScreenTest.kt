@@ -304,7 +304,7 @@ class SakeListScreenTest {
     }
 
     @Test
-    fun showImagePreview_displaysPlaceholderWhenImageMissing() {
+    fun sakeImagePlaceholder_displaysWhenImageMissing() {
         composeRule.setContent {
             SakeListScreen(
                 state =
@@ -323,7 +323,6 @@ class SakeListScreenTest {
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.JUNMAI.name to "純米"),
-                        showImagePreview = true,
                     ),
                 actions = screenActions(),
             )
@@ -333,7 +332,7 @@ class SakeListScreenTest {
     }
 
     @Test
-    fun showImagePreview_falseHidesCardImageArea() {
+    fun sakeImage_displaysWhenPresent() {
         composeRule.setContent {
             SakeListScreen(
                 state =
@@ -352,14 +351,12 @@ class SakeListScreenTest {
                                 ),
                             ),
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
-                        showImagePreview = false,
                     ),
                 actions = screenActions(),
             )
         }
 
-        assertEquals(0, composeRule.onAllNodesWithContentDescription("酒画像").fetchSemanticsNodes().size)
-        assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
+        composeRule.onNodeWithContentDescription("酒画像").assertIsDisplayed()
     }
 
     @Test

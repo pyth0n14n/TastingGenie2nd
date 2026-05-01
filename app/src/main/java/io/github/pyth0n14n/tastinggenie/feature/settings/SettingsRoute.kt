@@ -113,7 +113,6 @@ fun SettingsRoute(
         actions =
             SettingsScreenActions(
                 onToggleHelpHints = viewModel::toggleHelpHints,
-                onToggleImagePreview = viewModel::toggleImagePreview,
                 onToggleReviewSoundness = viewModel::toggleReviewSoundness,
                 onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
                 onCleanupUnusedImages = viewModel::cleanupUnusedImages,
@@ -331,7 +330,6 @@ private fun SettingsContent(
 
 data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
-    val onToggleImagePreview: (Boolean) -> Unit,
     val onToggleReviewSoundness: (Boolean) -> Unit,
     val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
     val onCleanupUnusedImages: () -> Unit,

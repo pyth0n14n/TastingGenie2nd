@@ -119,12 +119,11 @@ This document captures common issues from Codex reviews to prevent regressions. 
 ## 3. Navigation and Settings Application
 
 ### Problem: Settings not applied to UI, misleading users.
-- **Example**: Help hints or image preview settings ignored in routes.
+- **Example**: Help hint settings ignored in routes.
 - **Root Cause**: From commit `355428c` (fix(review): align image viewer flow with spec) - Settings persisted but not consulted in rendering logic.
 - **Preventive Measure**: Always check settings state in composables; use Flow-based settings for reactive updates.
 - **Test Coverage**:
   - Disable help hints; verify help action hidden in sake list.
-  - Disable image preview; verify image action hidden in review list.
 
 ### Problem: Navigation flow deviates from spec.
 - **Example**: Image viewer not reachable from review list as per navigation.md.
@@ -291,12 +290,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Cancel the dialog and verify the image preview remains.
   - Confirm the dialog and verify the form reflects a pending image removal.
 
-### Problem: Sake list preview cards ignore the image-preview setting or collapse missing images into blank space.
-- **Example**: S0 keeps rendering thumbnails after `setting_image_preview` is disabled, or cards with no image show an empty top area with no placeholder.
-- **Preventive Measure**: Make SakeList observe `showImagePreview` reactively. Render the image area only when the setting is enabled, and show a clear placeholder when previews are enabled but a sake has no image.
+### Problem: Sake list preview cards collapse missing images into blank space.
+- **Example**: S0 cards with no image show an empty top area with no placeholder.
+- **Preventive Measure**: Render the sake list image area consistently, and show a clear placeholder when a sake has no image.
 - **Test Coverage**:
-  - Disable image preview and verify SakeList cards render without thumbnails or placeholders.
-  - Leave image preview enabled and verify image-less sakes show the placeholder text instead of a blank region.
+  - Verify image-less sakes show the placeholder text instead of a blank region.
+  - Verify sakes with an image expose the sake image content description.
 
 ### Problem: Grouped masters get flattened in UI, making spec-defined hierarchy and optional clears disappear.
 - **Example**: Sake classification loses its category structure, or prefecture selection cannot be cleared once chosen.
