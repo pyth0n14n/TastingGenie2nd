@@ -68,6 +68,7 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
         val sakeListEntry = remember(it) { navController.getBackStackEntry(AppDestination.SAKE_LIST) }
         SettingsRoute(
             onBack = { navController.popBackStack() },
+            onOpenGlossary = { navController.navigate(AppDestination.HELP) },
             viewModel = hiltViewModel(sakeListEntry),
         )
     }
