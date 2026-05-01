@@ -51,7 +51,8 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
             tasteAftertaste = sharp,
             tasteComplexity = tasteComplexity,
             otherIndividuality = otherIndividuality.trimmedOrNull(),
-            otherCautions = comment.trimmedOrNull(),
+            otherCautions = otherCautions.trimmedOrNull(),
+            otherFreeComment = comment.trimmedOrNull(),
             otherOverallReview = review,
         )
     } else {

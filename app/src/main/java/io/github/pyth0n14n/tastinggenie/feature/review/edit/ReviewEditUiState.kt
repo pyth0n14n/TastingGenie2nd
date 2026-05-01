@@ -38,6 +38,7 @@ data class ReviewEditUiState(
     val aromaMainNote: String = "",
     val tasteMainNote: String = "",
     val otherIndividuality: String = "",
+    val otherCautions: String = "",
     val scene: String = "",
     val dish: String = "",
     val comment: String = "",

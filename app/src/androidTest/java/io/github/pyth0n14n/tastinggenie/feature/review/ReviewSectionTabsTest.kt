@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -26,8 +27,10 @@ class ReviewSectionTabsTest {
         composeRule.onNodeWithContentDescription("基本情報").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("外観").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("香り").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("味わい").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("その他").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("味").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("特記").assertIsDisplayed()
+        composeRule.onNodeWithText("情報").assertIsDisplayed()
+        composeRule.onNodeWithText("見た目").assertIsDisplayed()
 
         composeRule.onNodeWithContentDescription("香り").performClick()
         composeRule.runOnIdle {

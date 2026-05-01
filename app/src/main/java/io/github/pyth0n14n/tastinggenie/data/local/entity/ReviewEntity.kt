@@ -62,5 +62,6 @@ data class ReviewEntity(
     val tasteComplexity: ComplexityLevel?,
     val otherIndividuality: String?,
     val otherCautions: String?,
+    val otherFreeComment: String? = null,
     val otherOverallReview: OverallReview?,
 )

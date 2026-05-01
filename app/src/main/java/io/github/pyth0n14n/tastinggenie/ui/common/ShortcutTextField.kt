@@ -2,10 +2,10 @@ package io.github.pyth0n14n.tastinggenie.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 @Suppress("LongParameterList")
 fun ShortcutTextField(
@@ -35,23 +34,37 @@ fun ShortcutTextField(
         if (shortcuts.isEmpty()) {
             return@Column
         }
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ShortcutChips(
+            shortcuts = shortcuts,
+            selectedValue = value,
+            onSelected = onValueChange,
             modifier = Modifier.padding(top = 8.dp),
-        ) {
-            shortcuts.forEach { option ->
-                FilterChip(
-                    selected = option.value == value,
-                    onClick = { onValueChange(option.value) },
-                    label = {
-                        Text(
-                            text = option.label,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    },
-                )
-            }
+        )
+    }
+}
+
+@Composable
+fun ShortcutChips(
+    shortcuts: List<DropdownOption>,
+    selectedValue: String,
+    onSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items(items = shortcuts, key = { option -> option.value }) { option ->
+            FilterChip(
+                selected = option.value == selectedValue,
+                onClick = { onSelected(option.value) },
+                label = {
+                    Text(
+                        text = option.label,
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                },
+            )
         }
     }
 }

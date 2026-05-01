@@ -175,7 +175,7 @@ private fun ReviewRating(review: Review) {
 
 @Composable
 private fun ReviewComment(review: Review) {
-    val comment = review.otherCautions ?: review.otherIndividuality
+    val comment = review.otherFreeComment ?: review.otherCautions ?: review.otherIndividuality
     if (comment != null) {
         Text(
             text = comment,

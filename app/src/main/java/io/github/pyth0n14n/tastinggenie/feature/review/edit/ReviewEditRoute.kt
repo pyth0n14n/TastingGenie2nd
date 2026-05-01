@@ -51,8 +51,7 @@ import kotlin.math.absoluteValue
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
 private const val REVIEW_DATE_INDEX = 1
-private const val REVIEW_PRICE_INDEX = 3
-private const val REVIEW_VOLUME_INDEX = 4
+private const val REVIEW_PRICE_AND_VOLUME_INDEX = 2
 private const val REVIEW_EDIT_PAGER_TAG = "review_edit_pager"
 private const val PAGER_SETTLE_TOLERANCE = 0.001f
 
@@ -222,12 +221,14 @@ private fun ReviewEditSectionPage(
                     viscosityOptions = content.viscosityOptions,
                 ),
             tasteOptions = content.state.tasteOptions.toOptions(),
+            aftertasteOptions = content.state.tasteOptions.toAftertasteOptions(),
             overallReviewOptions = content.state.overallReviewOptions.toOptions(),
             aromaUiData =
                 AromaUiData(
                     categories = content.state.aromaCategories,
                 ),
             volumeShortcutOptions = content.volumeShortcutOptions,
+            pairingOptions = content.state.overallReviewOptions.toPairingOptions(),
         )
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -260,19 +261,15 @@ internal fun ReviewEditUiState.firstInvalidFieldIndex(): Int? {
     }
     return when {
         validationErrors.containsKey(ReviewValidationField.DATE) -> REVIEW_DATE_INDEX
-        validationErrors.containsKey(ReviewValidationField.PRICE) -> REVIEW_PRICE_INDEX
-        validationErrors.containsKey(ReviewValidationField.VOLUME) -> REVIEW_VOLUME_INDEX
+        validationErrors.containsKey(ReviewValidationField.PRICE) -> REVIEW_PRICE_AND_VOLUME_INDEX
+        validationErrors.containsKey(ReviewValidationField.VOLUME) -> REVIEW_PRICE_AND_VOLUME_INDEX
         else -> null
     }
 }
 
 private suspend fun PagerState.takeOverAndMoveToPage(targetPage: Int) {
     stopScroll(MutatePriority.PreventUserInput)
-    if (currentPageOffsetFraction.absoluteValue > PAGER_SETTLE_TOLERANCE) {
-        scrollToPage(targetPage)
-    } else {
-        animateScrollToPage(targetPage)
-    }
+    scrollToPage(targetPage)
 }
 
 private fun PagerState.visibleSection(fallbackSection: ReviewSection): ReviewSection {

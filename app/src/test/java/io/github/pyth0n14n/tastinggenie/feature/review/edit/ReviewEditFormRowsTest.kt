@@ -8,8 +8,7 @@ import org.junit.Test
 class ReviewEditFormRowsTest {
     companion object {
         private const val DATE_INDEX = 1
-        private const val PRICE_INDEX = 3
-        private const val VOLUME_INDEX = 4
+        private const val PRICE_AND_VOLUME_INDEX = 2
     }
 
     @Test
@@ -29,7 +28,7 @@ class ReviewEditFormRowsTest {
                 validationErrors = mapOf(ReviewValidationField.PRICE to FieldValidationError.INVALID_NUMBER),
             )
 
-        assertEquals(PRICE_INDEX, state.firstInvalidFieldIndex())
+        assertEquals(PRICE_AND_VOLUME_INDEX, state.firstInvalidFieldIndex())
     }
 
     @Test
@@ -39,7 +38,7 @@ class ReviewEditFormRowsTest {
                 validationErrors = mapOf(ReviewValidationField.VOLUME to FieldValidationError.INVALID_NUMBER),
             )
 
-        assertEquals(VOLUME_INDEX, state.firstInvalidFieldIndex())
+        assertEquals(PRICE_AND_VOLUME_INDEX, state.firstInvalidFieldIndex())
     }
 
     @Test

@@ -39,6 +39,7 @@ fun ReviewEditUiState.withText(
         ReviewTextField.AROMA_MAIN_NOTE -> copy(aromaMainNote = value, error = null)
         ReviewTextField.TASTE_MAIN_NOTE -> copy(tasteMainNote = value, error = null)
         ReviewTextField.OTHER_INDIVIDUALITY -> copy(otherIndividuality = value, error = null)
+        ReviewTextField.OTHER_CAUTIONS -> copy(otherCautions = value, error = null)
         ReviewTextField.SCENE -> copy(scene = value, error = null)
         ReviewTextField.DISH -> copy(dish = value, error = null)
         ReviewTextField.COMMENT -> copy(comment = value, error = null)

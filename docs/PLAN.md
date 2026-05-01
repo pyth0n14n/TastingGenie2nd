@@ -37,9 +37,9 @@
 - 集計は schema 変更なしの query/state 追加で実装する。
 
 ## PR5: `feat(s3-review-register-figma-pass1)`
-- `S3: Review register` を Figma の text tab、connected button group、outlined text field、clear action、fixed save button に寄せる。
+- `S3: Review register` を Figma の connected button group、outlined text field、clear action、fixed save button に寄せる。
 - 既存の `HorizontalPager`、section state、validation failure 時の基本情報復帰、save flow は維持する。
-- icon-only tabs は Figma に合わせて text tabs へ戻す。
+- section tabs は現行の icon-only tabs を維持する。
 - Dropdown/slider を置換する場合も、保存される enum/master 値は既存互換を維持する。
 - `基本情報`、`見た目`、`香り`、`味`、`特記事項` の各 section を画面単位で確認しながら進める。
 
