@@ -78,7 +78,6 @@ class SakeListViewModelTest {
             assertEquals("生酒", state.classificationLabels[SakeClassification.NAMA.name])
             assertEquals("山形県", state.prefectureLabels[Prefecture.YAMAGATA.name])
             assertEquals(true, state.showHelpHints)
-            assertEquals(true, state.showImagePreview)
             assertEquals(null, state.error)
         }
 
@@ -175,25 +174,6 @@ class SakeListViewModelTest {
             assertFalse(state.isLoading)
             assertNotNull(state.error)
             assertEquals(R.string.error_load_sakes, state.error?.messageResId)
-        }
-
-    @Test
-    fun uiState_updatesWhenImagePreviewSettingChanges() =
-        runTest {
-            val settingsRepository = FakeSettingsRepository()
-            val viewModel =
-                SakeListViewModel(
-                    FakeSakeRepository(initial = emptyList()),
-                    FakeReviewRepository(),
-                    FakeMasterDataRepository(),
-                    settingsRepository,
-                )
-            advanceUntilIdle()
-
-            settingsRepository.updateShowImagePreview(enabled = false)
-            advanceUntilIdle()
-
-            assertEquals(false, viewModel.uiState.value.showImagePreview)
         }
 
     @Test
@@ -665,10 +645,6 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override suspend fun updateShowHelpHints(enabled: Boolean) {
         stream.value = stream.value.copy(showHelpHints = enabled)
-    }
-
-    override suspend fun updateShowImagePreview(enabled: Boolean) {
-        stream.value = stream.value.copy(showImagePreview = enabled)
     }
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {

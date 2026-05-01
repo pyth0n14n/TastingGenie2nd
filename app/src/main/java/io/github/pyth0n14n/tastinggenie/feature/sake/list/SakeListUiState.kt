@@ -16,7 +16,6 @@ data class SakeListUiState(
     val prefectureLabels: Map<String, String> = emptyMap(),
     val overallReviewLabels: Map<String, String> = emptyMap(),
     val showHelpHints: Boolean = true,
-    val showImagePreview: Boolean = true,
 ) {
     val displayedSakes: List<SakeListSummary>
         get() = sortedSakes(filteredSakes())

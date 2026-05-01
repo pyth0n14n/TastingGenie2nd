@@ -58,7 +58,6 @@ data class SakeListCardLabels(
 fun SakeListCard(
     sake: Sake,
     labels: SakeListCardLabels,
-    showImagePreview: Boolean,
     itemActions: SakeListItemActions,
     modifier: Modifier = Modifier,
 ) {
@@ -77,9 +76,7 @@ fun SakeListCard(
                         .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                if (showImagePreview) {
-                    SakeListThumbnail(imageUri = sake.primaryImageUri)
-                }
+                SakeListThumbnail(imageUri = sake.primaryImageUri)
                 SakeListItemBody(
                     sake = sake,
                     labels = labels,

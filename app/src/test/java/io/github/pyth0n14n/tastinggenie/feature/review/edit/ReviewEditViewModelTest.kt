@@ -396,8 +396,6 @@ private class FakeSettingsRepository(
 
     override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
 
-    override suspend fun updateShowImagePreview(enabled: Boolean) = Unit
-
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
     }

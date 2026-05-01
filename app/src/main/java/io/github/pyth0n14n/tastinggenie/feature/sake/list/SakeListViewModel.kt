@@ -95,7 +95,6 @@ class SakeListViewModel
                                 prefectureLabels = labels.prefectureLabels,
                                 overallReviewLabels = labels.overallReviewLabels,
                                 showHelpHints = settings.showHelpHints,
-                                showImagePreview = settings.showImagePreview,
                             )
                         }
                     }

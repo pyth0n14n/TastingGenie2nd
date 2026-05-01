@@ -37,26 +37,7 @@ class SettingsViewModelTest {
             val state = viewModel.uiState.value
             Assert.assertFalse(state.isLoading)
             Assert.assertEquals(true, state.settings.showHelpHints)
-            Assert.assertEquals(true, state.settings.showImagePreview)
             Assert.assertEquals(true, state.settings.showReviewSoundness)
-        }
-
-    @Test
-    fun toggleImagePreview_updatesState() =
-        runTest {
-            val repository = FakeSettingsRepository()
-            val viewModel =
-                SettingsViewModel(
-                    settingsRepository = repository,
-                    importExportRepository = FakeImportExportRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.toggleImagePreview(enabled = false)
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            Assert.assertEquals(false, state.settings.showImagePreview)
         }
 
     @Test
@@ -419,10 +400,6 @@ private class FakeSettingsRepository : SettingsRepository {
         stream.value = stream.value.copy(showHelpHints = enabled)
     }
 
-    override suspend fun updateShowImagePreview(enabled: Boolean) {
-        stream.value = stream.value.copy(showImagePreview = enabled)
-    }
-
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
     }
@@ -462,10 +439,6 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
     override suspend fun getCurrentSettings(): AppSettings = AppSettings()
 
     override suspend fun updateShowHelpHints(enabled: Boolean) {
-        error("settings write failed")
-    }
-
-    override suspend fun updateShowImagePreview(enabled: Boolean) {
         error("settings write failed")
     }
 

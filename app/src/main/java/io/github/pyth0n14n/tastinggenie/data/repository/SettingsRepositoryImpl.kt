@@ -29,12 +29,6 @@ class SettingsRepositoryImpl
             }
         }
 
-        override suspend fun updateShowImagePreview(enabled: Boolean) {
-            dataStore.edit { preferences ->
-                preferences[showImagePreviewKey] = enabled
-            }
-        }
-
         override suspend fun updateShowReviewSoundness(enabled: Boolean) {
             dataStore.edit { preferences ->
                 preferences[showReviewSoundnessKey] = enabled
@@ -49,7 +43,6 @@ class SettingsRepositoryImpl
 
         private companion object {
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
-            val showImagePreviewKey = booleanPreferencesKey("show_image_preview")
             val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")
             val autoDeleteUnusedImagesKey = booleanPreferencesKey("auto_delete_unused_images")
         }
@@ -57,7 +50,6 @@ class SettingsRepositoryImpl
         private fun Preferences.toAppSettings(): AppSettings =
             AppSettings(
                 showHelpHints = this[showHelpHintsKey] ?: true,
-                showImagePreview = this[showImagePreviewKey] ?: true,
                 showReviewSoundness = this[showReviewSoundnessKey] ?: true,
                 autoDeleteUnusedImages = this[autoDeleteUnusedImagesKey] ?: false,
             )
