@@ -44,7 +44,6 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
             onEditSake = { sakeId -> navController.navigate(AppDestination.sakeEditRoute(sakeId = sakeId)) },
             topBarActions =
                 SakeListTopBarActions(
-                    onOpenHelp = { navController.navigate(AppDestination.HELP) },
                     onOpenSettings = { navController.navigate(AppDestination.SETTINGS) },
                 ),
         )

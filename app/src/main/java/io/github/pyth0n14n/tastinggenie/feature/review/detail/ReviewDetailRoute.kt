@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -110,19 +113,19 @@ fun ReviewDetailScreen(
                         Text(stringResource(R.string.action_back))
                     }
                 },
-                actions = {
-                    val review = content.state.review
-                    if (review != null) {
-                        TextButton(
-                            onClick = {
-                                content.onEditReview(review.sakeId, review.id, visibleSection)
-                            },
-                        ) {
-                            Text(stringResource(R.string.action_edit))
-                        }
-                    }
-                },
             )
+        },
+        floatingActionButton = {
+            val review = content.state.review
+            if (review != null) {
+                TastingMediumFab(
+                    icon = Icons.Outlined.Edit,
+                    contentDescription = stringResource(R.string.action_edit),
+                    onClick = {
+                        content.onEditReview(review.sakeId, review.id, visibleSection)
+                    },
+                )
+            }
         },
     ) { padding ->
         when {

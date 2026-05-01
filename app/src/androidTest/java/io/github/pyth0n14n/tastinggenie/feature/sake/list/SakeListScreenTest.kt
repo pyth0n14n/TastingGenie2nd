@@ -103,32 +103,26 @@ class SakeListScreenTest {
     }
 
     @Test
-    fun topBarActions_openHelpAndSettings() {
-        var helpOpened = false
+    fun topBarActions_openSettings() {
         var settingsOpened = false
         composeRule.setContent {
             SakeListScreen(
                 state = SakeListUiState(isLoading = false),
                 actions =
                     screenActions(
-                        onOpenHelp = { helpOpened = true },
                         onOpenSettings = { settingsOpened = true },
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        composeRule.onNodeWithText("ヘルプ").performClick()
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        composeRule.onNodeWithText("設定").performClick()
+        composeRule.onNodeWithContentDescription("設定").performClick()
         composeRule.runOnIdle {
-            assertTrue(helpOpened)
             assertTrue(settingsOpened)
         }
     }
 
     @Test
-    fun helpHintsDisabled_hidesHelpAction() {
+    fun helpHintsDisabled_keepsSettingsAction() {
         composeRule.setContent {
             SakeListScreen(
                 state =
@@ -141,8 +135,7 @@ class SakeListScreenTest {
         }
 
         assertEquals(0, composeRule.onAllNodesWithContentDescription("ヘルプ").fetchSemanticsNodes().size)
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        composeRule.onNodeWithText("設定").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("設定").assertIsDisplayed()
     }
 
     @Test
@@ -431,7 +424,6 @@ private fun screenActions(
     onEditSake: (Long) -> Unit = {},
     onDeleteSake: (Long) -> Unit = {},
     onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
-    onOpenHelp: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
 ): SakeListScreenActions =
     SakeListScreenActions(
@@ -445,7 +437,6 @@ private fun screenActions(
             ),
         topBarActions =
             SakeListTopBarActions(
-                onOpenHelp = onOpenHelp,
                 onOpenSettings = onOpenSettings,
             ),
     )

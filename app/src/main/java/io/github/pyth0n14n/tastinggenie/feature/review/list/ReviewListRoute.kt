@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,6 +28,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 
 private val ScreenHorizontalPadding = 22.dp
@@ -99,14 +98,11 @@ fun ReviewListScreen(
         },
         floatingActionButton = {
             val addActionLabel = stringResource(R.string.action_add)
-            FloatingActionButton(
+            TastingMediumFab(
+                icon = Icons.Filled.Add,
+                contentDescription = addActionLabel,
                 onClick = { state.sakeId?.let(onAddReview) },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = addActionLabel,
-                )
-            }
+            )
         },
     ) { padding ->
         when {

@@ -9,20 +9,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,15 +41,13 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
-import io.github.pyth0n14n.tastinggenie.ui.common.OverflowAction
-import io.github.pyth0n14n.tastinggenie.ui.common.OverflowActionsMenu
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 
 private const val LIST_SPACING = 8
 private const val SCREEN_HORIZONTAL_PADDING = 16
 
 data class SakeListTopBarActions(
-    val onOpenHelp: () -> Unit,
     val onOpenSettings: () -> Unit,
 )
 
@@ -145,7 +144,6 @@ fun SakeListScreen(
                         onSortModeSelected = actions.onSortModeSelected,
                     )
                     SakeListTopOverflowMenu(
-                        state = state,
                         actions = actions.topBarActions,
                     )
                 },
@@ -153,12 +151,11 @@ fun SakeListScreen(
         },
         floatingActionButton = {
             val addActionLabel = stringResource(R.string.action_add)
-            FloatingActionButton(
+            TastingMediumFab(
+                icon = Icons.Filled.Add,
+                contentDescription = addActionLabel,
                 onClick = actions.onCreateSake,
-                modifier = Modifier.semantics { contentDescription = addActionLabel },
-            ) {
-                Text(text = "+")
-            }
+            )
         },
     ) { padding ->
         when {
@@ -261,13 +258,23 @@ private fun SakeSearchField(
     onQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedTextField(
+    TextField(
         value = query,
         onValueChange = onQueryChanged,
         modifier =
             modifier
                 .fillMaxWidth(),
         singleLine = true,
+        shape = RoundedCornerShape(28.dp),
+        colors =
+            TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+                disabledIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
+            ),
         placeholder = { Text(text = stringResource(R.string.hint_sake_search)) },
         leadingIcon = {
             Icon(
@@ -318,18 +325,13 @@ private fun SakeListSortMenu(
 }
 
 @Composable
-private fun SakeListTopOverflowMenu(
-    state: SakeListUiState,
-    actions: SakeListTopBarActions,
-) {
-    val overflowActions =
-        buildList {
-            if (state.showHelpHints) {
-                add(OverflowAction(labelRes = R.string.screen_help, onClick = actions.onOpenHelp))
-            }
-            add(OverflowAction(labelRes = R.string.screen_settings, onClick = actions.onOpenSettings))
-        }
-    OverflowActionsMenu(actions = overflowActions)
+private fun SakeListTopOverflowMenu(actions: SakeListTopBarActions) {
+    IconButton(onClick = actions.onOpenSettings) {
+        Icon(
+            imageVector = Icons.Outlined.Settings,
+            contentDescription = stringResource(R.string.screen_settings),
+        )
+    }
 }
 
 private fun SakeListSortMode.labelRes(): Int =

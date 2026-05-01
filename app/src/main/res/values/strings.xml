@@ -26,6 +26,8 @@
     <string name="action_cancel">キャンセル</string>
     <string name="action_select">選択</string>
     <string name="action_clear">クリア</string>
+    <string name="title_discard_draft">下書きを破棄する</string>
+    <string name="message_discard_draft">入力中の情報は失われます</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_review_date">日付</string>
     <string name="label_bar">店名</string>

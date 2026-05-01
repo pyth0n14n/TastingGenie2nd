@@ -46,7 +46,7 @@ class ReviewDetailScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("編集").performClick()
+        composeRule.onNodeWithContentDescription("編集").performClick()
         composeRule.runOnIdle {
             assertEquals(
                 Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
@@ -85,7 +85,7 @@ class ReviewDetailScreenTest {
 
         composeRule.onNodeWithContentDescription(tasteLabel).performClick()
         composeRule.mainClock.advanceTimeByFrame()
-        composeRule.onNodeWithText("編集").performClick()
+        composeRule.onNodeWithContentDescription("編集").performClick()
 
         composeRule.runOnIdle {
             assertEquals(
