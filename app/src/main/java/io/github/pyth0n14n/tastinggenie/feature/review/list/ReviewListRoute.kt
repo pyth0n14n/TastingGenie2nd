@@ -35,7 +35,7 @@ private val ScreenHorizontalPadding = 22.dp
 
 data class ReviewListActionHandlers(
     val onOpenReview: (Long) -> Unit,
-    val onOpenImage: (Long) -> Unit,
+    val onOpenSakeImage: (Long) -> Unit,
     val onDeleteReview: (Long) -> Unit,
 )
 
@@ -45,7 +45,7 @@ fun ReviewListRoute(
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onOpenReview: (Long) -> Unit,
-    onOpenImage: (Long) -> Unit,
+    onOpenSakeImage: (Long) -> Unit,
     viewModel: ReviewListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -56,7 +56,7 @@ fun ReviewListRoute(
         actions =
             ReviewListActionHandlers(
                 onOpenReview = onOpenReview,
-                onOpenImage = onOpenImage,
+                onOpenSakeImage = onOpenSakeImage,
                 onDeleteReview = viewModel::deleteReview,
             ),
     )
@@ -132,7 +132,10 @@ private fun ReviewListContent(
                 .fillMaxSize()
                 .padding(horizontal = ScreenHorizontalPadding),
     ) {
-        ReviewStatsPanel(state = state)
+        ReviewStatsPanel(
+            state = state,
+            onOpenImage = { sakeId -> actions.onOpenSakeImage(sakeId) },
+        )
         state.deleteError?.let { error ->
             Text(
                 text = stringResource(error.messageResId),

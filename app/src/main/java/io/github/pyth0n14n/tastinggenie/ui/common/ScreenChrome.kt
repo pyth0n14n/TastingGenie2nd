@@ -41,6 +41,7 @@ data class OverflowAction(
     @param:StringRes val labelRes: Int,
     val onClick: () -> Unit,
     val enabled: Boolean = true,
+    val icon: ImageVector? = null,
 )
 
 @Composable
@@ -140,6 +141,15 @@ fun OverflowActionsMenu(
             actions.forEach { action ->
                 DropdownMenuItem(
                     text = { Text(text = stringResource(action.labelRes)) },
+                    leadingIcon =
+                        action.icon?.let { icon ->
+                            {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                )
+                            }
+                        },
                     enabled = action.enabled,
                     onClick = {
                         expanded = false

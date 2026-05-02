@@ -51,9 +51,18 @@ data class SakeListTopBarActions(
     val onOpenSettings: () -> Unit,
 )
 
+data class SakeListRouteActions(
+    val onCreateSake: () -> Unit,
+    val onOpenSake: (Long) -> Unit,
+    val onEditSake: (Long) -> Unit,
+    val onOpenSakeImage: (Long) -> Unit,
+    val topBarActions: SakeListTopBarActions,
+)
+
 data class SakeListItemActions(
     val onOpenSake: (Long) -> Unit,
     val onEditSake: (Long) -> Unit,
+    val onOpenSakeImage: (Long) -> Unit,
     val onDeleteSake: (Long) -> Unit,
     val onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
 )
@@ -79,10 +88,7 @@ data class SakeListScreenActions(
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun SakeListRoute(
-    onCreateSake: () -> Unit,
-    onOpenSake: (Long) -> Unit,
-    onEditSake: (Long) -> Unit,
-    topBarActions: SakeListTopBarActions,
+    actions: SakeListRouteActions,
     viewModel: SakeListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -90,15 +96,16 @@ fun SakeListRoute(
         state = uiState,
         actions =
             SakeListScreenActions(
-                onCreateSake = onCreateSake,
+                onCreateSake = actions.onCreateSake,
                 itemActions =
                     SakeListItemActions(
-                        onOpenSake = onOpenSake,
-                        onEditSake = onEditSake,
+                        onOpenSake = actions.onOpenSake,
+                        onEditSake = actions.onEditSake,
+                        onOpenSakeImage = actions.onOpenSakeImage,
                         onDeleteSake = viewModel::requestDeleteSake,
                         onTogglePinned = viewModel::togglePinned,
                     ),
-                topBarActions = topBarActions,
+                topBarActions = actions.topBarActions,
                 onSearchQueryChanged = viewModel::updateSearchQuery,
                 onSortModeSelected = viewModel::selectSortMode,
             ),

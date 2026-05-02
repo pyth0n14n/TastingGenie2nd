@@ -21,6 +21,7 @@ import io.github.pyth0n14n.tastinggenie.feature.review.image.ReviewImageRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.list.ReviewListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.edit.SakeEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRoute
+import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRouteActions
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListTopBarActions
 import io.github.pyth0n14n.tastinggenie.feature.settings.SettingsRoute
 
@@ -39,12 +40,18 @@ fun AppNavGraph() {
 private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
     composable(AppDestination.SAKE_LIST) {
         SakeListRoute(
-            onCreateSake = { navController.navigate(AppDestination.sakeEditRoute(sakeId = null)) },
-            onOpenSake = { sakeId -> navController.navigate(AppDestination.reviewListRoute(sakeId = sakeId)) },
-            onEditSake = { sakeId -> navController.navigate(AppDestination.sakeEditRoute(sakeId = sakeId)) },
-            topBarActions =
-                SakeListTopBarActions(
-                    onOpenSettings = { navController.navigate(AppDestination.SETTINGS) },
+            actions =
+                SakeListRouteActions(
+                    onCreateSake = { navController.navigate(AppDestination.sakeEditRoute(sakeId = null)) },
+                    onOpenSake = { sakeId -> navController.navigate(AppDestination.reviewListRoute(sakeId = sakeId)) },
+                    onEditSake = { sakeId -> navController.navigate(AppDestination.sakeEditRoute(sakeId = sakeId)) },
+                    onOpenSakeImage = { sakeId ->
+                        navController.navigate(AppDestination.sakeImageRoute(sakeId = sakeId))
+                    },
+                    topBarActions =
+                        SakeListTopBarActions(
+                            onOpenSettings = { navController.navigate(AppDestination.SETTINGS) },
+                        ),
                 ),
         )
     }
@@ -91,8 +98,8 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
             onOpenReview = { reviewId ->
                 navController.navigate(AppDestination.reviewDetailRoute(reviewId = reviewId))
             },
-            onOpenImage = { reviewId ->
-                navController.navigate(AppDestination.reviewImageRoute(reviewId = reviewId))
+            onOpenSakeImage = { sakeId ->
+                navController.navigate(AppDestination.sakeImageRoute(sakeId = sakeId))
             },
         )
     }
@@ -202,6 +209,17 @@ private fun NavGraphBuilder.addReviewImageDestination(navController: NavHostCont
         arguments =
             listOf(
                 navArgument(AppDestination.ARG_REVIEW_ID) {
+                    type = NavType.LongType
+                },
+            ),
+    ) {
+        ReviewImageRoute(onBack = { navController.popBackStack() })
+    }
+    composable(
+        route = AppDestination.SAKE_IMAGE,
+        arguments =
+            listOf(
+                navArgument(AppDestination.ARG_SAKE_ID) {
                     type = NavType.LongType
                 },
             ),

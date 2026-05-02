@@ -14,6 +14,7 @@ object AppDestination {
     const val REVIEW_EDIT = "review/edit/{$ARG_SAKE_ID}/{$ARG_REVIEW_ID}?$ARG_REVIEW_SECTION={$ARG_REVIEW_SECTION}"
     const val REVIEW_DETAIL = "review/detail/{$ARG_REVIEW_ID}"
     const val REVIEW_IMAGE = "review/image/{$ARG_REVIEW_ID}"
+    const val SAKE_IMAGE = "sake/image/{$ARG_SAKE_ID}"
     const val HELP = "help"
     const val SETTINGS = "settings"
 
@@ -38,4 +39,6 @@ object AppDestination {
     fun reviewDetailRoute(reviewId: Long): String = "review/detail/$reviewId"
 
     fun reviewImageRoute(reviewId: Long): String = "review/image/$reviewId"
+
+    fun sakeImageRoute(sakeId: Long): String = "sake/image/$sakeId"
 }

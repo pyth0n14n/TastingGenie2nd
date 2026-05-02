@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,9 +29,13 @@ import io.github.pyth0n14n.tastinggenie.R
 
 private val StatsVerticalPadding = 14.dp
 private val StatsDividerHeight = 56.dp
+private const val STATS_IMAGE_SPACER_WEIGHT = 0.2f
 
 @Composable
-internal fun ReviewStatsPanel(state: ReviewListUiState) {
+internal fun ReviewStatsPanel(
+    state: ReviewListUiState,
+    onOpenImage: (Long) -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -59,6 +66,15 @@ internal fun ReviewStatsPanel(state: ReviewListUiState) {
                 suffix = stringResource(R.string.suffix_review_count),
                 modifier = Modifier.weight(1f),
             )
+            Spacer(modifier = Modifier.weight(STATS_IMAGE_SPACER_WEIGHT))
+            if (state.hasSakeImage && state.sakeId != null) {
+                IconButton(onClick = { onOpenImage(state.sakeId) }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Image,
+                        contentDescription = stringResource(R.string.action_view_image),
+                    )
+                }
+            }
         }
     }
 }
