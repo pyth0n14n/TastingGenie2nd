@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">TastingGenie2nd-Android</string>
+    <string name="app_name">ききさけ帖</string>
     <string name="screen_sake_list">酒一覧</string>
-    <string name="screen_sake_list_title">利酒魔人 2nd</string>
+    <string name="screen_sake_list_title">ききさけ帖</string>
     <string name="screen_sake_edit">酒登録/編集</string>
     <string name="screen_review_list">レビュー一覧</string>
     <string name="screen_review_edit">レビューの登録</string>
@@ -215,7 +215,7 @@
     <string name="message_backup_restore">JSONファイルとして書き出すか、以前のバックアップを読み込みます。</string>
     <string name="setting_glossary">用語集（日本酒のきほん）</string>
     <string name="setting_about_app">このアプリについて</string>
-    <string name="setting_about_app_version">利き酒魔人 2nd %1$s</string>
+    <string name="setting_about_app_version">ききさけ帖 %1$s</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>
