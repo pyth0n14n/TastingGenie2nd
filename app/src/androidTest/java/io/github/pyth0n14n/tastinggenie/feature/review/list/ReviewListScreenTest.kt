@@ -1,8 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -20,12 +20,13 @@ class ReviewListScreenTest {
 
     @Test
     fun imageAction_opensViewerFromReviewList() {
-        var openedReviewId: Long? = null
+        var openedSakeId: Long? = null
         composeRule.setContent {
             ReviewListScreen(
                 state =
                     ReviewListUiState(
                         isLoading = false,
+                        sakeId = testReview().sakeId,
                         hasSakeImage = true,
                         reviews = listOf(testReview()),
                     ),
@@ -34,15 +35,14 @@ class ReviewListScreenTest {
                 actions =
                     ReviewListActionHandlers(
                         onOpenReview = {},
-                        onOpenImage = { reviewId -> openedReviewId = reviewId },
+                        onOpenSakeImage = { sakeId -> openedSakeId = sakeId },
                         onDeleteReview = {},
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        composeRule.onNodeWithText("画像").performClick()
-        composeRule.runOnIdle { assertEquals(TEST_REVIEW_ID, openedReviewId) }
+        composeRule.onNodeWithContentDescription("画像").performClick()
+        composeRule.runOnIdle { assertEquals(testReview().sakeId, openedSakeId) }
     }
 
     @Test
@@ -60,14 +60,13 @@ class ReviewListScreenTest {
                 actions =
                     ReviewListActionHandlers(
                         onOpenReview = {},
-                        onOpenImage = {},
+                        onOpenSakeImage = {},
                         onDeleteReview = {},
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
+        composeRule.onNodeWithContentDescription("画像").assertDoesNotExist()
     }
 
     @Test
@@ -85,14 +84,13 @@ class ReviewListScreenTest {
                 actions =
                     ReviewListActionHandlers(
                         onOpenReview = {},
-                        onOpenImage = {},
+                        onOpenSakeImage = {},
                         onDeleteReview = { reviewId -> deletedReviewId = reviewId },
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("その他の操作").performClick()
-        composeRule.onNodeWithText("削除").performClick()
+        composeRule.onNodeWithContentDescription("削除").performClick()
         composeRule.onNodeWithText("このレビューを削除しますか？")
         composeRule.onNodeWithText("確定").performClick()
         composeRule.runOnIdle { assertEquals(TEST_REVIEW_ID, deletedReviewId) }
@@ -116,7 +114,7 @@ class ReviewListScreenTest {
                 actions =
                     ReviewListActionHandlers(
                         onOpenReview = {},
-                        onOpenImage = {},
+                        onOpenSakeImage = {},
                         onDeleteReview = {},
                     ),
             )
@@ -144,7 +142,7 @@ class ReviewListScreenTest {
                 actions =
                     ReviewListActionHandlers(
                         onOpenReview = {},
-                        onOpenImage = {},
+                        onOpenSakeImage = {},
                         onDeleteReview = {},
                     ),
             )
@@ -153,5 +151,35 @@ class ReviewListScreenTest {
         composeRule.onNodeWithText("常温（20℃）").assertExists()
         composeRule.onNodeWithText("メロン").assertExists()
         composeRule.onNodeWithText("洋梨").assertExists()
+    }
+
+    @Test
+    fun reviewItem_showsFreeCommentOnly() {
+        composeRule.setContent {
+            ReviewListScreen(
+                state =
+                    ReviewListUiState(
+                        isLoading = false,
+                        reviews =
+                            listOf(
+                                testReview(
+                                    otherCautions = "留意点",
+                                    otherFreeComment = "自由コメント",
+                                ),
+                            ),
+                    ),
+                onBack = {},
+                onAddReview = {},
+                actions =
+                    ReviewListActionHandlers(
+                        onOpenReview = {},
+                        onOpenSakeImage = {},
+                        onDeleteReview = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("自由コメント").assertExists()
+        composeRule.onNodeWithText("留意点").assertDoesNotExist()
     }
 }

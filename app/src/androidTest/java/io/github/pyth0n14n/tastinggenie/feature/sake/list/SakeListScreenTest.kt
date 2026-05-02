@@ -169,9 +169,9 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[0].performClick()
         composeRule.onNodeWithText("編集").performClick()
-        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[0].performClick()
         composeRule.onNodeWithText("固定").performClick()
         composeRule.runOnIdle {
             assertEquals(9L, editedId)
@@ -326,6 +326,7 @@ class SakeListScreenTest {
 
     @Test
     fun sakeImage_displaysWhenPresent() {
+        var openedImageSakeId: Long? = null
         composeRule.setContent {
             SakeListScreen(
                 state =
@@ -345,11 +346,43 @@ class SakeListScreenTest {
                             ),
                         gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
                     ),
-                actions = screenActions(),
+                actions = screenActions(onOpenSakeImage = { openedImageSakeId = it }),
             )
         }
 
-        composeRule.onNodeWithContentDescription("酒画像").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("酒画像").performClick()
+        composeRule.runOnIdle { assertEquals(8L, openedImageSakeId) }
+    }
+
+    @Test
+    fun itemOverflowActions_includeImageAction() {
+        var openedImageSakeId: Long? = null
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 8L,
+                                            name = "秋酒",
+                                            grade = SakeGrade.GINJO,
+                                            imageUris = listOf("file:///images/sakes/autumn.jpg"),
+                                        ),
+                                ),
+                            ),
+                        gradeLabels = mapOf(SakeGrade.GINJO.name to "吟醸"),
+                    ),
+                actions = screenActions(onOpenSakeImage = { openedImageSakeId = it }),
+            )
+        }
+
+        composeRule.onAllNodesWithContentDescription("その他の操作")[0].performClick()
+        composeRule.onNodeWithText("画像").performClick()
+        composeRule.runOnIdle { assertEquals(8L, openedImageSakeId) }
     }
 
     @Test
@@ -390,7 +423,7 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onAllNodesWithContentDescription("その他の操作")[1].performClick()
+        composeRule.onAllNodesWithContentDescription("その他の操作")[0].performClick()
         composeRule.onNodeWithText("削除").performClick()
         composeRule.runOnIdle { assertTrue(deleteRequested) }
         composeRule.onNodeWithText("この酒を削除しますか？関連するレビュー 2 件と画像参照も削除します。").assertIsDisplayed()
@@ -422,6 +455,7 @@ private fun screenActions(
     onCreateSake: () -> Unit = {},
     onOpenSake: (Long) -> Unit = {},
     onEditSake: (Long) -> Unit = {},
+    onOpenSakeImage: (Long) -> Unit = {},
     onDeleteSake: (Long) -> Unit = {},
     onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
     onOpenSettings: () -> Unit = {},
@@ -432,6 +466,7 @@ private fun screenActions(
             SakeListItemActions(
                 onOpenSake = onOpenSake,
                 onEditSake = onEditSake,
+                onOpenSakeImage = onOpenSakeImage,
                 onDeleteSake = onDeleteSake,
                 onTogglePinned = onTogglePinned,
             ),
