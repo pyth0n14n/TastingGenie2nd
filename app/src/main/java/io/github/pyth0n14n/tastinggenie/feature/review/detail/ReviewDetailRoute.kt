@@ -12,9 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +31,7 @@ import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -98,21 +96,14 @@ fun ReviewDetailScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (content.state.sakeName.isBlank()) {
-                            stringResource(R.string.screen_review_detail)
-                        } else {
-                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
-                        },
-                    )
-                },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
+            TastingTopAppBar(
+                title =
+                    if (content.state.sakeName.isBlank()) {
+                        stringResource(R.string.screen_review_detail)
+                    } else {
+                        "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                    },
+                onBack = onBack,
             )
         },
         floatingActionButton = {

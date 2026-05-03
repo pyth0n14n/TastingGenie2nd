@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,8 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +45,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.DiscardDraftDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -133,21 +131,14 @@ fun ReviewEditScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (content.state.sakeName.isBlank()) {
-                            stringResource(R.string.screen_review_edit)
-                        } else {
-                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
-                        },
-                    )
-                },
-                navigationIcon = {
-                    TextButton(onClick = ::requestBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
+            TastingTopAppBar(
+                title =
+                    if (content.state.sakeName.isBlank()) {
+                        stringResource(R.string.screen_review_edit)
+                    } else {
+                        "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                    },
+                onBack = ::requestBack,
             )
         },
         bottomBar = {
@@ -375,7 +366,6 @@ private fun ReviewEditBottomBar(
                 Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .imePadding()
                     .padding(horizontal = SCREEN_PADDING.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

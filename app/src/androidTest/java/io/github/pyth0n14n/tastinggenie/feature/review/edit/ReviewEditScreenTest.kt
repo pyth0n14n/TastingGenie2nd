@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -26,6 +27,28 @@ import org.junit.Test
 class ReviewEditScreenTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun topBar_usesBackIconInsteadOfBackText() {
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = ReviewEditUiState(isLoading = false),
+                        onAction = {},
+                        onSave = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("戻る").assertIsDisplayed()
+        composeRule.onNodeWithText("戻る").assertDoesNotExist()
+    }
 
     @Test
     fun loadFailureWithEmptyRatingOptions_showsErrorWithoutCrashing() {
