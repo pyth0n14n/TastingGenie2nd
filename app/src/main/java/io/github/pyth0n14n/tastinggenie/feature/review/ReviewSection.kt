@@ -2,10 +2,11 @@ package io.github.pyth0n14n.tastinggenie.feature.review
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -17,7 +18,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 
 enum class ReviewSection(
@@ -60,21 +60,18 @@ fun ReviewSectionTabs(
                             )
                         ReviewSection.APPEARANCE ->
                             Icon(
-                                painter = painterResource(R.drawable.eye),
+                                imageVector = Icons.Outlined.Visibility,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
                             )
                         ReviewSection.AROMA ->
                             Icon(
-                                painter = painterResource(R.drawable.nose),
+                                painter = painterResource(R.drawable.ic_nest_eco_leaf),
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
                             )
                         ReviewSection.TASTE ->
                             Icon(
-                                painter = painterResource(R.drawable.tongue),
+                                imageVector = Icons.Outlined.WaterDrop,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp),
                             )
                         ReviewSection.OTHER ->
                             Icon(
