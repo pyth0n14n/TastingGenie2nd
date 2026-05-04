@@ -36,6 +36,8 @@
     <string name="label_temperature">温度</string>
     <string name="title_temperature_picker">提供温度を選択</string>
     <string name="message_temperature_picker">日本酒の提供温度を選んでください</string>
+    <string name="title_color_picker">色を選択</string>
+    <string name="message_color_picker">日本酒の見た目の色を選んでください</string>
     <string name="label_review_section_appearance">外観</string>
     <string name="label_review_section_aroma">香り</string>
     <string name="label_review_section_taste">味</string>
@@ -49,6 +51,7 @@
     <string name="label_volume_one_sho">一升瓶 (1800ml)</string>
     <string name="label_soundness">健全度</string>
     <string name="label_color">色</string>
+    <string name="label_color_other">色（その他）</string>
     <string name="label_viscosity">粘度</string>
     <string name="label_intensity">強度</string>
     <string name="label_intensity_very_weak">とても弱い</string>

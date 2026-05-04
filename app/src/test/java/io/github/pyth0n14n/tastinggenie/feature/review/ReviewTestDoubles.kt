@@ -113,6 +113,7 @@ internal class RecordingReviewRepository(
                 dish = input.dish,
                 appearanceSoundness = input.appearanceSoundness,
                 appearanceColor = input.appearanceColor,
+                appearanceColorOther = input.appearanceColorOther,
                 appearanceViscosity = input.appearanceViscosity,
                 aromaSoundness = input.aromaSoundness,
                 aromaIntensity = input.aromaIntensity,
@@ -170,8 +171,8 @@ internal class ReviewFakeMasterDataRepository : MasterDataRepository {
                 ),
             colors =
                 listOf(
-                    MasterOption(value = SakeColor.CLEAR.name, label = "透明"),
-                    MasterOption(value = SakeColor.AMBER.name, label = "琥珀色"),
+                    MasterOption(value = SakeColor.CLEAR.name, label = "無色透明"),
+                    MasterOption(value = SakeColor.OTHER.name, label = "その他"),
                 ),
             prefectures = emptyList(),
             intensityLevels =

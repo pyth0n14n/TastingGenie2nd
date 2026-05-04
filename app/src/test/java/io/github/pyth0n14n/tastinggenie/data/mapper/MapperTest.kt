@@ -43,7 +43,8 @@ class MapperTest {
                 date = LocalDate.parse("2026-02-25"),
                 temperature = Temperature.HANABIE,
                 appearanceSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
-                appearanceColor = SakeColor.AMBER,
+                appearanceColor = SakeColor.OTHER,
+                appearanceColorOther = "桃色",
                 aromaSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
                 aromaIntensity = IntensityLevel.STRONG,
                 aromaExamples = listOf(Aroma.LEMON, Aroma.BANANA),
@@ -60,7 +61,8 @@ class MapperTest {
         val restored = input.toEntity().toDomain()
 
         assertEquals(Temperature.HANABIE, restored.temperature)
-        assertEquals(SakeColor.AMBER, restored.appearanceColor)
+        assertEquals(SakeColor.OTHER, restored.appearanceColor)
+        assertEquals("桃色", restored.appearanceColorOther)
         assertEquals(IntensityLevel.STRONG, restored.aromaIntensity)
         assertEquals(listOf(Aroma.LEMON, Aroma.BANANA), restored.aromaExamples)
         assertEquals(listOf(Aroma.PEAR), restored.tasteInPalateAroma)

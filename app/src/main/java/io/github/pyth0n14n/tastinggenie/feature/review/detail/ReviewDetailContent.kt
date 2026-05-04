@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
@@ -165,13 +166,25 @@ private fun MutableList<DetailRow>.addAppearanceRows(
     )
     addIfNotBlank(
         label = textLabels.color,
-        value = review.appearanceColor?.let { labels.color[it.name] ?: it.name },
+        value = review.appearanceColor.displayColor(labels.color, review.appearanceColorOther),
     )
     addIfNotBlank(
         label = textLabels.viscosity,
         value = review.appearanceViscosity?.let { viscosity -> viscosityLabels[viscosity] ?: viscosity.toString() },
     )
 }
+
+private fun SakeColor?.displayColor(
+    labels: Map<String, String>,
+    otherText: String?,
+): String? =
+    when (this) {
+        null -> null
+        SakeColor.OTHER ->
+            listOfNotNull(labels[name] ?: name, otherText?.takeIf { it.isNotBlank() })
+                .joinToString(": ")
+        else -> labels[name] ?: name
+    }
 
 private fun MutableList<DetailRow>.addAromaRows(
     review: Review,

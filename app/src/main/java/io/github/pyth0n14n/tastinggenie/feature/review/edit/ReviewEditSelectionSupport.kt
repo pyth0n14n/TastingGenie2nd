@@ -32,7 +32,7 @@ private fun ReviewEditUiState.clearSoundnessSelection(field: ReviewSelectionFiel
 private fun ReviewEditUiState.clearChoiceSelection(field: ReviewSelectionField): ReviewEditUiState? =
     when (field) {
         ReviewSelectionField.TEMPERATURE -> copy(temperature = null, error = null)
-        ReviewSelectionField.COLOR -> copy(color = null, error = null)
+        ReviewSelectionField.COLOR -> copy(color = null, colorOther = "", error = null)
         ReviewSelectionField.VISCOSITY -> copy(viscosity = null, error = null)
         ReviewSelectionField.INTENSITY -> copy(intensity = null, error = null)
         ReviewSelectionField.AROMA_COMPLEXITY -> copy(aromaComplexity = null, error = null)

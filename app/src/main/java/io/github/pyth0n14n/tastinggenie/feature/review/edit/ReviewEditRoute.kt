@@ -327,6 +327,7 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         appearanceSoundness,
         temperature,
         color,
+        colorOther,
         viscosity,
         aromaSoundness,
         intensity,

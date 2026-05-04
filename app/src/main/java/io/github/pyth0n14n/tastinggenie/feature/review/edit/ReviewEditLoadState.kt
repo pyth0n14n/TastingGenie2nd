@@ -130,6 +130,7 @@ private fun ReviewEditUiState.toEditableLoadedState(
         appearanceSoundness = review?.appearanceSoundness ?: appearanceSoundness,
         temperature = review?.temperature,
         color = review?.appearanceColor,
+        colorOther = review?.appearanceColorOther.orEmpty(),
         viscosity = review?.appearanceViscosity,
         aromaSoundness = review?.aromaSoundness ?: aromaSoundness,
         intensity = review?.aromaIntensity,

@@ -42,6 +42,7 @@ data class ReviewEntity(
     val dish: String?,
     val appearanceSoundness: ReviewSoundness,
     val appearanceColor: SakeColor?,
+    val appearanceColorOther: String? = null,
     val appearanceViscosity: Int?,
     val aromaSoundness: ReviewSoundness,
     val aromaIntensity: IntensityLevel?,
