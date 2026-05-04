@@ -16,13 +16,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
 import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.ShortcutChips
-import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
 
 fun LazyListScope.reviewEditFormContent(
@@ -126,12 +126,10 @@ private fun LazyListScope.addChoiceFields(
             onAction = onAction,
         )
     }
-    dropdownField(
-        R.string.label_color,
-        state.color?.name,
-        uiData.colorOptions,
-        ReviewSelectionField.COLOR,
-        onAction,
+    colorField(
+        state = state,
+        options = uiData.colorOptions,
+        onAction = onAction,
     )
     steppedField(
         R.string.label_viscosity,
@@ -140,6 +138,41 @@ private fun LazyListScope.addChoiceFields(
         ReviewSelectionField.VISCOSITY,
         onAction,
     )
+}
+
+private fun LazyListScope.colorField(
+    state: ReviewEditUiState,
+    options: List<DropdownOption>,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    item {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ColorPickerField(
+                label = reviewTextResource(R.string.label_color),
+                options = options,
+                selectedValue = state.color?.name,
+                onValueChanged = { next ->
+                    onAction(
+                        ReviewEditAction.SelectionChanged(
+                            field = ReviewSelectionField.COLOR,
+                            value = next.orEmpty(),
+                        ),
+                    )
+                },
+            )
+        }
+    }
+    if (state.color == SakeColor.OTHER) {
+        item {
+            LabeledTextField(
+                label = reviewTextResource(R.string.label_color_other),
+                value = state.colorOther,
+                onValueChange = { next ->
+                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COLOR_OTHER, value = next))
+                },
+            )
+        }
+    }
 }
 
 private fun LazyListScope.addAromaFields(
@@ -441,25 +474,6 @@ private fun LazyListScope.textChoiceField(
             selectedValue = selectedValue.takeIf { it.isNotBlank() },
             onValueChanged = { next ->
                 onAction(ReviewEditAction.TextChanged(field = field, value = next.orEmpty()))
-            },
-        )
-    }
-}
-
-private fun LazyListScope.dropdownField(
-    labelRes: Int,
-    selectedValue: String?,
-    options: List<DropdownOption>,
-    field: ReviewSelectionField,
-    onAction: (ReviewEditAction) -> Unit,
-) {
-    item {
-        SimpleDropdown(
-            label = reviewTextResource(labelRes),
-            selectedLabel = options.firstOrNull { it.value == selectedValue }?.label.orEmpty(),
-            options = options,
-            onSelected = { next ->
-                onAction(ReviewEditAction.SelectionChanged(field = field, value = next))
             },
         )
     }

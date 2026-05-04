@@ -2,7 +2,8 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 7
+const val CURRENT_SCHEMA_VERSION = 8
+const val LEGACY_SCHEMA_VERSION_7 = 7
 const val LEGACY_SCHEMA_VERSION_6 = 6
 const val LEGACY_SCHEMA_VERSION_5 = 5
 const val LEGACY_SCHEMA_VERSION_4 = 4
@@ -59,6 +60,7 @@ data class SerializableReview(
     val dish: String? = null,
     val appearanceSoundness: String = "SOUND",
     val appearanceColor: String? = null,
+    val appearanceColorOther: String? = null,
     val appearanceViscosity: Int? = null,
     val aromaSoundness: String = "SOUND",
     val aromaIntensity: String? = null,

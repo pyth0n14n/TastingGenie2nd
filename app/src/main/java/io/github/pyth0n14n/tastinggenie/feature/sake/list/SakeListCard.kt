@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -76,7 +80,15 @@ fun SakeListCard(
                         .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                SakeListThumbnail(imageUri = sake.primaryImageUri)
+                SakeListThumbnail(
+                    imageUri = sake.primaryImageUri,
+                    onClick =
+                        if (sake.imageUris.isNotEmpty()) {
+                            { itemActions.onOpenSakeImage(sake.id) }
+                        } else {
+                            null
+                        },
+                )
                 SakeListItemBody(
                     sake = sake,
                     labels = labels,
@@ -201,14 +213,23 @@ private fun SakeListTrailing(
                                 R.string.action_pin_sake
                             },
                         onClick = { itemActions.onTogglePinned(sake.id, !sake.isPinned) },
+                        icon = Icons.Outlined.PushPin,
                     ),
                     OverflowAction(
                         labelRes = R.string.action_edit,
                         onClick = { itemActions.onEditSake(sake.id) },
+                        icon = Icons.Outlined.Edit,
+                    ),
+                    OverflowAction(
+                        labelRes = R.string.action_view_image,
+                        onClick = { itemActions.onOpenSakeImage(sake.id) },
+                        enabled = sake.imageUris.isNotEmpty(),
+                        icon = Icons.Outlined.Image,
                     ),
                     OverflowAction(
                         labelRes = R.string.action_delete,
                         onClick = { itemActions.onDeleteSake(sake.id) },
+                        icon = Icons.Outlined.Delete,
                     ),
                 ),
         )
@@ -242,13 +263,25 @@ private fun SakeListRating(labels: SakeListCardLabels) {
 }
 
 @Composable
-private fun SakeListThumbnail(imageUri: String?) {
+private fun SakeListThumbnail(
+    imageUri: String?,
+    onClick: (() -> Unit)?,
+) {
+    val contentDescription = stringResource(R.string.content_sake_image)
     Box(
         modifier =
             Modifier
                 .size(ThumbnailSize)
                 .clip(RoundedCornerShape(0.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .semantics { this.contentDescription = contentDescription }
+                .then(
+                    if (onClick != null) {
+                        Modifier.clickable(onClick = onClick)
+                    } else {
+                        Modifier
+                    },
+                ),
         contentAlignment = Alignment.Center,
     ) {
         if (imageUri.isNullOrBlank()) {
@@ -261,7 +294,7 @@ private fun SakeListThumbnail(imageUri: String?) {
         } else {
             AsyncImage(
                 model = imageUri,
-                contentDescription = stringResource(R.string.content_sake_image),
+                contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
             )

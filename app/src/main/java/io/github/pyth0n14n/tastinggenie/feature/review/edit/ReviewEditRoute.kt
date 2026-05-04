@@ -2,6 +2,7 @@
 
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,12 +23,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -42,9 +41,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSectionTabs
+import io.github.pyth0n14n.tastinggenie.ui.common.DiscardDraftDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
@@ -102,23 +103,42 @@ fun ReviewEditScreen(
         LoadingContent()
         return
     }
+    var isDiscardDraftDialogVisible by rememberSaveable { mutableStateOf(false) }
+    val initialDraft =
+        remember(content.state.reviewId, content.state.sakeId, content.state.isEditTargetMissing) {
+            content.state.toDraftSnapshot()
+        }
+    val hasUnsavedChanges = content.state.toDraftSnapshot() != initialDraft
+
+    fun requestBack() {
+        if (hasUnsavedChanges) {
+            isDiscardDraftDialogVisible = true
+        } else {
+            onBack()
+        }
+    }
+    BackHandler(enabled = hasUnsavedChanges) {
+        isDiscardDraftDialogVisible = true
+    }
+    if (isDiscardDraftDialogVisible) {
+        DiscardDraftDialog(
+            onConfirm = {
+                isDiscardDraftDialogVisible = false
+                onBack()
+            },
+            onDismiss = { isDiscardDraftDialogVisible = false },
+        )
+    }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (content.state.sakeName.isBlank()) {
-                            stringResource(R.string.screen_review_edit)
-                        } else {
-                            "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
-                        },
-                    )
-                },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
+            TastingTopAppBar(
+                title =
+                    if (content.state.sakeName.isBlank()) {
+                        stringResource(R.string.screen_review_edit)
+                    } else {
+                        "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                    },
+                onBack = ::requestBack,
             )
         },
         bottomBar = {
@@ -291,6 +311,42 @@ data class ReviewEditScreenContent(
     val onSectionSelected: (ReviewSection) -> Unit,
 )
 
+private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
+    listOf(
+        date,
+        bar,
+        price,
+        volume,
+        aromaMainNote,
+        tasteMainNote,
+        otherIndividuality,
+        otherCautions,
+        scene,
+        dish,
+        comment,
+        appearanceSoundness,
+        temperature,
+        color,
+        colorOther,
+        viscosity,
+        aromaSoundness,
+        intensity,
+        aromaComplexity,
+        tasteSoundness,
+        tasteAttack,
+        tasteTextureRoundness,
+        tasteTextureSmoothness,
+        sweet,
+        sour,
+        bitter,
+        umami,
+        sharp,
+        tasteComplexity,
+        review,
+        scentTop,
+        scentMouth,
+    )
+
 private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems() {
     item(key = "required_hint", contentType = "hint") {
         RequiredFieldHint()
@@ -311,7 +367,6 @@ private fun ReviewEditBottomBar(
                 Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .imePadding()
                     .padding(horizontal = SCREEN_PADDING.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

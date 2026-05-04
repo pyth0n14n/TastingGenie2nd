@@ -267,11 +267,16 @@ private fun SettingsContent(
             }
         }
         item {
-            Button(
-                onClick = actions.onCleanupUnusedImages,
-                enabled = !state.isProcessingTransfer,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
             ) {
-                Text(stringResource(R.string.action_cleanup_unused_images))
+                Button(
+                    onClick = actions.onCleanupUnusedImages,
+                    enabled = !state.isProcessingTransfer,
+                ) {
+                    Text(stringResource(R.string.action_cleanup_unused_images))
+                }
             }
         }
         item {

@@ -7,9 +7,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,6 +18,7 @@ import coil.compose.AsyncImage
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 
 @Composable
 fun ReviewImageRoute(
@@ -42,13 +40,9 @@ fun ReviewImageScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.screen_image_viewer)) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text(stringResource(R.string.action_back))
-                    }
-                },
+            TastingTopAppBar(
+                title = stringResource(R.string.screen_image_viewer),
+                onBack = onBack,
             )
         },
     ) { padding ->

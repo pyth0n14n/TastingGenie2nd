@@ -36,6 +36,7 @@ fun ReviewEditUiState.withText(
         ReviewTextField.PRICE -> copy(price = value, error = null).clearValidationError(ReviewValidationField.PRICE)
         ReviewTextField.VOLUME ->
             copy(volume = value, error = null).clearValidationError(ReviewValidationField.VOLUME)
+        ReviewTextField.COLOR_OTHER -> copy(colorOther = value, error = null)
         ReviewTextField.AROMA_MAIN_NOTE -> copy(aromaMainNote = value, error = null)
         ReviewTextField.TASTE_MAIN_NOTE -> copy(tasteMainNote = value, error = null)
         ReviewTextField.OTHER_INDIVIDUALITY -> copy(otherIndividuality = value, error = null)
@@ -91,7 +92,10 @@ private fun ReviewEditUiState.withChoiceSelection(
             }
         ReviewSelectionField.COLOR ->
             copySelection(value, SakeColor.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(color = selected)
+                state.copy(
+                    color = selected,
+                    colorOther = if (selected == SakeColor.OTHER) state.colorOther else "",
+                )
             }
         ReviewSelectionField.INTENSITY ->
             copySelection(value, IntensityLevel.entries.firstOrNull { it.name == value }) { state, selected ->

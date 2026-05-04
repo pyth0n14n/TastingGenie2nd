@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.image.createPendingSakeCameraCapture
 import io.github.pyth0n14n.tastinggenie.image.deletePendingSakeCameraCapture
+import io.github.pyth0n14n.tastinggenie.ui.common.DiscardDraftDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOptionGroup
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
@@ -121,6 +122,7 @@ fun SakeEditScreen(
     val gradeOptions = state.gradeOptions.toOptions()
     val classificationGroups = state.classificationOptions.toClassificationGroups()
     val prefectureGroups = state.prefectureOptions.toPrefectureGroups()
+    val requestBack = rememberSakeEditBackRequest(state = state, onBack = onBack)
     LaunchedEffect(state.validationFailureCount) {
         val targetIndex = state.firstInvalidSectionIndex()
         if (targetIndex != null) {
@@ -128,7 +130,7 @@ fun SakeEditScreen(
         }
     }
     Scaffold(
-        topBar = { SakeEditTopBar(onBack = onBack) },
+        topBar = { SakeEditTopBar(onBack = { requestBack() }) },
         bottomBar = {
             SakeEditBottomBar(
                 state = state,
@@ -170,6 +172,35 @@ fun SakeEditScreen(
 }
 
 @Composable
+private fun rememberSakeEditBackRequest(
+    state: SakeEditUiState,
+    onBack: () -> Unit,
+): () -> Unit {
+    var isDiscardDraftDialogVisible by remember { mutableStateOf(false) }
+    val initialDraft = remember(state.sakeId, state.isEditTargetMissing) { state.toDraftSnapshot() }
+    val hasUnsavedChanges = state.toDraftSnapshot() != initialDraft
+    BackHandler(enabled = hasUnsavedChanges) {
+        isDiscardDraftDialogVisible = true
+    }
+    if (isDiscardDraftDialogVisible) {
+        DiscardDraftDialog(
+            onConfirm = {
+                isDiscardDraftDialogVisible = false
+                onBack()
+            },
+            onDismiss = { isDiscardDraftDialogVisible = false },
+        )
+    }
+    return {
+        if (hasUnsavedChanges) {
+            isDiscardDraftDialogVisible = true
+        } else {
+            onBack()
+        }
+    }
+}
+
+@Composable
 private fun SakeEditBottomBar(
     state: SakeEditUiState,
     onSave: () -> Unit,
@@ -183,7 +214,6 @@ private fun SakeEditBottomBar(
                 Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .imePadding()
                     .padding(horizontal = SCREEN_PADDING.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -268,3 +298,27 @@ data class SakeEditFormUiData(
     val classificationGroups: List<DropdownOptionGroup>,
     val prefectureGroups: List<DropdownOptionGroup>,
 )
+
+private fun SakeEditUiState.toDraftSnapshot(): List<Any?> =
+    listOf(
+        isPinned,
+        name,
+        grade,
+        imagePreviewUris,
+        gradeOther,
+        classifications,
+        typeOther,
+        maker,
+        prefecture,
+        city,
+        sakeDegree,
+        acidity,
+        amino,
+        kojiMai,
+        kojiPolish,
+        kakeMai,
+        kakePolish,
+        alcohol,
+        yeast,
+        water,
+    )

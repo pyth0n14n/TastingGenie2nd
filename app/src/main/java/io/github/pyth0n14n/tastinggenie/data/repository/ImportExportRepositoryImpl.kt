@@ -13,6 +13,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_3
 import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_4
 import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_5
 import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_6
+import io.github.pyth0n14n.tastinggenie.domain.model.LEGACY_SCHEMA_VERSION_7
 import io.github.pyth0n14n.tastinggenie.domain.model.LegacyBackupPayloadV3
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
@@ -78,6 +79,10 @@ class ImportExportRepositoryImpl
             val version = root.getValue("schemaVersion").jsonPrimitive.int
             return when (version) {
                 CURRENT_SCHEMA_VERSION -> json.decodeFromJsonElement(BackupPayload.serializer(), root)
+                LEGACY_SCHEMA_VERSION_7 ->
+                    json.decodeFromJsonElement(BackupPayload.serializer(), root).copy(
+                        schemaVersion = CURRENT_SCHEMA_VERSION,
+                    )
                 LEGACY_SCHEMA_VERSION_6 ->
                     json.decodeFromJsonElement(BackupPayload.serializer(), root).copy(
                         schemaVersion = CURRENT_SCHEMA_VERSION,

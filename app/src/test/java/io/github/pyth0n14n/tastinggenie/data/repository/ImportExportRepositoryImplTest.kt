@@ -76,6 +76,7 @@ class ImportExportRepositoryImplTest {
             assertEquals("テスト酒", payload.sakes.single().name)
             assertEquals("諏訪市", payload.sakes.single().city)
             assertEquals(1, payload.reviews.size)
+            assertEquals("桃色", payload.reviews.single().appearanceColorOther)
         }
 
     @Test
@@ -103,6 +104,7 @@ class ImportExportRepositoryImplTest {
             assertEquals(storedSake.id, storedReview.sakeId)
             assertTrue(storedReview.id != sampleSerializableReview().id)
             assertEquals(LocalDate.parse("2026-03-17").toEpochDay(), storedReview.dateEpochDay)
+            assertEquals("桃色", storedReview.appearanceColorOther)
         }
 
     @Test
@@ -319,7 +321,8 @@ class ImportExportRepositoryImplTest {
             date = "2026-03-17",
             temperature = Temperature.JOON.name,
             appearanceSoundness = ReviewSoundness.SOUND.name,
-            appearanceColor = SakeColor.CLEAR.name,
+            appearanceColor = SakeColor.OTHER.name,
+            appearanceColorOther = "桃色",
             aromaSoundness = ReviewSoundness.SOUND.name,
             aromaIntensity = IntensityLevel.MEDIUM.name,
             aromaExamples = listOf(Aroma.MELON.name),
@@ -367,7 +370,8 @@ class ImportExportRepositoryImplTest {
             scene = null,
             dish = null,
             appearanceSoundness = ReviewSoundness.SOUND,
-            appearanceColor = SakeColor.CLEAR,
+            appearanceColor = SakeColor.OTHER,
+            appearanceColorOther = "桃色",
             appearanceViscosity = null,
             aromaSoundness = ReviewSoundness.SOUND,
             aromaIntensity = IntensityLevel.MEDIUM,

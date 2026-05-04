@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -23,6 +24,29 @@ import org.junit.Test
 class ReviewDetailScreenTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun topBar_usesBackIconInsteadOfBackText() {
+        composeRule.setContent {
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview(),
+                            ),
+                        onEditReview = { _, _, _ -> },
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("戻る").assertIsDisplayed()
+        composeRule.onNodeWithText("戻る").assertDoesNotExist()
+    }
 
     @Test
     fun editAction_opensEditor() {
@@ -46,7 +70,7 @@ class ReviewDetailScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("編集").performClick()
+        composeRule.onNodeWithContentDescription("編集").performClick()
         composeRule.runOnIdle {
             assertEquals(
                 Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
@@ -85,7 +109,7 @@ class ReviewDetailScreenTest {
 
         composeRule.onNodeWithContentDescription(tasteLabel).performClick()
         composeRule.mainClock.advanceTimeByFrame()
-        composeRule.onNodeWithText("編集").performClick()
+        composeRule.onNodeWithContentDescription("編集").performClick()
 
         composeRule.runOnIdle {
             assertEquals(

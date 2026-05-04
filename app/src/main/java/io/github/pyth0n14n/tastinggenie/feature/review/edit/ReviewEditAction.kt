@@ -34,6 +34,7 @@ enum class ReviewTextField {
     BAR,
     PRICE,
     VOLUME,
+    COLOR_OTHER,
     AROMA_MAIN_NOTE,
     TASTE_MAIN_NOTE,
     OTHER_INDIVIDUALITY,

@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 
 fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
     val currentSakeId = sakeId
@@ -32,6 +33,7 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
             scene = scene.trimmedOrNull(),
             dish = dish.trimmedOrNull(),
             appearanceColor = color,
+            appearanceColorOther = colorOther.trimmedOrNull().takeIf { color == SakeColor.OTHER },
             appearanceViscosity = viscosity,
             aromaSoundness = aromaSoundness,
             aromaIntensity = intensity,

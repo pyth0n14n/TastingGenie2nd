@@ -25,6 +25,7 @@ class ReviewImageViewModel
         private val sakeRepository: SakeRepository,
     ) : ViewModel() {
         private val reviewId = savedStateHandle.get<Long>(AppDestination.ARG_REVIEW_ID) ?: AppDestination.NO_ID
+        private val sakeId = savedStateHandle.get<Long>(AppDestination.ARG_SAKE_ID) ?: AppDestination.NO_ID
 
         private val _uiState = MutableStateFlow(ReviewImageUiState())
         val uiState: StateFlow<ReviewImageUiState> = _uiState.asStateFlow()
@@ -36,18 +37,22 @@ class ReviewImageViewModel
         private fun loadImage() {
             viewModelScope.launch {
                 runCatching {
-                    val review = reviewRepository.getReview(reviewId)
-                    val sake = review?.let { loadedReview -> sakeRepository.getSake(loadedReview.sakeId) }
-                    review to sake
-                }.onSuccess { (review, sake) ->
-                    if (review == null || sake == null) {
+                    when (sakeId) {
+                        AppDestination.NO_ID -> {
+                            val review = reviewRepository.getReview(reviewId)
+                            review?.let { loadedReview -> sakeRepository.getSake(loadedReview.sakeId) }
+                        }
+                        else -> sakeRepository.getSake(sakeId)
+                    }
+                }.onSuccess { sake ->
+                    if (sake == null) {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 error =
                                     UiError(
                                         messageResId = R.string.error_load_review,
-                                        causeKey = reviewId.toString(),
+                                        causeKey = imageTargetCauseKey(),
                                     ),
                             )
                         }
@@ -74,4 +79,6 @@ class ReviewImageViewModel
                 }
             }
         }
+
+        private fun imageTargetCauseKey(): String = "reviewId=$reviewId,sakeId=$sakeId"
     }

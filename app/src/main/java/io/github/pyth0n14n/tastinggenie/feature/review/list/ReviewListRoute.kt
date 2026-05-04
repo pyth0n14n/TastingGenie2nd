@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -30,13 +28,14 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
+import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingTopAppBar
 
 private val ScreenHorizontalPadding = 22.dp
 
 data class ReviewListActionHandlers(
     val onOpenReview: (Long) -> Unit,
-    val onOpenImage: (Long) -> Unit,
+    val onOpenSakeImage: (Long) -> Unit,
     val onDeleteReview: (Long) -> Unit,
 )
 
@@ -46,7 +45,7 @@ fun ReviewListRoute(
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onOpenReview: (Long) -> Unit,
-    onOpenImage: (Long) -> Unit,
+    onOpenSakeImage: (Long) -> Unit,
     viewModel: ReviewListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -57,7 +56,7 @@ fun ReviewListRoute(
         actions =
             ReviewListActionHandlers(
                 onOpenReview = onOpenReview,
-                onOpenImage = onOpenImage,
+                onOpenSakeImage = onOpenSakeImage,
                 onDeleteReview = viewModel::deleteReview,
             ),
     )
@@ -99,14 +98,11 @@ fun ReviewListScreen(
         },
         floatingActionButton = {
             val addActionLabel = stringResource(R.string.action_add)
-            FloatingActionButton(
+            TastingMediumFab(
+                icon = Icons.Filled.Add,
+                contentDescription = addActionLabel,
                 onClick = { state.sakeId?.let(onAddReview) },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = addActionLabel,
-                )
-            }
+            )
         },
     ) { padding ->
         when {
@@ -136,7 +132,10 @@ private fun ReviewListContent(
                 .fillMaxSize()
                 .padding(horizontal = ScreenHorizontalPadding),
     ) {
-        ReviewStatsPanel(state = state)
+        ReviewStatsPanel(
+            state = state,
+            onOpenImage = { sakeId -> actions.onOpenSakeImage(sakeId) },
+        )
         state.deleteError?.let { error ->
             Text(
                 text = stringResource(error.messageResId),

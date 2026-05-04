@@ -65,6 +65,7 @@
 |------|----|------|
 | appearanceSoundness | Enum | 必須（既定値: SOUND） |
 | appearanceColor | Enum | 任意 |
+| appearanceColorOther | String | 任意。appearanceColor が OTHER の場合に使用 |
 | appearanceViscosity | Int(1-5) | 任意 |
 
 ### 3.3 Aroma

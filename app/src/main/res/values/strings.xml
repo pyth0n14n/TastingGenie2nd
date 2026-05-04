@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">TastingGenie2nd-Android</string>
+    <string name="app_name">ききさけ帖</string>
     <string name="screen_sake_list">酒一覧</string>
-    <string name="screen_sake_list_title">利酒魔人 2nd</string>
+    <string name="screen_sake_list_title">ききさけ帖</string>
     <string name="screen_sake_edit">酒登録/編集</string>
     <string name="screen_review_list">レビュー一覧</string>
     <string name="screen_review_edit">レビューの登録</string>
@@ -26,6 +26,8 @@
     <string name="action_cancel">キャンセル</string>
     <string name="action_select">選択</string>
     <string name="action_clear">クリア</string>
+    <string name="title_discard_draft">下書きを破棄する</string>
+    <string name="message_discard_draft">入力中の情報は失われます</string>
     <string name="label_sake_name">銘柄名</string>
     <string name="label_review_date">日付</string>
     <string name="label_bar">店名</string>
@@ -34,6 +36,8 @@
     <string name="label_temperature">温度</string>
     <string name="title_temperature_picker">提供温度を選択</string>
     <string name="message_temperature_picker">日本酒の提供温度を選んでください</string>
+    <string name="title_color_picker">色を選択</string>
+    <string name="message_color_picker">日本酒の見た目の色を選んでください</string>
     <string name="label_review_section_appearance">外観</string>
     <string name="label_review_section_aroma">香り</string>
     <string name="label_review_section_taste">味</string>
@@ -47,6 +51,7 @@
     <string name="label_volume_one_sho">一升瓶 (1800ml)</string>
     <string name="label_soundness">健全度</string>
     <string name="label_color">色</string>
+    <string name="label_color_other">色（その他）</string>
     <string name="label_viscosity">粘度</string>
     <string name="label_intensity">強度</string>
     <string name="label_intensity_very_weak">とても弱い</string>
@@ -213,7 +218,7 @@
     <string name="message_backup_restore">JSONファイルとして書き出すか、以前のバックアップを読み込みます。</string>
     <string name="setting_glossary">用語集（日本酒のきほん）</string>
     <string name="setting_about_app">このアプリについて</string>
-    <string name="setting_about_app_version">利き酒魔人 2nd %1$s</string>
+    <string name="setting_about_app_version">ききさけ帖 %1$s</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>

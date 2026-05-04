@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,12 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
-import io.github.pyth0n14n.tastinggenie.ui.common.OverflowAction
-import io.github.pyth0n14n.tastinggenie.ui.common.OverflowActionsMenu
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
@@ -76,7 +77,6 @@ internal fun ReviewTimelineItem(
             ReviewTimelineHeader(
                 review = review,
                 state = state,
-                actions = actions,
                 onDeleteRequest = onDeleteRequest,
             )
             ReviewComment(review = review)
@@ -89,7 +89,6 @@ internal fun ReviewTimelineItem(
 private fun ReviewTimelineHeader(
     review: Review,
     state: ReviewListUiState,
-    actions: ReviewListActionHandlers,
     onDeleteRequest: () -> Unit,
 ) {
     Row(
@@ -119,8 +118,6 @@ private fun ReviewTimelineHeader(
         Spacer(modifier = Modifier.weight(1f))
         ReviewRating(review = review)
         ReviewListItemActions(
-            hasSakeImage = state.hasSakeImage,
-            onOpenImage = { actions.onOpenImage(review.id) },
             onDeleteRequest = onDeleteRequest,
         )
     }
@@ -175,7 +172,7 @@ private fun ReviewRating(review: Review) {
 
 @Composable
 private fun ReviewComment(review: Review) {
-    val comment = review.otherFreeComment ?: review.otherCautions ?: review.otherIndividuality
+    val comment = review.otherFreeComment
     if (comment != null) {
         Text(
             text = comment,
@@ -240,18 +237,11 @@ private data class ReviewChipUi(
 )
 
 @Composable
-private fun ReviewListItemActions(
-    hasSakeImage: Boolean,
-    onOpenImage: () -> Unit,
-    onDeleteRequest: () -> Unit,
-) {
-    OverflowActionsMenu(
-        actions =
-            buildList {
-                if (hasSakeImage) {
-                    add(OverflowAction(labelRes = R.string.action_view_image, onClick = onOpenImage))
-                }
-                add(OverflowAction(labelRes = R.string.action_delete, onClick = onDeleteRequest))
-            },
-    )
+private fun ReviewListItemActions(onDeleteRequest: () -> Unit) {
+    IconButton(onClick = onDeleteRequest) {
+        Icon(
+            imageVector = Icons.Outlined.Delete,
+            contentDescription = stringResource(R.string.action_delete),
+        )
+    }
 }

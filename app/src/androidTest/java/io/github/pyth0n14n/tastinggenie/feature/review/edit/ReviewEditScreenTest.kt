@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assertDoesNotExist
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -16,6 +17,7 @@ import androidx.compose.ui.test.swipeLeft
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
@@ -26,6 +28,28 @@ import org.junit.Test
 class ReviewEditScreenTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun topBar_usesBackIconInsteadOfBackText() {
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = ReviewEditUiState(isLoading = false),
+                        onAction = {},
+                        onSave = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("戻る").assertIsDisplayed()
+        composeRule.onNodeWithText("戻る").assertDoesNotExist()
+    }
 
     @Test
     fun loadFailureWithEmptyRatingOptions_showsErrorWithoutCrashing() {
@@ -131,6 +155,52 @@ class ReviewEditScreenTest {
 
         composeRule.onNodeWithText("短い").assertIsDisplayed()
         composeRule.onNodeWithText("長い").assertIsDisplayed()
+    }
+
+    @Test
+    fun colorOther_showsFreeTextFieldAndCanBeCleared() {
+        var state by mutableStateOf(
+            ReviewEditUiState(
+                isLoading = false,
+                showReviewSoundness = false,
+                colorOptions =
+                    listOf(
+                        MasterOption(value = SakeColor.CLEAR.name, label = "無色透明"),
+                        MasterOption(value = SakeColor.OTHER.name, label = "その他"),
+                    ),
+            ),
+        )
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = state,
+                        onAction = { action ->
+                            when (action) {
+                                is ReviewEditAction.SelectionChanged ->
+                                    state = state.withSelection(action.field, action.value)
+                                is ReviewEditAction.TextChanged ->
+                                    state = state.withText(action.field, action.value)
+                                else -> Unit
+                            }
+                        },
+                        onSave = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.APPEARANCE,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("未選択").performClick()
+        composeRule.onNodeWithText("その他").performClick()
+        composeRule.onNodeWithText("色（その他）").assertIsDisplayed()
+
+        composeRule.onNodeWithText("クリア").performClick()
+        composeRule.onNodeWithText("色（その他）").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(null, state.color) }
     }
 
     @Test

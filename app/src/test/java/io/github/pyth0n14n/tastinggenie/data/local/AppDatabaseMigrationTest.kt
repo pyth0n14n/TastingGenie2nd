@@ -26,7 +26,7 @@ private const val VERSION_4_IDENTITY_HASH = "27982588b87f31977215b1657c8d2594"
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_8_preservesExistingSakeData() {
+    fun migration_1_9_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -43,6 +43,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_5_6,
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
+                AppDatabaseMigrations.MIGRATION_8_9,
             )
             val database = databaseBuilder.build()
 
@@ -62,7 +63,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_8_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_9_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -78,6 +79,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_5_6,
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
+                AppDatabaseMigrations.MIGRATION_8_9,
             )
             val database = databaseBuilder.build()
 
@@ -90,10 +92,12 @@ class AppDatabaseMigrationTest {
             assertEquals(false, migratedSake.isPinned)
             assertEquals("移行前レビュー", migratedReview.otherCautions)
             assertNull(migratedReview.otherFreeComment)
+            assertNull(migratedReview.appearanceColorOther)
             assertEquals(false, reviewColumns.contains("imageUri"))
             assertEquals(false, reviewColumns.contains("comment"))
             assertTrue(reviewColumns.contains("otherCautions"))
             assertTrue(reviewColumns.contains("otherFreeComment"))
+            assertTrue(reviewColumns.contains("appearanceColorOther"))
 
             database.close()
             context.deleteDatabase(databaseName)
@@ -101,7 +105,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_3_8_renamesReviewColumnsAndPreservesReviewValues() {
+    fun migration_3_9_renamesReviewColumnsAndPreservesReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-3-4-test.db"
@@ -116,6 +120,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_5_6,
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
+                AppDatabaseMigrations.MIGRATION_8_9,
             )
             val database = databaseBuilder.build()
 
@@ -125,6 +130,7 @@ class AppDatabaseMigrationTest {
             assertEquals("content://bar/1", migratedReview.bar)
             assertEquals("移行前レビュー", migratedReview.otherCautions)
             assertNull(migratedReview.otherFreeComment)
+            assertNull(migratedReview.appearanceColorOther)
             assertEquals("屋台", migratedReview.scene)
             assertEquals("刺身", migratedReview.dish)
             assertEquals("CLEAR", migratedReview.appearanceColor?.name)
@@ -143,6 +149,7 @@ class AppDatabaseMigrationTest {
             assertEquals(false, reviewColumns.contains("comment"))
             assertEquals(false, reviewColumns.contains("scentBase"))
             assertTrue(reviewColumns.contains("appearanceColor"))
+            assertTrue(reviewColumns.contains("appearanceColorOther"))
             assertTrue(reviewColumns.contains("otherCautions"))
             assertTrue(reviewColumns.contains("otherFreeComment"))
 
@@ -152,7 +159,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_4_8_addsPinnedColumnWithDefaultFalse() {
+    fun migration_4_9_addsPinnedColumnWithDefaultFalse() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-4-5-test.db"
@@ -166,6 +173,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_5_6,
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
+                AppDatabaseMigrations.MIGRATION_8_9,
             )
             val database = databaseBuilder.build()
 

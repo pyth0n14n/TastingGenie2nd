@@ -45,6 +45,7 @@ data class ReviewEditUiState(
     val appearanceSoundness: ReviewSoundness = ReviewSoundness.SOUND,
     val temperature: Temperature? = null,
     val color: SakeColor? = null,
+    val colorOther: String = "",
     val viscosity: Int? = null,
     val aromaSoundness: ReviewSoundness = ReviewSoundness.SOUND,
     val intensity: IntensityLevel? = null,

@@ -6,6 +6,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
@@ -175,6 +176,37 @@ class ReviewEditViewModelTest {
             assertEquals(1, repository.savedInputs.size)
             assertEquals(TEST_SAKE_ID, repository.savedInputs.first().sakeId)
             assertEquals(Temperature.JOON, repository.savedInputs.first().temperature)
+        }
+
+    @Test
+    fun save_withOtherColor_persistsColorFreeText() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    reviewRepository = repository,
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.COLOR,
+                    value = SakeColor.OTHER.name,
+                ),
+            )
+            viewModel.onAction(
+                ReviewEditAction.TextChanged(
+                    field = ReviewTextField.COLOR_OTHER,
+                    value = " 桃色 ",
+                ),
+            )
+            viewModel.save()
+            advanceUntilIdle()
+
+            val savedInput = repository.savedInputs.single()
+            assertEquals(SakeColor.OTHER, savedInput.appearanceColor)
+            assertEquals("桃色", savedInput.appearanceColorOther)
         }
 
     @Test
