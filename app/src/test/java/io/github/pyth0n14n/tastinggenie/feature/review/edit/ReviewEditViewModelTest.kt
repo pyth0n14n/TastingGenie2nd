@@ -3,13 +3,18 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewMode
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewModeDefinition
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.domain.model.normalReviewItemIds
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewModeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
@@ -24,6 +29,7 @@ import io.github.pyth0n14n.tastinggenie.ui.common.FieldValidationError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -435,19 +441,44 @@ private class FakeSettingsRepository(
     override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
         stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
+
+    override suspend fun updateReviewMode(modeId: String) {
+        stream.value = stream.value.copy(reviewModeId = modeId)
+    }
 }
 
+private class FakeReviewModeRepository : ReviewModeRepository {
+    override fun observeModes(): Flow<List<ReviewModeDefinition>> =
+        flowOf(
+            listOf(
+                ReviewModeDefinition(
+                    id = ReviewMode.NORMAL.id,
+                    label = "通常",
+                    isBuiltIn = true,
+                    enabledItemIds = normalReviewItemIds,
+                ),
+            ),
+        )
+
+    override fun observeEnabledItemIds(modeId: String): Flow<Set<ReviewItemId>> = flowOf(normalReviewItemIds)
+
+    override suspend fun ensureBuiltInModes() = Unit
+}
+
+@Suppress("LongParameterList")
 private fun reviewEditViewModel(
     savedStateHandle: SavedStateHandle,
     sakeRepository: RecordingSakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
     reviewRepository: RecordingReviewRepository = RecordingReviewRepository(),
     masterDataRepository: MasterDataRepository = ReviewFakeMasterDataRepository(),
     settingsRepository: SettingsRepository = FakeSettingsRepository(),
+    reviewModeRepository: ReviewModeRepository = FakeReviewModeRepository(),
 ): ReviewEditViewModel =
     ReviewEditViewModel(
         savedStateHandle = savedStateHandle,
         sakeRepository = sakeRepository,
         reviewRepository = reviewRepository,
+        reviewModeRepository = reviewModeRepository,
         masterDataRepository = masterDataRepository,
         settingsRepository = settingsRepository,
     )

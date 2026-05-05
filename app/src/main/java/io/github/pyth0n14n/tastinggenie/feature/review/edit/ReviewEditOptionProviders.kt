@@ -4,6 +4,7 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureSmoothness
 
@@ -83,4 +84,18 @@ fun textureSmoothnessOptions(): List<ReviewResourceOption> =
             value = TextureSmoothness.SMOOTH.name,
             labelRes = R.string.label_texture_smoothness_smooth,
         ),
+    )
+
+fun sweetDrynessOptions(): List<ReviewResourceOption> =
+    listOf(
+        ReviewResourceOption(value = SweetDryness.SWEET.name, labelRes = R.string.label_sweet_dryness_sweet),
+        ReviewResourceOption(
+            value = SweetDryness.MEDIUM_SWEET.name,
+            labelRes = R.string.label_sweet_dryness_medium_sweet,
+        ),
+        ReviewResourceOption(
+            value = SweetDryness.MEDIUM_DRY.name,
+            labelRes = R.string.label_sweet_dryness_medium_dry,
+        ),
+        ReviewResourceOption(value = SweetDryness.DRY.name, labelRes = R.string.label_sweet_dryness_dry),
     )

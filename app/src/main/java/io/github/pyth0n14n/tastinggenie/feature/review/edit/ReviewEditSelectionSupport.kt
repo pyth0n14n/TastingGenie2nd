@@ -39,6 +39,8 @@ private fun ReviewEditUiState.clearChoiceSelection(field: ReviewSelectionField):
         ReviewSelectionField.TASTE_ATTACK -> copy(tasteAttack = null, error = null)
         ReviewSelectionField.TASTE_TEXTURE_ROUNDNESS -> copy(tasteTextureRoundness = null, error = null)
         ReviewSelectionField.TASTE_TEXTURE_SMOOTHNESS -> copy(tasteTextureSmoothness = null, error = null)
+        ReviewSelectionField.TASTE_SWEET_DRYNESS -> copy(tasteSweetDryness = null, error = null)
+        ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY -> copy(tasteInPalateAromaIntensity = null, error = null)
         ReviewSelectionField.TASTE_COMPLEXITY -> copy(tasteComplexity = null, error = null)
         else -> null
     }

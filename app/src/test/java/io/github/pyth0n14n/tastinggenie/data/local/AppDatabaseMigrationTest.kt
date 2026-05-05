@@ -26,7 +26,7 @@ private const val VERSION_4_IDENTITY_HASH = "27982588b87f31977215b1657c8d2594"
 @Config(sdk = [34])
 class AppDatabaseMigrationTest {
     @Test
-    fun migration_1_9_preservesExistingSakeData() {
+    fun migration_1_10_preservesExistingSakeData() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-test.db"
@@ -44,6 +44,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
+                AppDatabaseMigrations.MIGRATION_9_10,
             )
             val database = databaseBuilder.build()
 
@@ -63,7 +64,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_2_9_movesImageColumnToSakesAndDropsItFromReviews() {
+    fun migration_2_10_movesImageColumnToSakesAndDropsItFromReviews() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-2-3-test.db"
@@ -80,6 +81,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
+                AppDatabaseMigrations.MIGRATION_9_10,
             )
             val database = databaseBuilder.build()
 
@@ -90,7 +92,7 @@ class AppDatabaseMigrationTest {
             assertEquals("移行前の酒", migratedSake.name)
             assertEquals(emptyList<String>(), migratedSake.imageUris)
             assertEquals(false, migratedSake.isPinned)
-            assertEquals("移行前レビュー", migratedReview.otherCautions)
+            assertNull(migratedReview.otherCautions)
             assertNull(migratedReview.otherFreeComment)
             assertNull(migratedReview.appearanceColorOther)
             assertEquals(false, reviewColumns.contains("imageUri"))
@@ -105,7 +107,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_3_9_renamesReviewColumnsAndPreservesReviewValues() {
+    fun migration_3_10_renamesReviewColumnsAndResetsLegacyReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-3-4-test.db"
@@ -121,6 +123,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
+                AppDatabaseMigrations.MIGRATION_9_10,
             )
             val database = databaseBuilder.build()
 
@@ -128,19 +131,18 @@ class AppDatabaseMigrationTest {
             val reviewColumns = database.reviewColumnNames()
 
             assertEquals("content://bar/1", migratedReview.bar)
-            assertEquals("移行前レビュー", migratedReview.otherCautions)
+            assertNull(migratedReview.otherCautions)
             assertNull(migratedReview.otherFreeComment)
             assertNull(migratedReview.appearanceColorOther)
-            assertEquals("屋台", migratedReview.scene)
             assertEquals("刺身", migratedReview.dish)
-            assertEquals("CLEAR", migratedReview.appearanceColor?.name)
-            assertEquals(LEGACY_REVIEW_VISCOSITY, migratedReview.appearanceViscosity)
-            assertEquals("MEDIUM", migratedReview.aromaIntensity?.name)
-            assertEquals(listOf("MELON"), migratedReview.aromaExamples.map { it.name })
-            assertEquals(listOf("PEAR"), migratedReview.tasteInPalateAroma.map { it.name })
-            assertEquals("STRONG", migratedReview.tasteSweetness?.name)
-            assertEquals("WEAK", migratedReview.tasteAftertaste?.name)
-            assertEquals("GOOD", migratedReview.otherOverallReview?.name)
+            assertNull(migratedReview.appearanceColor)
+            assertNull(migratedReview.appearanceViscosity)
+            assertNull(migratedReview.aromaIntensity)
+            assertEquals(emptyList<String>(), migratedReview.aromaExamples.map { it.name })
+            assertEquals(emptyList<String>(), migratedReview.tasteInPalateAroma.map { it.name })
+            assertNull(migratedReview.tasteSweetness)
+            assertNull(migratedReview.tasteAftertaste)
+            assertNull(migratedReview.otherOverallReview)
             assertEquals("SOUND", migratedReview.appearanceSoundness.name)
             assertEquals("SOUND", migratedReview.aromaSoundness.name)
             assertEquals("SOUND", migratedReview.tasteSoundness.name)
@@ -159,7 +161,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
-    fun migration_4_9_addsPinnedColumnWithDefaultFalse() {
+    fun migration_4_10_addsPinnedColumnWithDefaultFalse() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
             val databaseName = "migration-4-5-test.db"
@@ -174,6 +176,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
+                AppDatabaseMigrations.MIGRATION_9_10,
             )
             val database = databaseBuilder.build()
 

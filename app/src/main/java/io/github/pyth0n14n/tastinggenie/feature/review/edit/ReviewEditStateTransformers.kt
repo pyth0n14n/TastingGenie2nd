@@ -3,10 +3,12 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
@@ -26,6 +28,7 @@ fun MutableStateFlow<ReviewEditUiState>.updateEditable(transform: (ReviewEditUiS
     }
 }
 
+@Suppress("CyclomaticComplexMethod")
 fun ReviewEditUiState.withText(
     field: ReviewTextField,
     value: String,
@@ -39,6 +42,8 @@ fun ReviewEditUiState.withText(
         ReviewTextField.COLOR_OTHER -> copy(colorOther = value, error = null)
         ReviewTextField.AROMA_MAIN_NOTE -> copy(aromaMainNote = value, error = null)
         ReviewTextField.TASTE_MAIN_NOTE -> copy(tasteMainNote = value, error = null)
+        ReviewTextField.TASTE_TEXTURE_NOTE -> copy(tasteTextureNote = value, error = null)
+        ReviewTextField.TASTE_AFTERTASTE_NOTE -> copy(tasteAftertasteNote = value, error = null)
         ReviewTextField.OTHER_INDIVIDUALITY -> copy(otherIndividuality = value, error = null)
         ReviewTextField.OTHER_CAUTIONS -> copy(otherCautions = value, error = null)
         ReviewTextField.SCENE -> copy(scene = value, error = null)
@@ -121,6 +126,14 @@ private fun ReviewEditUiState.withChoiceSelection(
             copySelection(value, TextureSmoothness.entries.firstOrNull { it.name == value }) { state, selected ->
                 state.copy(tasteTextureSmoothness = selected)
             }
+        ReviewSelectionField.TASTE_SWEET_DRYNESS ->
+            copySelection(value, SweetDryness.entries.firstOrNull { it.name == value }) { state, selected ->
+                state.copy(tasteSweetDryness = selected)
+            }
+        ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY ->
+            copySelection(value, IntensityLevel.entries.firstOrNull { it.name == value }) { state, selected ->
+                state.copy(tasteInPalateAromaIntensity = selected)
+            }
         else -> null
     }
 
@@ -185,3 +198,6 @@ fun ReviewEditUiState.withAromaToggled(
         ReviewAromaField.MOUTH -> copy(scentMouth = scentMouth.toggle(aroma), error = null)
     }
 }
+
+fun ReviewEditUiState.withSakeTypeToggled(value: FlavorProfileType): ReviewEditUiState =
+    copy(otherSakeTypes = otherSakeTypes.toggle(value), error = null)

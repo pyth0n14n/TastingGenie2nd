@@ -2,7 +2,8 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 8
+const val CURRENT_SCHEMA_VERSION = 9
+const val LEGACY_SCHEMA_VERSION_8 = 8
 const val LEGACY_SCHEMA_VERSION_7 = 7
 const val LEGACY_SCHEMA_VERSION_6 = 6
 const val LEGACY_SCHEMA_VERSION_5 = 5
@@ -56,8 +57,8 @@ data class SerializableReview(
     val price: Int? = null,
     val volume: Int? = null,
     val temperature: String? = null,
-    val scene: String? = null,
     val dish: String? = null,
+    val foodCompatibility: String? = null,
     val appearanceSoundness: String = "SOUND",
     val appearanceColor: String? = null,
     val appearanceColorOther: String? = null,
@@ -71,16 +72,21 @@ data class SerializableReview(
     val tasteAttack: String? = null,
     val tasteTextureRoundness: String? = null,
     val tasteTextureSmoothness: String? = null,
-    val tasteMainNote: String? = null,
+    val tasteTextureNote: String? = null,
     val tasteSweetness: String? = null,
     val tasteSourness: String? = null,
     val tasteBitterness: String? = null,
     val tasteUmami: String? = null,
+    val tasteDescription: String? = null,
+    val tasteSweetDryness: String? = null,
+    val tasteInPalateAromaIntensity: String? = null,
     val tasteInPalateAroma: List<String> = emptyList(),
     val tasteAftertaste: String? = null,
+    val tasteAftertasteNote: String? = null,
     val tasteComplexity: String? = null,
     val otherIndividuality: String? = null,
     val otherCautions: String? = null,
+    val otherSakeTypes: List<String> = emptyList(),
     val otherFreeComment: String? = null,
     val otherOverallReview: String? = null,
 )

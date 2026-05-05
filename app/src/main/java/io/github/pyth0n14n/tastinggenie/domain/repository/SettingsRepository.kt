@@ -13,4 +13,6 @@ interface SettingsRepository {
     suspend fun updateShowReviewSoundness(enabled: Boolean)
 
     suspend fun updateAutoDeleteUnusedImages(enabled: Boolean)
+
+    suspend fun updateReviewMode(modeId: String)
 }

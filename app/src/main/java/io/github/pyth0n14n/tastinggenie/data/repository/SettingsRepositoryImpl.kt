@@ -4,7 +4,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewMode
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -41,10 +43,17 @@ class SettingsRepositoryImpl
             }
         }
 
+        override suspend fun updateReviewMode(modeId: String) {
+            dataStore.edit { preferences ->
+                preferences[reviewModeIdKey] = modeId
+            }
+        }
+
         private companion object {
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
             val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")
             val autoDeleteUnusedImagesKey = booleanPreferencesKey("auto_delete_unused_images")
+            val reviewModeIdKey = stringPreferencesKey("review_mode_id")
         }
 
         private fun Preferences.toAppSettings(): AppSettings =
@@ -52,5 +61,6 @@ class SettingsRepositoryImpl
                 showHelpHints = this[showHelpHintsKey] ?: true,
                 showReviewSoundness = this[showReviewSoundnessKey] ?: true,
                 autoDeleteUnusedImages = this[autoDeleteUnusedImagesKey] ?: false,
+                reviewModeId = this[reviewModeIdKey] ?: ReviewMode.NORMAL.id,
             )
     }

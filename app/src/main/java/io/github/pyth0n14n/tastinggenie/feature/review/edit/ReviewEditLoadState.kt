@@ -5,6 +5,7 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
@@ -20,6 +21,7 @@ data class ReviewSeedData(
     val sake: Sake?,
     val review: Review?,
     val settings: AppSettings,
+    val enabledItemIds: Set<ReviewItemId>,
 )
 
 fun SavedStateHandle.toReviewArgs(): ReviewEditArgs =
@@ -49,8 +51,7 @@ fun ReviewEditUiState.toLoadedState(
             toMissingReviewState(
                 sakeId = args.sakeId,
                 sakeName = sake.name,
-                master = loaded.master,
-                settings = loaded.settings,
+                loaded = loaded,
                 reviewId = reviewId,
             )
         else ->
@@ -58,8 +59,7 @@ fun ReviewEditUiState.toLoadedState(
                 sakeId = args.sakeId,
                 sakeName = sake.name,
                 review = review,
-                master = loaded.master,
-                settings = loaded.settings,
+                loaded = loaded,
             )
     }
 }
@@ -79,22 +79,22 @@ private fun ReviewEditUiState.toMissingSakeWithId(sakeId: Long): ReviewEditUiSta
 private fun ReviewEditUiState.toMissingReviewState(
     sakeId: Long,
     sakeName: String,
-    master: MasterDataBundle,
-    settings: AppSettings,
+    loaded: ReviewSeedData,
     reviewId: Long,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         sakeName = sakeName,
-        showReviewSoundness = settings.showReviewSoundness,
+        showReviewSoundness = loaded.settings.showReviewSoundness,
+        enabledItemIds = loaded.enabledItemIds,
         isEditTargetMissing = true,
-        temperatureOptions = master.temperatures,
-        colorOptions = master.colors,
-        intensityOptions = master.intensityLevels,
-        tasteOptions = master.tasteLevels,
-        overallReviewOptions = master.overallReviews,
-        aromaCategories = master.aromaCategories,
+        temperatureOptions = loaded.master.temperatures,
+        colorOptions = loaded.master.colors,
+        intensityOptions = loaded.master.intensityLevels,
+        tasteOptions = loaded.master.tasteLevels,
+        overallReviewOptions = loaded.master.overallReviews,
+        aromaCategories = loaded.master.aromaCategories,
         validationErrors = emptyMap(),
         error =
             UiError(
@@ -107,24 +107,26 @@ private fun ReviewEditUiState.toEditableLoadedState(
     sakeId: Long,
     sakeName: String,
     review: Review?,
-    master: MasterDataBundle,
-    settings: AppSettings,
+    loaded: ReviewSeedData,
 ): ReviewEditUiState =
     copy(
         isLoading = false,
         sakeId = sakeId,
         reviewId = review?.id,
         sakeName = sakeName,
-        showReviewSoundness = settings.showReviewSoundness,
+        showReviewSoundness = loaded.settings.showReviewSoundness,
+        enabledItemIds = loaded.enabledItemIds,
         date = review?.date?.toString() ?: defaultReviewDateText(),
         bar = review?.bar.orEmpty(),
         price = review?.price?.toString().orEmpty(),
         volume = review?.volume?.toString().orEmpty(),
         aromaMainNote = review?.aromaMainNote.orEmpty(),
-        tasteMainNote = review?.tasteMainNote.orEmpty(),
+        tasteMainNote = review?.tasteDescription.orEmpty(),
+        tasteTextureNote = review?.tasteTextureNote.orEmpty(),
+        tasteAftertasteNote = review?.tasteAftertasteNote.orEmpty(),
         otherIndividuality = review?.otherIndividuality.orEmpty(),
         otherCautions = review?.otherCautions.orEmpty(),
-        scene = review?.scene.orEmpty(),
+        scene = review?.foodCompatibility?.name.orEmpty(),
         dish = review?.dish.orEmpty(),
         comment = review?.otherFreeComment.orEmpty(),
         appearanceSoundness = review?.appearanceSoundness ?: appearanceSoundness,
@@ -139,6 +141,8 @@ private fun ReviewEditUiState.toEditableLoadedState(
         tasteAttack = review?.tasteAttack,
         tasteTextureRoundness = review?.tasteTextureRoundness.normalizeLegacyTextureRoundness(),
         tasteTextureSmoothness = review?.tasteTextureSmoothness,
+        tasteSweetDryness = review?.tasteSweetDryness,
+        tasteInPalateAromaIntensity = review?.tasteInPalateAromaIntensity,
         sweet = review?.tasteSweetness,
         sour = review?.tasteSourness,
         bitter = review?.tasteBitterness,
@@ -148,12 +152,13 @@ private fun ReviewEditUiState.toEditableLoadedState(
         review = review?.otherOverallReview,
         scentTop = review?.aromaExamples.orEmpty(),
         scentMouth = review?.tasteInPalateAroma.orEmpty(),
-        temperatureOptions = master.temperatures,
-        colorOptions = master.colors,
-        intensityOptions = master.intensityLevels,
-        tasteOptions = master.tasteLevels,
-        overallReviewOptions = master.overallReviews,
-        aromaCategories = master.aromaCategories,
+        otherSakeTypes = review?.otherSakeTypes.orEmpty(),
+        temperatureOptions = loaded.master.temperatures,
+        colorOptions = loaded.master.colors,
+        intensityOptions = loaded.master.intensityLevels,
+        tasteOptions = loaded.master.tasteLevels,
+        overallReviewOptions = loaded.master.overallReviews,
+        aromaCategories = loaded.master.aromaCategories,
         isSakeMissing = false,
         isEditTargetMissing = false,
         validationErrors = emptyMap(),

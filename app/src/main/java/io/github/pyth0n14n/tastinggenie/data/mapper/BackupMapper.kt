@@ -8,6 +8,8 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
@@ -15,6 +17,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
@@ -84,8 +87,8 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         price = price,
         volume = volume,
         temperature = temperature?.name,
-        scene = scene,
         dish = dish,
+        foodCompatibility = foodCompatibility?.name,
         appearanceSoundness = appearanceSoundness.name,
         appearanceColor = appearanceColor?.name,
         appearanceColorOther = appearanceColorOther,
@@ -99,16 +102,21 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         tasteAttack = tasteAttack?.name,
         tasteTextureRoundness = tasteTextureRoundness?.name,
         tasteTextureSmoothness = tasteTextureSmoothness?.name,
-        tasteMainNote = tasteMainNote,
+        tasteTextureNote = tasteTextureNote,
         tasteSweetness = tasteSweetness?.name,
         tasteSourness = tasteSourness?.name,
         tasteBitterness = tasteBitterness?.name,
         tasteUmami = tasteUmami?.name,
+        tasteDescription = tasteDescription,
+        tasteSweetDryness = tasteSweetDryness?.name,
+        tasteInPalateAromaIntensity = tasteInPalateAromaIntensity?.name,
         tasteInPalateAroma = tasteInPalateAroma.map { aroma -> aroma.name },
         tasteAftertaste = tasteAftertaste?.name,
+        tasteAftertasteNote = tasteAftertasteNote,
         tasteComplexity = tasteComplexity?.name,
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherSakeTypes = otherSakeTypes.map { type -> type.name },
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview?.name,
     )
@@ -121,8 +129,8 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         price = price,
         volume = volume,
         temperature = temperature?.let { value -> enumValueOf<Temperature>(value) },
-        scene = scene,
         dish = dish,
+        foodCompatibility = foodCompatibility.toNullableEnum<FoodCompatibility>(),
         appearanceSoundness = appearanceSoundness.toEnum(),
         appearanceColor = appearanceColor.toNullableEnum<SakeColor>(),
         appearanceColorOther = appearanceColorOther,
@@ -136,16 +144,21 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         tasteAttack = tasteAttack.toNullableEnum<AttackLevel>(),
         tasteTextureRoundness = tasteTextureRoundness.toNullableEnum<TextureRoundness>(),
         tasteTextureSmoothness = tasteTextureSmoothness.toNullableEnum<TextureSmoothness>(),
-        tasteMainNote = tasteMainNote,
+        tasteTextureNote = tasteTextureNote,
         tasteSweetness = tasteSweetness.toNullableEnum<TasteLevel>(),
         tasteSourness = tasteSourness.toNullableEnum<TasteLevel>(),
         tasteBitterness = tasteBitterness.toNullableEnum<TasteLevel>(),
         tasteUmami = tasteUmami.toNullableEnum<TasteLevel>(),
+        tasteDescription = tasteDescription,
+        tasteSweetDryness = tasteSweetDryness.toNullableEnum<SweetDryness>(),
+        tasteInPalateAromaIntensity = tasteInPalateAromaIntensity.toNullableEnum<IntensityLevel>(),
         tasteInPalateAroma = tasteInPalateAroma.toAromaList(),
         tasteAftertaste = tasteAftertaste.toNullableEnum<TasteLevel>(),
+        tasteAftertasteNote = tasteAftertasteNote,
         tasteComplexity = tasteComplexity.toNullableEnum<ComplexityLevel>(),
         otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
+        otherSakeTypes = otherSakeTypes.map { type -> enumValueOf<FlavorProfileType>(type) },
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
     )
@@ -159,7 +172,6 @@ fun LegacySerializableReviewV3.toSerializableV4(): SerializableReview =
         price = price,
         volume = volume,
         temperature = temperature,
-        scene = scene,
         dish = dish,
         appearanceSoundness = ReviewSoundness.SOUND.name,
         appearanceColor = color,
