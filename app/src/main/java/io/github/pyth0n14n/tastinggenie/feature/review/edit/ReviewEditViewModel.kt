@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewModeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
@@ -24,6 +25,7 @@ class ReviewEditViewModel
         private val savedStateHandle: SavedStateHandle,
         private val sakeRepository: SakeRepository,
         private val reviewRepository: ReviewRepository,
+        private val reviewModeRepository: ReviewModeRepository,
         private val masterDataRepository: MasterDataRepository,
         private val settingsRepository: SettingsRepository,
     ) : ViewModel() {
@@ -41,6 +43,7 @@ class ReviewEditViewModel
                     is ReviewEditAction.TextChanged -> current.withText(action.field, action.value)
                     is ReviewEditAction.SelectionChanged -> current.withSelection(action.field, action.value)
                     is ReviewEditAction.AromaToggled -> current.withAromaToggled(action.field, action.value)
+                    is ReviewEditAction.SakeTypeToggled -> current.withSakeTypeToggled(action.value)
                     is ReviewEditAction.FlavorProfileSelected ->
                         current.copy(
                             intensity = action.intensity,
@@ -118,11 +121,15 @@ class ReviewEditViewModel
             }
         }
 
-        private suspend fun loadReviewSeedData(args: ReviewEditArgs): ReviewSeedData =
-            ReviewSeedData(
+        private suspend fun loadReviewSeedData(args: ReviewEditArgs): ReviewSeedData {
+            val settings = settingsRepository.observeSettings().first()
+            reviewModeRepository.ensureBuiltInModes()
+            return ReviewSeedData(
                 master = masterDataRepository.getMasterData(),
                 sake = sakeRepository.getSake(args.sakeId),
                 review = args.reviewId?.let { reviewRepository.getReview(it) },
-                settings = settingsRepository.observeSettings().first(),
+                settings = settings,
+                enabledItemIds = reviewModeRepository.observeEnabledItemIds(settings.reviewModeId).first(),
             )
+        }
     }

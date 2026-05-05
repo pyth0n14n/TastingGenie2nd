@@ -134,6 +134,7 @@ private fun emptySettingsActions(
     onToggleHelpHints = {},
     onToggleReviewSoundness = {},
     onToggleAutoDeleteUnusedImages = {},
+    onSelectReviewMode = {},
     onCleanupUnusedImages = {},
     onExportJson = onExportJson,
     onImportJson = onImportJson,

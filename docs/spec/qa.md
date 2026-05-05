@@ -217,10 +217,10 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ### Problem: Legacy aroma fields are migrated inconsistently, leaving removed fields or misfiled examples behind.
 - **Example**: `scentBase` remains in the DB after the review-v2 migration, or old `scentMouth` data is still shown in the aroma tab instead of the taste tab.
-- **Preventive Measure**: Remove `scentBase` completely during the review-v2 schema change. Migrate old `scentTop` to `aromaExamples`, `scentMouth` to `tasteInPalateAroma`, `sharp` to `tasteAftertaste`, and `comment` to `otherCautions`.
+- **Preventive Measure**: Remove `scentBase` completely during the review-v2 schema change. For review-mode DB v10 and later, legacy review evaluation fields are intentionally reset; only basic review metadata is preserved.
 - **Test Coverage**:
   - Migrate a pre-v2 database and verify `scentBase` no longer exists.
-  - Verify migrated `scentTop`, `scentMouth`, `sharp`, and `comment` appear in the intended new fields.
+  - Verify legacy evaluation fields are reset and basic review metadata remains available.
 
 ## 7. UI Display and Localization
 

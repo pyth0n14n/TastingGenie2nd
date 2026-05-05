@@ -32,6 +32,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewMode
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -115,6 +117,7 @@ fun SettingsRoute(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleReviewSoundness = viewModel::toggleReviewSoundness,
                 onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
+                onSelectReviewMode = viewModel::selectReviewMode,
                 onCleanupUnusedImages = viewModel::cleanupUnusedImages,
                 onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
                 onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
@@ -257,6 +260,12 @@ private fun SettingsContent(
                     enabled = !state.isProcessingTransfer,
                 )
                 SettingsDivider()
+                SettingReviewModeRow(
+                    selectedModeId = state.settings.reviewModeId,
+                    onSelectReviewMode = actions.onSelectReviewMode,
+                    enabled = !state.isProcessingTransfer,
+                )
+                SettingsDivider()
                 SettingSwitchRow(
                     label = stringResource(R.string.setting_auto_delete_unused_images_short),
                     description = stringResource(R.string.setting_auto_delete_unused_images_description),
@@ -337,12 +346,50 @@ data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
     val onToggleReviewSoundness: (Boolean) -> Unit,
     val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
+    val onSelectReviewMode: (String) -> Unit,
     val onCleanupUnusedImages: () -> Unit,
     val onExportJson: () -> Unit,
     val onImportJson: () -> Unit,
     val onOpenGlossary: () -> Unit,
     val onDismissMessage: () -> Unit,
 )
+
+@Composable
+private fun SettingReviewModeRow(
+    selectedModeId: String,
+    onSelectReviewMode: (String) -> Unit,
+    enabled: Boolean,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.setting_review_mode),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ReviewMode.entries.forEach { mode ->
+                val selected = selectedModeId == mode.id
+                OutlinedButton(
+                    onClick = { onSelectReviewMode(mode.id) },
+                    enabled = enabled && !selected,
+                ) {
+                    Text(
+                        text =
+                            when (mode) {
+                                ReviewMode.NORMAL -> stringResource(R.string.setting_review_mode_normal)
+                                ReviewMode.KIKISAKE_SHI -> stringResource(R.string.setting_review_mode_kikisake_shi)
+                            },
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun RestoreConfirmDialog(

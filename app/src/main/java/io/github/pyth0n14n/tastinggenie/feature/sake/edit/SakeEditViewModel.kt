@@ -398,6 +398,8 @@ private object NoOpSettingsRepository : SettingsRepository {
     override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
 
     override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit
+
+    override suspend fun updateReviewMode(modeId: String) = Unit
 }
 
 private fun SakeEditUiState.withLoadedData(

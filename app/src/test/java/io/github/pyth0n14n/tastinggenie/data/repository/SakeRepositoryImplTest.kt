@@ -283,8 +283,8 @@ class SakeRepositoryImplTest {
             price = null,
             volume = null,
             temperature = null,
-            scene = null,
             dish = null,
+            foodCompatibility = null,
             appearanceSoundness = ReviewSoundness.SOUND,
             appearanceColor = null,
             appearanceViscosity = null,
@@ -297,7 +297,7 @@ class SakeRepositoryImplTest {
             tasteAttack = null,
             tasteTextureRoundness = null,
             tasteTextureSmoothness = null,
-            tasteMainNote = null,
+            tasteTextureNote = null,
             tasteSweetness = null,
             tasteSourness = null,
             tasteBitterness = null,
@@ -346,5 +346,9 @@ private class FakeSettingsRepository : io.github.pyth0n14n.tastinggenie.domain.r
 
     override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
         stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
+    }
+
+    override suspend fun updateReviewMode(modeId: String) {
+        stream.value = stream.value.copy(reviewModeId = modeId)
     }
 }

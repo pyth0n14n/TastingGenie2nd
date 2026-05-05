@@ -14,6 +14,7 @@ private const val DATABASE_VERSION_6 = 6
 private const val DATABASE_VERSION_7 = 7
 private const val DATABASE_VERSION_8 = 8
 private const val DATABASE_VERSION_9 = 9
+private const val DATABASE_VERSION_10 = 10
 
 object AppDatabaseMigrations {
     val MIGRATION_1_2: Migration =
@@ -75,6 +76,15 @@ object AppDatabaseMigrations {
                 db.execSQL("ALTER TABLE `reviews` ADD COLUMN `appearanceColorOther` TEXT")
             }
         }
+
+    val MIGRATION_9_10: Migration =
+        object : Migration(DATABASE_VERSION_9, DATABASE_VERSION_10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                migrateReviewsToV10(db)
+                createReviewModeTables(db)
+                seedBuiltInReviewModes(db)
+            }
+        }
 }
 
 private fun migrateSakes(db: SupportSQLiteDatabase) {
@@ -98,6 +108,60 @@ private fun migrateReviewsToV4(db: SupportSQLiteDatabase) {
     db.execSQL("DROP TABLE `reviews`")
     db.execSQL("ALTER TABLE `reviews_new` RENAME TO `reviews`")
     db.execSQL("CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)")
+}
+
+private fun migrateReviewsToV10(db: SupportSQLiteDatabase) {
+    db.execSQL(createReviewsV10TableSql())
+    db.execSQL(copyReviewsToV10Sql())
+    db.execSQL("DROP TABLE `reviews`")
+    db.execSQL("ALTER TABLE `reviews_new` RENAME TO `reviews`")
+    db.execSQL("CREATE INDEX IF NOT EXISTS `index_reviews_sakeId` ON `reviews` (`sakeId`)")
+}
+
+private fun createReviewModeTables(db: SupportSQLiteDatabase) {
+    db.execSQL(
+        """
+        CREATE TABLE IF NOT EXISTS `review_modes` (
+            `id` TEXT NOT NULL,
+            `label` TEXT NOT NULL,
+            `isBuiltIn` INTEGER NOT NULL,
+            PRIMARY KEY(`id`)
+        )
+        """.trimIndent(),
+    )
+    db.execSQL(
+        """
+        CREATE TABLE IF NOT EXISTS `review_mode_items` (
+            `modeId` TEXT NOT NULL,
+            `itemId` TEXT NOT NULL,
+            `isEnabled` INTEGER NOT NULL,
+            PRIMARY KEY(`modeId`, `itemId`),
+            FOREIGN KEY(`modeId`) REFERENCES `review_modes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+        )
+        """.trimIndent(),
+    )
+    db.execSQL("CREATE INDEX IF NOT EXISTS `index_review_mode_items_modeId` ON `review_mode_items` (`modeId`)")
+}
+
+private fun seedBuiltInReviewModes(db: SupportSQLiteDatabase) {
+    db.execSQL("INSERT OR REPLACE INTO `review_modes` (`id`, `label`, `isBuiltIn`) VALUES ('normal', '通常', 1)")
+    db.execSQL(
+        "INSERT OR REPLACE INTO `review_modes` (`id`, `label`, `isBuiltIn`) VALUES ('kikisake_shi', '利酒師', 1)",
+    )
+    normalReviewModeItems().forEach { itemId -> insertReviewModeItem(db, modeId = "normal", itemId = itemId) }
+    kikisakeShiReviewModeItems().forEach { itemId ->
+        insertReviewModeItem(db, modeId = "kikisake_shi", itemId = itemId)
+    }
+}
+
+private fun insertReviewModeItem(
+    db: SupportSQLiteDatabase,
+    modeId: String,
+    itemId: String,
+) {
+    db.execSQL(
+        "INSERT OR REPLACE INTO `review_mode_items` (`modeId`, `itemId`, `isEnabled`) VALUES ('$modeId', '$itemId', 1)",
+    )
 }
 
 private fun createSakesTableSql(): String =
@@ -241,6 +305,65 @@ private fun copyReviewsToV4Sql(): String =
     FROM `reviews`
     """.trimIndent()
 
+private fun createReviewsV10TableSql(): String =
+    """
+    CREATE TABLE IF NOT EXISTS `reviews_new` (
+        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        `sakeId` INTEGER NOT NULL,
+        `dateEpochDay` INTEGER NOT NULL,
+        `bar` TEXT,
+        `price` INTEGER,
+        `volume` INTEGER,
+        `temperature` TEXT,
+        `dish` TEXT,
+        `foodCompatibility` TEXT,
+        `appearanceSoundness` TEXT NOT NULL,
+        `appearanceColor` TEXT,
+        `appearanceColorOther` TEXT,
+        `appearanceViscosity` INTEGER,
+        `aromaSoundness` TEXT NOT NULL,
+        `aromaIntensity` TEXT,
+        `aromaExamples` TEXT NOT NULL,
+        `aromaMainNote` TEXT,
+        `aromaComplexity` TEXT,
+        `tasteSoundness` TEXT NOT NULL,
+        `tasteAttack` TEXT,
+        `tasteTextureRoundness` TEXT,
+        `tasteTextureSmoothness` TEXT,
+        `tasteTextureNote` TEXT,
+        `tasteSweetness` TEXT,
+        `tasteSourness` TEXT,
+        `tasteBitterness` TEXT,
+        `tasteUmami` TEXT,
+        `tasteDescription` TEXT,
+        `tasteSweetDryness` TEXT,
+        `tasteInPalateAromaIntensity` TEXT,
+        `tasteInPalateAroma` TEXT NOT NULL,
+        `tasteAftertaste` TEXT,
+        `tasteAftertasteNote` TEXT,
+        `tasteComplexity` TEXT,
+        `otherIndividuality` TEXT,
+        `otherCautions` TEXT,
+        `otherSakeTypes` TEXT NOT NULL,
+        `otherFreeComment` TEXT,
+        `otherOverallReview` TEXT,
+        FOREIGN KEY(`sakeId`) REFERENCES `sakes`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
+    )
+    """.trimIndent()
+
+private fun copyReviewsToV10Sql(): String =
+    """
+    INSERT INTO `reviews_new` (
+        `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `dish`,
+        `appearanceSoundness`, `aromaSoundness`, `tasteSoundness`, `aromaExamples`, `tasteInPalateAroma`,
+        `otherSakeTypes`
+    )
+    SELECT
+        `id`, `sakeId`, `dateEpochDay`, `bar`, `price`, `volume`, `temperature`, `dish`,
+        'SOUND', 'SOUND', 'SOUND', '[]', '[]', '[]'
+    FROM `reviews`
+    """.trimIndent()
+
 private fun createSakesV6TableSql(): String =
     """
     CREATE TABLE IF NOT EXISTS `sakes_new` (
@@ -284,3 +407,68 @@ private fun copySakesToV6Sql(): String =
         `kakeMai`, `kakePolish`, `sakeDegree`, `acidity`, `amino`, `yeast`, `water`
     FROM `sakes`
     """.trimIndent()
+
+private fun normalReviewModeItems(): List<String> =
+    listOf(
+        "DATE",
+        "PRICE",
+        "VOLUME",
+        "TEMPERATURE",
+        "BAR",
+        "DISH",
+        "FOOD_COMPATIBILITY",
+        "APPEARANCE_COLOR",
+        "APPEARANCE_VISCOSITY",
+        "AROMA_INTENSITY",
+        "AROMA_EXAMPLES",
+        "AROMA_COMPLEXITY",
+        "TASTE_ATTACK",
+        "TASTE_TEXTURE_ROUNDNESS",
+        "TASTE_TEXTURE_SMOOTHNESS",
+        "TASTE_SWEETNESS",
+        "TASTE_SOURNESS",
+        "TASTE_UMAMI",
+        "TASTE_BITTERNESS",
+        "TASTE_SWEET_DRYNESS",
+        "TASTE_IN_PALATE_AROMA_INTENSITY",
+        "TASTE_IN_PALATE_AROMA_EXAMPLES",
+        "TASTE_AFTERTASTE_LENGTH",
+        "TASTE_COMPLEXITY",
+        "OTHER_INDIVIDUALITY",
+        "OTHER_SAKE_TYPES",
+        "OTHER_FREE_COMMENT",
+        "OTHER_OVERALL_REVIEW",
+    )
+
+private fun kikisakeShiReviewModeItems(): List<String> =
+    listOf(
+        "DATE",
+        "PRICE",
+        "VOLUME",
+        "TEMPERATURE",
+        "BAR",
+        "DISH",
+        "FOOD_COMPATIBILITY",
+        "APPEARANCE_SOUNDNESS",
+        "APPEARANCE_COLOR",
+        "APPEARANCE_VISCOSITY",
+        "AROMA_SOUNDNESS",
+        "AROMA_INTENSITY",
+        "AROMA_EXAMPLES",
+        "AROMA_MAIN_NOTE",
+        "TASTE_SOUNDNESS",
+        "TASTE_ATTACK",
+        "TASTE_TEXTURE_NOTE",
+        "TASTE_DESCRIPTION",
+        "TASTE_SWEET_DRYNESS",
+        "TASTE_IN_PALATE_AROMA_INTENSITY",
+        "TASTE_IN_PALATE_AROMA_EXAMPLES",
+        "TASTE_AFTERTASTE_LENGTH",
+        "TASTE_AFTERTASTE_NOTE",
+        "TASTE_COMPLEXITY",
+        "OTHER_INDIVIDUALITY",
+        "OTHER_CAUTIONS",
+        "OTHER_SAKE_TYPES",
+        "OTHER_FREE_COMMENT",
+        "OTHER_OVERALL_REVIEW",
+    )

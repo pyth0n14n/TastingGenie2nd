@@ -3,10 +3,13 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
@@ -24,8 +27,8 @@ data class Review(
     val price: Int? = null,
     val volume: Int? = null,
     val temperature: Temperature? = null,
-    val scene: String? = null,
     val dish: String? = null,
+    val foodCompatibility: FoodCompatibility? = null,
     val appearanceSoundness: ReviewSoundness = ReviewSoundness.SOUND,
     val appearanceColor: SakeColor? = null,
     val appearanceColorOther: String? = null,
@@ -39,16 +42,21 @@ data class Review(
     val tasteAttack: AttackLevel? = null,
     val tasteTextureRoundness: TextureRoundness? = null,
     val tasteTextureSmoothness: TextureSmoothness? = null,
-    val tasteMainNote: String? = null,
+    val tasteTextureNote: String? = null,
     val tasteSweetness: TasteLevel? = null,
     val tasteSourness: TasteLevel? = null,
     val tasteBitterness: TasteLevel? = null,
     val tasteUmami: TasteLevel? = null,
+    val tasteDescription: String? = null,
+    val tasteSweetDryness: SweetDryness? = null,
+    val tasteInPalateAromaIntensity: IntensityLevel? = null,
     val tasteInPalateAroma: List<Aroma> = emptyList(),
     val tasteAftertaste: TasteLevel? = null,
+    val tasteAftertasteNote: String? = null,
     val tasteComplexity: ComplexityLevel? = null,
     val otherIndividuality: String? = null,
     val otherCautions: String? = null,
+    val otherSakeTypes: List<FlavorProfileType> = emptyList(),
     val otherFreeComment: String? = null,
     val otherOverallReview: OverallReview? = null,
 )
@@ -64,8 +72,8 @@ data class ReviewInput(
     val price: Int? = null,
     val volume: Int? = null,
     val temperature: Temperature? = null,
-    val scene: String? = null,
     val dish: String? = null,
+    val foodCompatibility: FoodCompatibility? = null,
     val appearanceSoundness: ReviewSoundness = ReviewSoundness.SOUND,
     val appearanceColor: SakeColor? = null,
     val appearanceColorOther: String? = null,
@@ -79,16 +87,21 @@ data class ReviewInput(
     val tasteAttack: AttackLevel? = null,
     val tasteTextureRoundness: TextureRoundness? = null,
     val tasteTextureSmoothness: TextureSmoothness? = null,
-    val tasteMainNote: String? = null,
+    val tasteTextureNote: String? = null,
     val tasteSweetness: TasteLevel? = null,
     val tasteSourness: TasteLevel? = null,
     val tasteBitterness: TasteLevel? = null,
     val tasteUmami: TasteLevel? = null,
+    val tasteDescription: String? = null,
+    val tasteSweetDryness: SweetDryness? = null,
+    val tasteInPalateAromaIntensity: IntensityLevel? = null,
     val tasteInPalateAroma: List<Aroma> = emptyList(),
     val tasteAftertaste: TasteLevel? = null,
+    val tasteAftertasteNote: String? = null,
     val tasteComplexity: ComplexityLevel? = null,
     val otherIndividuality: String? = null,
     val otherCautions: String? = null,
+    val otherSakeTypes: List<FlavorProfileType> = emptyList(),
     val otherFreeComment: String? = null,
     val otherOverallReview: OverallReview? = null,
 )

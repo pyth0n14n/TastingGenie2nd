@@ -90,6 +90,23 @@ class SettingsViewModel
             }
         }
 
+        fun selectReviewMode(modeId: String) {
+            viewModelScope.launch {
+                runCatching { settingsRepository.updateReviewMode(modeId) }
+                    .onFailure { throwable ->
+                        _uiState.update {
+                            it.copy(
+                                error =
+                                    UiError(
+                                        messageResId = R.string.error_save_settings,
+                                        causeKey = throwable.message,
+                                    ),
+                            )
+                        }
+                    }
+            }
+        }
+
         fun cleanupUnusedImages() {
             _uiState.update { it.copy(messageResId = null, error = null) }
             viewModelScope.launch {

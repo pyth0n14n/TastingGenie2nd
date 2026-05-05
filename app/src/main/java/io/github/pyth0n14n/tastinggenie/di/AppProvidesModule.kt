@@ -14,6 +14,7 @@ import dagger.hilt.components.SingletonComponent
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabaseMigrations
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
+import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewModeDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ object AppProvidesModule {
                 AppDatabaseMigrations.MIGRATION_6_7,
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
+                AppDatabaseMigrations.MIGRATION_9_10,
             ).build()
 
     @Provides
@@ -62,6 +64,9 @@ object AppProvidesModule {
 
     @Provides
     fun provideReviewDao(database: AppDatabase): ReviewDao = database.reviewDao()
+
+    @Provides
+    fun provideReviewModeDao(database: AppDatabase): ReviewModeDao = database.reviewModeDao()
 
     @Provides
     @IoDispatcher

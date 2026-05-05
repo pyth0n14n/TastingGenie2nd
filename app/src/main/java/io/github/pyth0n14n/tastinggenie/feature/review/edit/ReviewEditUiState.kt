@@ -3,15 +3,18 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewId
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
@@ -31,12 +34,15 @@ data class ReviewEditUiState(
     val reviewId: ReviewId? = null,
     val sakeName: String = "",
     val showReviewSoundness: Boolean = true,
+    val enabledItemIds: Set<ReviewItemId> = emptySet(),
     val date: String = defaultReviewDateText(),
     val bar: String = "",
     val price: String = "",
     val volume: String = "",
     val aromaMainNote: String = "",
     val tasteMainNote: String = "",
+    val tasteTextureNote: String = "",
+    val tasteAftertasteNote: String = "",
     val otherIndividuality: String = "",
     val otherCautions: String = "",
     val scene: String = "",
@@ -54,6 +60,8 @@ data class ReviewEditUiState(
     val tasteAttack: AttackLevel? = null,
     val tasteTextureRoundness: TextureRoundness? = null,
     val tasteTextureSmoothness: TextureSmoothness? = null,
+    val tasteSweetDryness: SweetDryness? = null,
+    val tasteInPalateAromaIntensity: IntensityLevel? = null,
     val sweet: TasteLevel? = null,
     val sour: TasteLevel? = null,
     val bitter: TasteLevel? = null,
@@ -63,6 +71,7 @@ data class ReviewEditUiState(
     val review: OverallReview? = null,
     val scentTop: List<Aroma> = emptyList(),
     val scentMouth: List<Aroma> = emptyList(),
+    val otherSakeTypes: List<FlavorProfileType> = emptyList(),
     val temperatureOptions: List<MasterOption> = emptyList(),
     val colorOptions: List<MasterOption> = emptyList(),
     val intensityOptions: List<MasterOption> = emptyList(),
@@ -72,4 +81,6 @@ data class ReviewEditUiState(
 ) {
     val isInputLocked: Boolean
         get() = isSakeMissing || isEditTargetMissing
+
+    fun isItemEnabled(itemId: ReviewItemId): Boolean = enabledItemIds.isEmpty() || itemId in enabledItemIds
 }

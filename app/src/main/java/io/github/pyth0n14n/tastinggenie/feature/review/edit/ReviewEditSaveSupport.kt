@@ -2,9 +2,12 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 
+@Suppress("LongMethod")
 fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
     val currentSakeId = sakeId
     val parsedDate = date.toLocalDateOrNull()
@@ -25,37 +28,56 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
             id = reviewId,
             sakeId = currentSakeId,
             date = parsedDate,
-            bar = bar.trimmedOrNull(),
-            price = parsedPrice,
-            volume = parsedVolume,
-            temperature = temperature,
+            bar = bar.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.BAR) },
+            price = parsedPrice.takeIf { isItemEnabled(ReviewItemId.PRICE) },
+            volume = parsedVolume.takeIf { isItemEnabled(ReviewItemId.VOLUME) },
+            temperature = temperature.takeIf { isItemEnabled(ReviewItemId.TEMPERATURE) },
             appearanceSoundness = appearanceSoundness,
-            scene = scene.trimmedOrNull(),
-            dish = dish.trimmedOrNull(),
-            appearanceColor = color,
-            appearanceColorOther = colorOther.trimmedOrNull().takeIf { color == SakeColor.OTHER },
-            appearanceViscosity = viscosity,
+            dish = dish.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.DISH) },
+            foodCompatibility =
+                scene
+                    .trimmedOrNull()
+                    ?.let { value -> enumValueOf<FoodCompatibility>(value) }
+                    .takeIf { isItemEnabled(ReviewItemId.FOOD_COMPATIBILITY) },
+            appearanceColor = color.takeIf { isItemEnabled(ReviewItemId.APPEARANCE_COLOR) },
+            appearanceColorOther =
+                colorOther.trimmedOrNull().takeIf {
+                    isItemEnabled(ReviewItemId.APPEARANCE_COLOR) && color == SakeColor.OTHER
+                },
+            appearanceViscosity = viscosity.takeIf { isItemEnabled(ReviewItemId.APPEARANCE_VISCOSITY) },
             aromaSoundness = aromaSoundness,
-            aromaIntensity = intensity,
-            aromaExamples = scentTop,
-            aromaMainNote = aromaMainNote.trimmedOrNull(),
-            aromaComplexity = aromaComplexity,
+            aromaIntensity = intensity.takeIf { isItemEnabled(ReviewItemId.AROMA_INTENSITY) },
+            aromaExamples = scentTop.takeIf { isItemEnabled(ReviewItemId.AROMA_EXAMPLES) } ?: emptyList(),
+            aromaMainNote = aromaMainNote.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE) },
+            aromaComplexity = aromaComplexity.takeIf { isItemEnabled(ReviewItemId.AROMA_COMPLEXITY) },
             tasteSoundness = tasteSoundness,
-            tasteAttack = tasteAttack,
-            tasteTextureRoundness = tasteTextureRoundness,
-            tasteTextureSmoothness = tasteTextureSmoothness,
-            tasteMainNote = tasteMainNote.trimmedOrNull(),
-            tasteSweetness = sweet,
-            tasteSourness = sour,
-            tasteBitterness = bitter,
-            tasteUmami = umami,
-            tasteInPalateAroma = scentMouth,
-            tasteAftertaste = sharp,
-            tasteComplexity = tasteComplexity,
-            otherIndividuality = otherIndividuality.trimmedOrNull(),
-            otherCautions = otherCautions.trimmedOrNull(),
-            otherFreeComment = comment.trimmedOrNull(),
-            otherOverallReview = review,
+            tasteAttack = tasteAttack.takeIf { isItemEnabled(ReviewItemId.TASTE_ATTACK) },
+            tasteTextureRoundness =
+                tasteTextureRoundness.takeIf { isItemEnabled(ReviewItemId.TASTE_TEXTURE_ROUNDNESS) },
+            tasteTextureSmoothness =
+                tasteTextureSmoothness.takeIf { isItemEnabled(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS) },
+            tasteTextureNote =
+                tasteTextureNote.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.TASTE_TEXTURE_NOTE) },
+            tasteDescription = tasteMainNote.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.TASTE_DESCRIPTION) },
+            tasteSweetDryness = tasteSweetDryness.takeIf { isItemEnabled(ReviewItemId.TASTE_SWEET_DRYNESS) },
+            tasteInPalateAromaIntensity =
+                tasteInPalateAromaIntensity.takeIf { isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY) },
+            tasteSweetness = sweet.takeIf { isItemEnabled(ReviewItemId.TASTE_SWEETNESS) },
+            tasteSourness = sour.takeIf { isItemEnabled(ReviewItemId.TASTE_SOURNESS) },
+            tasteBitterness = bitter.takeIf { isItemEnabled(ReviewItemId.TASTE_BITTERNESS) },
+            tasteUmami = umami.takeIf { isItemEnabled(ReviewItemId.TASTE_UMAMI) },
+            tasteInPalateAroma =
+                scentMouth.takeIf { isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES) } ?: emptyList(),
+            tasteAftertaste = sharp.takeIf { isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_LENGTH) },
+            tasteAftertasteNote =
+                tasteAftertasteNote.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_NOTE) },
+            tasteComplexity = tasteComplexity.takeIf { isItemEnabled(ReviewItemId.TASTE_COMPLEXITY) },
+            otherIndividuality =
+                otherIndividuality.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.OTHER_INDIVIDUALITY) },
+            otherCautions = otherCautions.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.OTHER_CAUTIONS) },
+            otherSakeTypes = otherSakeTypes.takeIf { isItemEnabled(ReviewItemId.OTHER_SAKE_TYPES) } ?: emptyList(),
+            otherFreeComment = comment.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.OTHER_FREE_COMMENT) },
+            otherOverallReview = review.takeIf { isItemEnabled(ReviewItemId.OTHER_OVERALL_REVIEW) },
         )
     } else {
         null

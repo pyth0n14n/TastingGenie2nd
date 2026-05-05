@@ -248,7 +248,7 @@ private fun ReviewEditSectionPage(
                     categories = content.state.aromaCategories,
                 ),
             volumeShortcutOptions = content.volumeShortcutOptions,
-            pairingOptions = content.state.overallReviewOptions.toPairingOptions(),
+            pairingOptions = foodCompatibilityOptions(),
         )
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -319,6 +319,8 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         volume,
         aromaMainNote,
         tasteMainNote,
+        tasteTextureNote,
+        tasteAftertasteNote,
         otherIndividuality,
         otherCautions,
         scene,
@@ -336,6 +338,8 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         tasteAttack,
         tasteTextureRoundness,
         tasteTextureSmoothness,
+        tasteSweetDryness,
+        tasteInPalateAromaIntensity,
         sweet,
         sour,
         bitter,
@@ -345,6 +349,7 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         review,
         scentTop,
         scentMouth,
+        otherSakeTypes,
     )
 
 private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems() {

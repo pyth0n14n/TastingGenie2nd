@@ -16,7 +16,10 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFlavorProfileField
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
@@ -53,14 +56,19 @@ fun ReviewDetailContent(
             tasteAttack = stringResource(R.string.label_taste_attack),
             tasteTextureRoundness = stringResource(R.string.label_taste_texture_roundness),
             tasteTextureSmoothness = stringResource(R.string.label_taste_texture_smoothness),
+            tasteTextureNote = stringResource(R.string.label_taste_texture_note),
             tasteMainNote = stringResource(R.string.label_taste_main_note),
+            tasteSweetDryness = stringResource(R.string.label_taste_sweet_dryness),
+            tasteInPalateAromaIntensity = stringResource(R.string.label_taste_in_palate_aroma_intensity),
             sweet = stringResource(R.string.label_sweet),
             sour = stringResource(R.string.label_sour),
             bitter = stringResource(R.string.label_bitter),
             umami = stringResource(R.string.label_umami),
             aftertaste = stringResource(R.string.label_sharp),
+            aftertasteNote = stringResource(R.string.label_taste_aftertaste_note),
             tasteComplexity = stringResource(R.string.label_taste_complexity),
             individuality = stringResource(R.string.label_other_individuality),
+            sakeTypes = stringResource(R.string.label_other_sake_types),
             scene = stringResource(R.string.label_scene),
             dish = stringResource(R.string.label_dish),
             cautions = stringResource(R.string.label_cautions),
@@ -145,7 +153,7 @@ private fun MutableList<DetailRow>.addBasicRows(
     )
     addIfNotBlank(
         label = textLabels.scene,
-        value = review.scene,
+        value = review.foodCompatibility?.toLabel(),
     )
     addIfNotBlank(
         label = textLabels.dish,
@@ -218,7 +226,13 @@ private fun MutableList<DetailRow>.addTasteRows(
     addIfNotBlank(label = textLabels.tasteAttack, value = review.tasteAttack?.toLabel())
     addIfNotBlank(label = textLabels.tasteTextureRoundness, value = review.tasteTextureRoundness?.toLabel())
     addIfNotBlank(label = textLabels.tasteTextureSmoothness, value = review.tasteTextureSmoothness?.toLabel())
-    addIfNotBlank(label = textLabels.tasteMainNote, value = review.tasteMainNote)
+    addIfNotBlank(label = textLabels.tasteTextureNote, value = review.tasteTextureNote)
+    addIfNotBlank(label = textLabels.tasteMainNote, value = review.tasteDescription)
+    addIfNotBlank(label = textLabels.tasteSweetDryness, value = review.tasteSweetDryness?.toLabel())
+    addIfNotBlank(
+        label = textLabels.tasteInPalateAromaIntensity,
+        value = review.tasteInPalateAromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+    )
     addIfNotBlank(
         label = textLabels.tasteInPalateAroma,
         value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
@@ -237,6 +251,7 @@ private fun MutableList<DetailRow>.addTasteRows(
         label = textLabels.aftertaste,
         value = review.tasteAftertaste?.let { aftertasteLabel(it.name) ?: labels.taste[it.name] ?: it.name },
     )
+    addIfNotBlank(label = textLabels.aftertasteNote, value = review.tasteAftertasteNote)
     addIfNotBlank(label = textLabels.tasteComplexity, value = review.tasteComplexity?.toLabel())
 }
 
@@ -247,6 +262,7 @@ private fun MutableList<DetailRow>.addOtherRows(
 ) {
     addIfNotBlank(label = textLabels.individuality, value = review.otherIndividuality)
     addIfNotBlank(label = textLabels.cautions, value = review.otherCautions)
+    addIfNotBlank(label = textLabels.sakeTypes, value = review.otherSakeTypes.asDisplayText())
     addIfNotBlank(label = textLabels.freeComment, value = review.otherFreeComment)
     addIfNotBlank(
         label = textLabels.overallReview,
@@ -316,14 +332,19 @@ private data class ReviewDetailTextLabels(
     val tasteAttack: String,
     val tasteTextureRoundness: String,
     val tasteTextureSmoothness: String,
+    val tasteTextureNote: String,
     val tasteMainNote: String,
+    val tasteSweetDryness: String,
+    val tasteInPalateAromaIntensity: String,
     val sweet: String,
     val sour: String,
     val bitter: String,
     val umami: String,
     val aftertaste: String,
+    val aftertasteNote: String,
     val tasteComplexity: String,
     val individuality: String,
+    val sakeTypes: String,
     val scene: String,
     val dish: String,
     val cautions: String,
@@ -343,3 +364,31 @@ private fun MutableList<DetailRow>.addIfNotBlank(
 
 private fun List<Aroma>.asDisplayText(labels: Map<String, String>): String? =
     takeIf { it.isNotEmpty() }?.joinToString { aroma -> labels[aroma.name] ?: aroma.name }
+
+private fun List<FlavorProfileType>.asDisplayText(): String? =
+    takeIf { it.isNotEmpty() }?.joinToString { type -> type.toLabel() }
+
+private fun FoodCompatibility.toLabel(): String =
+    when (this) {
+        FoodCompatibility.BAD -> "悪い"
+        FoodCompatibility.SLIGHTLY_BAD -> "やや悪い"
+        FoodCompatibility.MEDIUM -> "普通"
+        FoodCompatibility.SLIGHTLY_GOOD -> "やや良い"
+        FoodCompatibility.GOOD -> "良い"
+    }
+
+private fun SweetDryness.toLabel(): String =
+    when (this) {
+        SweetDryness.SWEET -> "甘口"
+        SweetDryness.MEDIUM_SWEET -> "やや甘口"
+        SweetDryness.MEDIUM_DRY -> "やや辛口"
+        SweetDryness.DRY -> "辛口"
+    }
+
+private fun FlavorProfileType.toLabel(): String =
+    when (this) {
+        FlavorProfileType.SOUSHU -> "爽酒"
+        FlavorProfileType.KUNSHU -> "薫酒"
+        FlavorProfileType.JUNSHU -> "醇酒"
+        FlavorProfileType.JUKUSHU -> "熟酒"
+    }

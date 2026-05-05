@@ -2,7 +2,6 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
@@ -57,7 +56,7 @@ internal fun invalidSelectionError(value: String): UiError =
         causeKey = value,
     )
 
-internal fun List<Aroma>.toggle(target: Aroma): List<Aroma> =
+internal fun <T> List<T>.toggle(target: T): List<T> =
     if (contains(target)) {
         filterNot { it == target }
     } else {

@@ -15,7 +15,7 @@
 
 ```json
 {
-  "schemaVersion": 6,
+  "schemaVersion": 9,
   "sakes": [],
   "reviews": []
 }
@@ -28,7 +28,8 @@
 - `schemaVersion` 必須
 - 未対応バージョンは読み込み失敗としてUIに表示
 - JSON破損時は読み込み失敗としてUIに表示
-- schemaVersion 6 は `sakes[].city` を任意項目として含める
+- schemaVersion 9 は新レビュー項目、`reviewModeId` とは独立した Review 保存フィールド、DB v10 の項目名に対応する
+- import は legacy schema 3..8 を受け付ける。legacy レビュー評価項目は新構成へ自動対応せず、基本情報のみ保持して評価項目は初期化する
 
 ---
 

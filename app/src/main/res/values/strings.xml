@@ -50,8 +50,8 @@
     <string name="label_volume_four_go">四合瓶 (720ml)</string>
     <string name="label_volume_one_sho">一升瓶 (1800ml)</string>
     <string name="label_soundness">健全度</string>
-    <string name="label_color">色</string>
-    <string name="label_color_other">色（その他）</string>
+    <string name="label_color">色合い</string>
+    <string name="label_color_other">色合い（その他）</string>
     <string name="label_viscosity">粘度</string>
     <string name="label_intensity">強度</string>
     <string name="label_intensity_very_weak">とても弱い</string>
@@ -64,7 +64,11 @@
     <string name="label_taste_attack">アタック</string>
     <string name="label_taste_texture_roundness">丸さ</string>
     <string name="label_taste_texture_smoothness">舌ざわり</string>
+    <string name="label_taste_texture_note">テクスチャ</string>
     <string name="label_taste_main_note">具体的な味わい</string>
+    <string name="label_taste_sweet_dryness">甘辛度</string>
+    <string name="label_taste_in_palate_aroma_intensity">含み香の強度</string>
+    <string name="label_taste_aftertaste_note">余韻の記述</string>
     <string name="label_taste_complexity">味わい複雑性</string>
     <string name="label_other_individuality">個性</string>
     <string name="label_scent_top">上立ち香</string>
@@ -87,6 +91,7 @@
     <string name="label_flavor_profile_kunshu">薫酒</string>
     <string name="label_flavor_profile_junshu">醇酒</string>
     <string name="label_flavor_profile_jukushu">熟酒</string>
+    <string name="label_other_sake_types">日本酒4タイプ</string>
     <string name="label_flavor_profile_complexity_complex">味わい 複雑</string>
     <string name="label_flavor_profile_complexity_simple">味わい シンプル</string>
     <string name="label_flavor_profile_intensity_axis">香り 弱い ← 強い</string>
@@ -147,6 +152,10 @@
     <string name="label_texture_smoothness_slightly_fine">ややキメ細やか</string>
     <string name="label_texture_smoothness_slightly_fine_short">ややなめらか</string>
     <string name="label_texture_smoothness_smooth">なめらか</string>
+    <string name="label_sweet_dryness_sweet">甘口</string>
+    <string name="label_sweet_dryness_medium_sweet">やや甘口</string>
+    <string name="label_sweet_dryness_medium_dry">やや辛口</string>
+    <string name="label_sweet_dryness_dry">辛口</string>
     <string name="label_viscosity_1">とても弱い</string>
     <string name="label_viscosity_2">弱い</string>
     <string name="label_viscosity_3">中程度</string>
@@ -201,6 +210,9 @@
     <string name="setting_review_soundness_default_hidden">デフォルトで健全（表示しない）</string>
     <string name="setting_review_soundness_hide">健全度を表示しない</string>
     <string name="setting_review_soundness_hide_description">見た目・香り・味の健全度はデフォルトで健全とする</string>
+    <string name="setting_review_mode">レビュー入力モード</string>
+    <string name="setting_review_mode_normal">通常</string>
+    <string name="setting_review_mode_kikisake_shi">利酒師</string>
     <string name="setting_auto_delete_unused_images">未参照アプリ内画像を自動削除する</string>
     <string name="setting_auto_delete_unused_images_short">未参照アプリ内画像の自動削除</string>
     <string name="setting_auto_delete_unused_images_description">アプリで使用していない酒画像を削除します</string>
