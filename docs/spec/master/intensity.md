@@ -1,9 +1,9 @@
-# 香り強度マスタ
+# 香り強さマスタ
 
 ## 選択方式
 - 5段階の段階選択 UI
 - 任意
-- 対象項目は `aromaIntensity`
+- 対象項目は `aromaIntensity`, `tasteInPalateAromaIntensity`
 
 | value | 表示名 |
 |--------|--------|
