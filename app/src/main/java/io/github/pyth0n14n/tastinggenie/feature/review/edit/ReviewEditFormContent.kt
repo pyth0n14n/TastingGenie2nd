@@ -250,51 +250,45 @@ private fun LazyListScope.addTasteFields(
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    addTasteEvaluationFields(state = state, uiData = uiData, onAction = onAction)
+    addTasteSoundnessField(state = state, onAction = onAction)
+    addTasteAttackField(state = state, onAction = onAction)
     addTasteTextureFields(state = state, onAction = onAction)
-    if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES)) {
-        aromaField(
-            labelRes = R.string.label_scent_mouth,
-            selectedValues = state.scentMouth.map { it.name },
-            field = ReviewAromaField.MOUTH,
-            aromaUiData = uiData.aromaUiData,
-            onAction = onAction,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY)) {
-        steppedField(
-            labelRes = R.string.label_taste_in_palate_aroma_intensity,
-            selectedValue = state.tasteInPalateAromaIntensity?.name,
-            options = uiData.singleChoiceUiData.intensityOptions,
-            field = ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY,
-            onAction = onAction,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_DESCRIPTION)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_taste_main_note,
-            onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.tasteMainNote, field = ReviewTextField.TASTE_MAIN_NOTE),
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_NOTE)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_taste_aftertaste_note,
-            onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.tasteAftertasteNote, field = ReviewTextField.TASTE_AFTERTASTE_NOTE),
-            singleLine = false,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_COMPLEXITY)) {
-        steppedResourceField(
-            labelRes = R.string.label_taste_complexity,
-            selectedValue = state.tasteComplexity?.name,
-            options = complexityOptions(),
-            field = ReviewSelectionField.TASTE_COMPLEXITY,
-            onAction = onAction,
-        )
+    addSpecificTasteFields(state = state, uiData = uiData, onAction = onAction)
+    addSweetDrynessField(state = state, onAction = onAction)
+    addInPalateAromaFields(state = state, uiData = uiData, onAction = onAction)
+    addTasteAftertasteFields(state = state, uiData = uiData, onAction = onAction)
+    addTasteComplexityField(state = state, onAction = onAction)
+}
+
+private fun LazyListScope.addInPalateAromaFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    addGroupIfAny(
+        headingRes = R.string.detail_heading_in_palate_aroma,
+        hasAnyField =
+            state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY) ||
+                state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES),
+    ) {
+        if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY)) {
+            steppedField(
+                labelRes = R.string.detail_label_strength,
+                selectedValue = state.tasteInPalateAromaIntensity?.name,
+                options = uiData.singleChoiceUiData.intensityOptions,
+                field = ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY,
+                onAction = onAction,
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES)) {
+            aromaField(
+                labelRes = R.string.detail_label_examples,
+                selectedValues = state.scentMouth.map { it.name },
+                field = ReviewAromaField.MOUTH,
+                aromaUiData = uiData.aromaUiData,
+                onAction = onAction,
+            )
+        }
     }
 }
 

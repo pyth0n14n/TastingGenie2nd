@@ -22,7 +22,7 @@
 | 見た目 | 色合い | APPEARANCE_COLOR | appearanceColor | 〇 | 〇 | color master |
 | 見た目 | 粘性 | APPEARANCE_VISCOSITY | appearanceViscosity | 〇 | 〇 | 1..5 |
 | 香り | 健全度 | AROMA_SOUNDNESS | aromaSoundness | - | 〇 | SOUND, UNSOUND |
-| 香り | 強度 | AROMA_INTENSITY | aromaIntensity | 〇 | 〇 | intensity master |
+| 香り | 強さ | AROMA_INTENSITY | aromaIntensity | 〇 | 〇 | intensity master |
 | 香り | 上立ち香：具体例 | AROMA_EXAMPLES | aromaExamples | 〇 | 〇 | aroma master |
 | 香り | 上立ち香：主体となる香り | AROMA_MAIN_NOTE | aromaMainNote | - | 〇 | String |
 | 香り | 複雑性 | AROMA_COMPLEXITY | aromaComplexity | 〇 | - | complexity master |
@@ -37,7 +37,7 @@
 | 味 | 具体的な味わい：苦味 | TASTE_BITTERNESS | tasteBitterness | 〇 | - | taste scale |
 | 味 | 具体的な味わい：自由記述 | TASTE_DESCRIPTION | tasteDescription | - | 〇 | String |
 | 味 | 甘辛度 | TASTE_SWEET_DRYNESS | tasteSweetDryness | 〇 | 〇 | SWEET, MEDIUM_SWEET, MEDIUM_DRY, DRY |
-| 味 | 含み香：強度 | TASTE_IN_PALATE_AROMA_INTENSITY | tasteInPalateAromaIntensity | 〇 | 〇 | intensity master |
+| 味 | 含み香：強さ | TASTE_IN_PALATE_AROMA_INTENSITY | tasteInPalateAromaIntensity | 〇 | 〇 | intensity master |
 | 味 | 含み香：具体例 | TASTE_IN_PALATE_AROMA_EXAMPLES | tasteInPalateAroma | 〇 | 〇 | aroma master |
 | 味 | 余韻：長さ | TASTE_AFTERTASTE_LENGTH | tasteAftertaste | 〇 | 〇 | taste scale aftertaste labels |
 | 味 | 余韻：記述 | TASTE_AFTERTASTE_NOTE | tasteAftertasteNote | - | 〇 | String |
@@ -47,3 +47,17 @@
 | 特記 | 日本酒4タイプ | OTHER_SAKE_TYPES | otherSakeTypes | 〇 | 〇 | SOUSHU, KUNSHU, JUNSHU, JUKUSHU |
 | 特記 | 自由コメント | OTHER_FREE_COMMENT | otherFreeComment | 〇 | 〇 | String |
 | 特記 | 総合評価 | OTHER_OVERALL_REVIEW | otherOverallReview | 〇 | 〇 | overall review master |
+
+## レビュー入力・詳細表示
+
+- 見た目の粘度は `1..5` を「低い」「やや低い」「中程度」「やや高い」「高い」として表示する。
+- レビュー入力とレビュー詳細で緩く区分けする場合は、見出しテキストを `titleSmall` で表示し、グループ末尾に 8dp のスペースを置く。
+- 香りは「上立香」の見出しで緩く区分けし、配下に「強さ」「具体例」を表示する。香りの複雑性は「複雑性」と表示する。
+- 味は入力・詳細とも以下の順で表示し、レビュー詳細では味の健全度を表示しない。
+  - アタック
+  - テクスチャ: 丸さ、舌ざわり
+  - 味わい: 甘味、酸味、苦味、旨味
+  - 甘辛度
+  - 含み香: 強さ、具体例
+  - 余韻（自由記述がある場合は直後に表示）
+  - 複雑性

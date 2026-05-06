@@ -1,12 +1,19 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 
-internal fun LazyListScope.addTasteEvaluationFields(
+private const val TASTE_GROUP_BOTTOM_SPACE = 8
+
+internal fun LazyListScope.addTasteSoundnessField(
     state: ReviewEditUiState,
-    uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.showReviewSoundness && state.isItemEnabled(ReviewItemId.TASTE_SOUNDNESS)) {
@@ -18,6 +25,95 @@ internal fun LazyListScope.addTasteEvaluationFields(
             onAction = onAction,
         )
     }
+}
+
+internal fun LazyListScope.addTasteAttackField(
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    if (state.isItemEnabled(ReviewItemId.TASTE_ATTACK)) {
+        steppedResourceField(
+            labelRes = R.string.label_taste_attack,
+            selectedValue = state.tasteAttack?.name,
+            options = attackOptions(),
+            field = ReviewSelectionField.TASTE_ATTACK,
+            onAction = onAction,
+        )
+    }
+}
+
+internal fun LazyListScope.addTasteTextureFields(
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    addGroupIfAny(
+        headingRes = R.string.detail_heading_texture,
+        hasAnyField =
+            state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_ROUNDNESS) ||
+                state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS) ||
+                state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_NOTE),
+    ) {
+        if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_ROUNDNESS)) {
+            steppedResourceField(
+                labelRes = R.string.label_taste_texture_roundness,
+                selectedValue = state.tasteTextureRoundness?.name,
+                options = textureRoundnessOptions(),
+                field = ReviewSelectionField.TASTE_TEXTURE_ROUNDNESS,
+                onAction = onAction,
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS)) {
+            steppedResourceField(
+                labelRes = R.string.label_taste_texture_smoothness,
+                selectedValue = state.tasteTextureSmoothness?.name,
+                options = textureSmoothnessOptions(),
+                field = ReviewSelectionField.TASTE_TEXTURE_SMOOTHNESS,
+                onAction = onAction,
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_NOTE)) {
+            textField(
+                state = state,
+                labelRes = R.string.label_taste_texture_note,
+                onAction = onAction,
+                ui = ReviewTextFieldUi(value = state.tasteTextureNote, field = ReviewTextField.TASTE_TEXTURE_NOTE),
+                singleLine = false,
+            )
+        }
+    }
+}
+
+internal fun LazyListScope.addSpecificTasteFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    addGroupIfAny(
+        headingRes = R.string.detail_heading_taste,
+        hasAnyField =
+            state.isItemEnabled(ReviewItemId.TASTE_SWEETNESS) ||
+                state.isItemEnabled(ReviewItemId.TASTE_SOURNESS) ||
+                state.isItemEnabled(ReviewItemId.TASTE_BITTERNESS) ||
+                state.isItemEnabled(ReviewItemId.TASTE_UMAMI) ||
+                state.isItemEnabled(ReviewItemId.TASTE_DESCRIPTION),
+    ) {
+        addTasteScaleFields(state = state, uiData = uiData, onAction = onAction)
+        if (state.isItemEnabled(ReviewItemId.TASTE_DESCRIPTION)) {
+            textField(
+                state = state,
+                labelRes = R.string.label_taste_main_note,
+                onAction = onAction,
+                ui = ReviewTextFieldUi(value = state.tasteMainNote, field = ReviewTextField.TASTE_MAIN_NOTE),
+            )
+        }
+    }
+}
+
+private fun LazyListScope.addTasteScaleFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
+    onAction: (ReviewEditAction) -> Unit,
+) {
     if (state.isItemEnabled(ReviewItemId.TASTE_SWEETNESS)) {
         steppedField(
             labelRes = R.string.label_sweet,
@@ -54,19 +150,9 @@ internal fun LazyListScope.addTasteEvaluationFields(
             onAction = onAction,
         )
     }
-    if (state.isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_LENGTH)) {
-        steppedField(
-            labelRes = R.string.label_sharp,
-            selectedValue = state.sharp?.name,
-            options = uiData.aftertasteOptions,
-            field = ReviewSelectionField.SHARP,
-            onAction = onAction,
-        )
-    }
-    addSweetDrynessField(state = state, onAction = onAction)
 }
 
-private fun LazyListScope.addSweetDrynessField(
+internal fun LazyListScope.addSweetDrynessField(
     state: ReviewEditUiState,
     onAction: (ReviewEditAction) -> Unit,
 ) {
@@ -81,44 +167,62 @@ private fun LazyListScope.addSweetDrynessField(
     }
 }
 
-internal fun LazyListScope.addTasteTextureFields(
+internal fun LazyListScope.addTasteAftertasteFields(
+    state: ReviewEditUiState,
+    uiData: ReviewEditFormUiData,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    if (state.isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_LENGTH)) {
+        steppedField(
+            labelRes = R.string.label_sharp,
+            selectedValue = state.sharp?.name,
+            options = uiData.aftertasteOptions,
+            field = ReviewSelectionField.SHARP,
+            onAction = onAction,
+        )
+    }
+    if (state.isItemEnabled(ReviewItemId.TASTE_AFTERTASTE_NOTE)) {
+        textField(
+            state = state,
+            labelRes = R.string.label_taste_aftertaste_note,
+            onAction = onAction,
+            ui = ReviewTextFieldUi(value = state.tasteAftertasteNote, field = ReviewTextField.TASTE_AFTERTASTE_NOTE),
+            singleLine = false,
+        )
+    }
+}
+
+internal fun LazyListScope.addTasteComplexityField(
     state: ReviewEditUiState,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    if (state.isItemEnabled(ReviewItemId.TASTE_ATTACK)) {
+    if (state.isItemEnabled(ReviewItemId.TASTE_COMPLEXITY)) {
         steppedResourceField(
-            labelRes = R.string.label_taste_attack,
-            selectedValue = state.tasteAttack?.name,
-            options = attackOptions(),
-            field = ReviewSelectionField.TASTE_ATTACK,
+            labelRes = R.string.label_taste_complexity,
+            selectedValue = state.tasteComplexity?.name,
+            options = complexityOptions(),
+            field = ReviewSelectionField.TASTE_COMPLEXITY,
             onAction = onAction,
         )
     }
-    if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_ROUNDNESS)) {
-        steppedResourceField(
-            labelRes = R.string.label_taste_texture_roundness,
-            selectedValue = state.tasteTextureRoundness?.name,
-            options = textureRoundnessOptions(),
-            field = ReviewSelectionField.TASTE_TEXTURE_ROUNDNESS,
-            onAction = onAction,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS)) {
-        steppedResourceField(
-            labelRes = R.string.label_taste_texture_smoothness,
-            selectedValue = state.tasteTextureSmoothness?.name,
-            options = textureSmoothnessOptions(),
-            field = ReviewSelectionField.TASTE_TEXTURE_SMOOTHNESS,
-            onAction = onAction,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.TASTE_TEXTURE_NOTE)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_taste_texture_note,
-            onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.tasteTextureNote, field = ReviewTextField.TASTE_TEXTURE_NOTE),
-            singleLine = false,
-        )
+}
+
+internal fun LazyListScope.addGroupIfAny(
+    headingRes: Int,
+    hasAnyField: Boolean,
+    content: LazyListScope.() -> Unit,
+) {
+    if (hasAnyField) {
+        item {
+            Text(
+                text = reviewTextResource(headingRes),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        content()
+        item {
+            Spacer(modifier = Modifier.height(TASTE_GROUP_BOTTOM_SPACE.dp))
+        }
     }
 }

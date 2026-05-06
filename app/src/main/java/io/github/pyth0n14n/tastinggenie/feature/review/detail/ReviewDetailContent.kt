@@ -3,8 +3,12 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +30,8 @@ import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
 
 private const val SCREEN_PADDING = 16
 private const val ITEM_SPACING = 12
+private const val GROUP_HEADING_BOTTOM_SPACE = 8
+private const val GROUP_BOTTOM_SPACE = 8
 private const val VISCOSITY_VERY_WEAK = 1
 private const val VISCOSITY_WEAK = 2
 private const val VISCOSITY_MEDIUM = 3
@@ -47,26 +53,27 @@ fun ReviewDetailContent(
             temperature = stringResource(R.string.label_temperature),
             soundness = stringResource(R.string.label_soundness),
             color = stringResource(R.string.label_color),
-            viscosity = stringResource(R.string.label_viscosity),
-            intensity = stringResource(R.string.label_intensity),
-            aromaMainNote = stringResource(R.string.label_aroma_main_note),
-            aromaComplexity = stringResource(R.string.label_aroma_complexity),
-            aromaExamples = stringResource(R.string.label_scent_top),
-            tasteInPalateAroma = stringResource(R.string.label_scent_mouth),
+            viscosity = stringResource(R.string.detail_label_viscosity),
+            aromaTopHeading = stringResource(R.string.detail_heading_aroma_top),
+            aromaComplexity = stringResource(R.string.detail_label_complexity),
+            aromaExamples = stringResource(R.string.detail_label_examples),
+            aromaStrength = stringResource(R.string.detail_label_strength),
             tasteAttack = stringResource(R.string.label_taste_attack),
-            tasteTextureRoundness = stringResource(R.string.label_taste_texture_roundness),
-            tasteTextureSmoothness = stringResource(R.string.label_taste_texture_smoothness),
-            tasteTextureNote = stringResource(R.string.label_taste_texture_note),
-            tasteMainNote = stringResource(R.string.label_taste_main_note),
+            tasteTextureHeading = stringResource(R.string.detail_heading_texture),
+            tasteTextureRoundness = stringResource(R.string.detail_label_roundness),
+            tasteTextureSmoothness = stringResource(R.string.detail_label_smoothness),
+            tasteSpecificHeading = stringResource(R.string.detail_heading_taste),
             tasteSweetDryness = stringResource(R.string.label_taste_sweet_dryness),
-            tasteInPalateAromaIntensity = stringResource(R.string.label_taste_in_palate_aroma_intensity),
-            sweet = stringResource(R.string.label_sweet),
-            sour = stringResource(R.string.label_sour),
-            bitter = stringResource(R.string.label_bitter),
-            umami = stringResource(R.string.label_umami),
+            tasteInPalateAromaHeading = stringResource(R.string.detail_heading_in_palate_aroma),
+            tasteInPalateAromaIntensity = stringResource(R.string.detail_label_strength),
+            tasteInPalateAroma = stringResource(R.string.detail_label_examples),
+            sweet = stringResource(R.string.detail_label_sweet),
+            sour = stringResource(R.string.detail_label_sour),
+            bitter = stringResource(R.string.detail_label_bitter),
+            umami = stringResource(R.string.detail_label_umami),
             aftertaste = stringResource(R.string.label_sharp),
-            aftertasteNote = stringResource(R.string.label_taste_aftertaste_note),
-            tasteComplexity = stringResource(R.string.label_taste_complexity),
+            aftertasteNote = stringResource(R.string.detail_label_free_note),
+            tasteComplexity = stringResource(R.string.detail_label_complexity),
             individuality = stringResource(R.string.label_other_individuality),
             sakeTypes = stringResource(R.string.label_other_sake_types),
             scene = stringResource(R.string.label_scene),
@@ -77,11 +84,11 @@ fun ReviewDetailContent(
         )
     val viscosityLabels =
         mapOf(
-            VISCOSITY_VERY_WEAK to stringResource(R.string.label_viscosity_1),
-            VISCOSITY_WEAK to stringResource(R.string.label_viscosity_2),
-            VISCOSITY_MEDIUM to stringResource(R.string.label_viscosity_3),
-            VISCOSITY_STRONG to stringResource(R.string.label_viscosity_4),
-            VISCOSITY_VERY_STRONG to stringResource(R.string.label_viscosity_5),
+            VISCOSITY_VERY_WEAK to stringResource(R.string.detail_label_viscosity_1),
+            VISCOSITY_WEAK to stringResource(R.string.detail_label_viscosity_2),
+            VISCOSITY_MEDIUM to stringResource(R.string.detail_label_viscosity_3),
+            VISCOSITY_STRONG to stringResource(R.string.detail_label_viscosity_4),
+            VISCOSITY_VERY_STRONG to stringResource(R.string.detail_label_viscosity_5),
         )
     val sectionRows =
         reviewDetailSectionRows(
@@ -95,7 +102,7 @@ fun ReviewDetailContent(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
-        verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         if (content.selectedSection == ReviewSection.OTHER) {
             item(key = "flavor_profile_grid", contentType = "flavor_profile") {
@@ -107,7 +114,11 @@ fun ReviewDetailContent(
             }
         }
         items(items = sectionRows, key = { row -> row.key }) { row ->
-            DetailValue(label = row.label, value = row.value)
+            when {
+                row.isHeading -> DetailHeading(text = row.label)
+                row.isSpacer -> DetailGroupSpacer()
+                else -> DetailValue(label = row.label, value = row.value.orEmpty())
+            }
         }
     }
 }
@@ -204,13 +215,23 @@ private fun MutableList<DetailRow>.addAromaRows(
         label = textLabels.soundness,
         value = review.aromaSoundness.toLabel(),
     )
+    addGroupHeadingIfNotEmpty(key = "aromaTopHeading", label = textLabels.aromaTopHeading) {
+        addIfNotBlank(
+            key = "aromaTopStrength",
+            label = textLabels.aromaStrength,
+            value = review.aromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+        )
+        addIfNotBlank(
+            key = "aromaTopExamples",
+            label = textLabels.aromaExamples,
+            value = review.aromaExamples.asDisplayText(labels.aroma),
+        )
+    }
     addIfNotBlank(
-        label = textLabels.intensity,
-        value = review.aromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+        key = "aromaComplexity",
+        label = textLabels.aromaComplexity,
+        value = review.aromaComplexity?.toLabel(),
     )
-    addIfNotBlank(label = textLabels.aromaExamples, value = review.aromaExamples.asDisplayText(labels.aroma))
-    addIfNotBlank(label = textLabels.aromaMainNote, value = review.aromaMainNote)
-    addIfNotBlank(label = textLabels.aromaComplexity, value = review.aromaComplexity?.toLabel())
 }
 
 private fun MutableList<DetailRow>.addTasteRows(
@@ -218,41 +239,99 @@ private fun MutableList<DetailRow>.addTasteRows(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
 ) {
-    addIfNotBlank(
-        key = "tasteSoundness",
-        label = textLabels.soundness,
-        value = review.tasteSoundness.toLabel(),
-    )
     addIfNotBlank(label = textLabels.tasteAttack, value = review.tasteAttack?.toLabel())
-    addIfNotBlank(label = textLabels.tasteTextureRoundness, value = review.tasteTextureRoundness?.toLabel())
-    addIfNotBlank(label = textLabels.tasteTextureSmoothness, value = review.tasteTextureSmoothness?.toLabel())
-    addIfNotBlank(label = textLabels.tasteTextureNote, value = review.tasteTextureNote)
-    addIfNotBlank(label = textLabels.tasteMainNote, value = review.tasteDescription)
-    addIfNotBlank(label = textLabels.tasteSweetDryness, value = review.tasteSweetDryness?.toLabel())
+    addTasteTextureRows(review = review, textLabels = textLabels)
+    addSpecificTasteRows(review = review, labels = labels, textLabels = textLabels)
     addIfNotBlank(
-        label = textLabels.tasteInPalateAromaIntensity,
-        value = review.tasteInPalateAromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+        key = "tasteSweetDryness",
+        label = textLabels.tasteSweetDryness,
+        value = review.tasteSweetDryness?.toLabel(),
     )
+    addInPalateAromaRows(review = review, labels = labels, textLabels = textLabels)
     addIfNotBlank(
-        label = textLabels.tasteInPalateAroma,
-        value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
-    )
-    addIfNotBlank(
-        label = textLabels.sweet,
-        value = review.tasteSweetness?.let { labels.taste[it.name] ?: it.name },
-    )
-    addIfNotBlank(label = textLabels.sour, value = review.tasteSourness?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(
-        label = textLabels.bitter,
-        value = review.tasteBitterness?.let { labels.taste[it.name] ?: it.name },
-    )
-    addIfNotBlank(label = textLabels.umami, value = review.tasteUmami?.let { labels.taste[it.name] ?: it.name })
-    addIfNotBlank(
+        key = "tasteAftertaste",
         label = textLabels.aftertaste,
-        value = review.tasteAftertaste?.let { aftertasteLabel(it.name) ?: labels.taste[it.name] ?: it.name },
+        value =
+            review.tasteAftertaste?.let {
+                aftertasteLabel(it.name) ?: labels.taste[it.name] ?: it.name
+            },
     )
-    addIfNotBlank(label = textLabels.aftertasteNote, value = review.tasteAftertasteNote)
-    addIfNotBlank(label = textLabels.tasteComplexity, value = review.tasteComplexity?.toLabel())
+    addIfNotBlank(
+        key = "tasteAftertasteNote",
+        label = textLabels.aftertasteNote,
+        value = review.tasteAftertasteNote,
+    )
+    addIfNotBlank(
+        key = "tasteComplexity",
+        label = textLabels.tasteComplexity,
+        value = review.tasteComplexity?.toLabel(),
+    )
+}
+
+private fun MutableList<DetailRow>.addTasteTextureRows(
+    review: Review,
+    textLabels: ReviewDetailTextLabels,
+) {
+    addGroupHeadingIfNotEmpty(key = "tasteTextureHeading", label = textLabels.tasteTextureHeading) {
+        addIfNotBlank(
+            key = "tasteTextureRoundness",
+            label = textLabels.tasteTextureRoundness,
+            value = review.tasteTextureRoundness?.toLabel(),
+        )
+        addIfNotBlank(
+            key = "tasteTextureSmoothness",
+            label = textLabels.tasteTextureSmoothness,
+            value = review.tasteTextureSmoothness?.toLabel(),
+        )
+    }
+}
+
+private fun MutableList<DetailRow>.addSpecificTasteRows(
+    review: Review,
+    labels: ReviewDetailLabels,
+    textLabels: ReviewDetailTextLabels,
+) {
+    addGroupHeadingIfNotEmpty(key = "tasteSpecificHeading", label = textLabels.tasteSpecificHeading) {
+        addIfNotBlank(
+            key = "tasteSweetness",
+            label = textLabels.sweet,
+            value = review.tasteSweetness?.let { labels.taste[it.name] ?: it.name },
+        )
+        addIfNotBlank(
+            key = "tasteSourness",
+            label = textLabels.sour,
+            value = review.tasteSourness?.let { labels.taste[it.name] ?: it.name },
+        )
+        addIfNotBlank(
+            key = "tasteBitterness",
+            label = textLabels.bitter,
+            value = review.tasteBitterness?.let { labels.taste[it.name] ?: it.name },
+        )
+        addIfNotBlank(
+            key = "tasteUmami",
+            label = textLabels.umami,
+            value = review.tasteUmami?.let { labels.taste[it.name] ?: it.name },
+        )
+    }
+}
+
+private fun MutableList<DetailRow>.addInPalateAromaRows(
+    review: Review,
+    labels: ReviewDetailLabels,
+    textLabels: ReviewDetailTextLabels,
+) {
+    addGroupHeadingIfNotEmpty(key = "tasteInPalateAromaHeading", label = textLabels.tasteInPalateAromaHeading) {
+        addIfNotBlank(
+            key = "tasteInPalateAromaIntensity",
+            label = textLabels.tasteInPalateAromaIntensity,
+            value = review.tasteInPalateAromaIntensity?.let { labels.intensity[it.name] ?: it.name },
+        )
+        addIfNotBlank(
+            key = "tasteInPalateAroma",
+            label = textLabels.tasteInPalateAroma,
+            value = review.tasteInPalateAroma.asDisplayText(labels.aroma),
+        )
+    }
 }
 
 private fun MutableList<DetailRow>.addOtherRows(
@@ -304,15 +383,35 @@ private fun DetailValue(
     value: String,
 ) {
     Text(
+        modifier = Modifier.padding(bottom = ITEM_SPACING.dp),
         text = "$label: $value",
         style = MaterialTheme.typography.bodyLarge,
     )
 }
 
+@Composable
+private fun DetailHeading(text: String) {
+    Column {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(modifier = Modifier.height(GROUP_HEADING_BOTTOM_SPACE.dp))
+    }
+}
+
+@Composable
+private fun DetailGroupSpacer() {
+    Spacer(modifier = Modifier.height(GROUP_BOTTOM_SPACE.dp))
+}
+
 private data class DetailRow(
     val key: String,
     val label: String,
-    val value: String,
+    val value: String?,
+    val isHeading: Boolean = false,
+    val isSpacer: Boolean = false,
 )
 
 private data class ReviewDetailTextLabels(
@@ -324,17 +423,18 @@ private data class ReviewDetailTextLabels(
     val soundness: String,
     val color: String,
     val viscosity: String,
-    val intensity: String,
-    val aromaMainNote: String,
+    val aromaTopHeading: String,
     val aromaComplexity: String,
     val aromaExamples: String,
+    val aromaStrength: String,
     val tasteInPalateAroma: String,
     val tasteAttack: String,
+    val tasteTextureHeading: String,
     val tasteTextureRoundness: String,
     val tasteTextureSmoothness: String,
-    val tasteTextureNote: String,
-    val tasteMainNote: String,
+    val tasteSpecificHeading: String,
     val tasteSweetDryness: String,
+    val tasteInPalateAromaHeading: String,
     val tasteInPalateAromaIntensity: String,
     val sweet: String,
     val sour: String,
@@ -359,6 +459,32 @@ private fun MutableList<DetailRow>.addIfNotBlank(
 ) {
     value?.takeIf { it.isNotBlank() }?.let { nonBlankValue ->
         add(DetailRow(key = key, label = label, value = nonBlankValue))
+    }
+}
+
+private fun MutableList<DetailRow>.addHeading(
+    key: String,
+    label: String,
+) {
+    add(DetailRow(key = key, label = label, value = null, isHeading = true))
+}
+
+private fun MutableList<DetailRow>.addSpacer(key: String) {
+    add(DetailRow(key = key, label = "", value = null, isSpacer = true))
+}
+
+private inline fun MutableList<DetailRow>.addGroupHeadingIfNotEmpty(
+    key: String,
+    label: String,
+    addRows: MutableList<DetailRow>.() -> Unit,
+) {
+    val headingIndex = size
+    addHeading(key = key, label = label)
+    addRows()
+    if (size == headingIndex + 1) {
+        removeAt(headingIndex)
+    } else {
+        addSpacer(key = "$key-spacer")
     }
 }
 
