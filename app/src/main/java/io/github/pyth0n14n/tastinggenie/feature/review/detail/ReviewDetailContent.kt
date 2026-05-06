@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,9 +30,9 @@ import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
 
 private const val SCREEN_PADDING = 16
-private const val ITEM_SPACING = 12
+private const val ITEM_SPACING = 16
+private const val GROUP_SPACING = 24
 private const val GROUP_HEADING_BOTTOM_SPACE = 8
-private const val GROUP_BOTTOM_SPACE = 8
 private const val VISCOSITY_VERY_WEAK = 1
 private const val VISCOSITY_WEAK = 2
 private const val VISCOSITY_MEDIUM = 3
@@ -114,10 +115,10 @@ fun ReviewDetailContent(
             }
         }
         items(items = sectionRows, key = { row -> row.key }) { row ->
-            when {
-                row.isHeading -> DetailHeading(text = row.label)
-                row.isSpacer -> DetailGroupSpacer()
-                else -> DetailValue(label = row.label, value = row.value.orEmpty())
+            if (row.children.isEmpty()) {
+                DetailValue(label = row.label, value = row.value.orEmpty())
+            } else {
+                DetailGroup(row = row)
             }
         }
     }
@@ -378,40 +379,61 @@ private fun reviewDetailSectionRows(
     }
 
 @Composable
-private fun DetailValue(
-    label: String,
-    value: String,
-) {
-    Text(
-        modifier = Modifier.padding(bottom = ITEM_SPACING.dp),
-        text = "$label: $value",
-        style = MaterialTheme.typography.bodyLarge,
-    )
-}
-
-@Composable
-private fun DetailHeading(text: String) {
-    Column {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(modifier = Modifier.height(GROUP_HEADING_BOTTOM_SPACE.dp))
+private fun DetailGroup(row: DetailRow) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = GROUP_SPACING.dp),
+    ) {
+        Column {
+            Text(
+                text = row.label,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(GROUP_HEADING_BOTTOM_SPACE.dp))
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp)) {
+            row.children.forEach { child ->
+                DetailValue(label = child.label, value = child.value.orEmpty(), includeBottomPadding = false)
+            }
+        }
     }
 }
 
 @Composable
-private fun DetailGroupSpacer() {
-    Spacer(modifier = Modifier.height(GROUP_BOTTOM_SPACE.dp))
+private fun DetailValue(
+    label: String,
+    value: String,
+    includeBottomPadding: Boolean,
+) {
+    val bottomPadding =
+        if (includeBottomPadding) {
+            ITEM_SPACING.dp
+        } else {
+            0.dp
+        }
+    Text(
+        modifier = Modifier.padding(bottom = bottomPadding),
+        text = "$label: $value",
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
+private fun DetailValue(
+    label: String,
+    value: String,
+) {
+    DetailValue(label = label, value = value, includeBottomPadding = true)
 }
 
 private data class DetailRow(
     val key: String,
     val label: String,
     val value: String?,
-    val isHeading: Boolean = false,
-    val isSpacer: Boolean = false,
+    val children: List<DetailRow> = emptyList(),
 )
 
 private data class ReviewDetailTextLabels(
@@ -462,29 +484,15 @@ private fun MutableList<DetailRow>.addIfNotBlank(
     }
 }
 
-private fun MutableList<DetailRow>.addHeading(
-    key: String,
-    label: String,
-) {
-    add(DetailRow(key = key, label = label, value = null, isHeading = true))
-}
-
-private fun MutableList<DetailRow>.addSpacer(key: String) {
-    add(DetailRow(key = key, label = "", value = null, isSpacer = true))
-}
-
 private inline fun MutableList<DetailRow>.addGroupHeadingIfNotEmpty(
     key: String,
     label: String,
     addRows: MutableList<DetailRow>.() -> Unit,
 ) {
-    val headingIndex = size
-    addHeading(key = key, label = label)
-    addRows()
-    if (size == headingIndex + 1) {
-        removeAt(headingIndex)
-    } else {
-        addSpacer(key = "$key-spacer")
+    val rows = mutableListOf<DetailRow>()
+    rows.addRows()
+    if (rows.isNotEmpty()) {
+        add(DetailRow(key = key, label = label, value = null, children = rows))
     }
 }
 

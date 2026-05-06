@@ -199,7 +199,8 @@ private fun LazyListScope.addAromaFields(
     aromaUiData: AromaUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
-    if (state.showReviewSoundness && state.isItemEnabled(ReviewItemId.AROMA_SOUNDNESS)) {
+    val isSoundnessVisible = state.showReviewSoundness && state.isItemEnabled(ReviewItemId.AROMA_SOUNDNESS)
+    if (isSoundnessVisible) {
         steppedResourceField(
             labelRes = R.string.label_soundness,
             selectedValue = state.aromaSoundness.name,
@@ -208,24 +209,13 @@ private fun LazyListScope.addAromaFields(
             onAction = onAction,
         )
     }
-    if (state.isItemEnabled(ReviewItemId.AROMA_INTENSITY)) {
-        steppedField(
-            labelRes = R.string.label_intensity,
-            selectedValue = state.intensity?.name,
-            options = uiData.intensityOptions,
-            field = ReviewSelectionField.INTENSITY,
-            onAction = onAction,
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES)) {
-        aromaField(
-            labelRes = R.string.label_scent_top,
-            selectedValues = state.scentTop.map { it.name },
-            field = ReviewAromaField.TOP,
-            aromaUiData = aromaUiData,
-            onAction = onAction,
-        )
-    }
+    addAromaTopFields(
+        state = state,
+        uiData = uiData,
+        aromaUiData = aromaUiData,
+        isFirstSubheader = !isSoundnessVisible,
+        onAction = onAction,
+    )
     if (state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE)) {
         textField(
             state = state,
@@ -245,20 +235,83 @@ private fun LazyListScope.addAromaFields(
     }
 }
 
+private fun LazyListScope.addAromaTopFields(
+    state: ReviewEditUiState,
+    uiData: SingleChoiceUiData,
+    aromaUiData: AromaUiData,
+    isFirstSubheader: Boolean,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    addGroupIfAny(
+        headingRes = R.string.detail_heading_aroma_top,
+        hasAnyField =
+            state.isItemEnabled(ReviewItemId.AROMA_INTENSITY) ||
+                state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES),
+        isFirstSubheader = isFirstSubheader,
+    ) {
+        if (state.isItemEnabled(ReviewItemId.AROMA_INTENSITY)) {
+            ReviewChoiceField(
+                labelRes = R.string.detail_label_strength,
+                selectedValue = state.intensity?.name,
+                options = uiData.intensityOptions,
+                field = ReviewSelectionField.INTENSITY,
+                onAction = onAction,
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES)) {
+            GroupedMultiSelectDropdown(
+                label = reviewTextResource(R.string.detail_label_examples),
+                groups = aromaUiData.categories.toDropdownGroups(),
+                selectedValues = state.scentTop.map { it.name },
+                onToggle = { value ->
+                    onAction(ReviewEditAction.AromaToggled(field = ReviewAromaField.TOP, value = value))
+                },
+            )
+        }
+    }
+}
+
 private fun LazyListScope.addTasteFields(
     state: ReviewEditUiState,
     uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
+    val isSoundnessVisible = state.showReviewSoundness && state.isItemEnabled(ReviewItemId.TASTE_SOUNDNESS)
+    val isAttackVisible = state.isItemEnabled(ReviewItemId.TASTE_ATTACK)
+    val isTextureVisible = state.isTasteTextureVisible()
+    val isInPalateAromaVisible = state.isInPalateAromaVisible()
     addTasteSoundnessField(state = state, onAction = onAction)
     addTasteAttackField(state = state, onAction = onAction)
-    addTasteTextureFields(state = state, onAction = onAction)
-    addSpecificTasteFields(state = state, uiData = uiData, onAction = onAction)
+    addTasteTextureFields(
+        state = state,
+        isFirstSubheader = !isSoundnessVisible && !isAttackVisible,
+        onAction = onAction,
+    )
+    addSpecificTasteFields(
+        state = state,
+        uiData = uiData,
+        isAfterSubheaderGroup = isTextureVisible,
+        onAction = onAction,
+    )
     addSweetDrynessField(state = state, onAction = onAction)
     addInPalateAromaFields(state = state, uiData = uiData, onAction = onAction)
-    addTasteAftertasteFields(state = state, uiData = uiData, onAction = onAction)
+    addTasteAftertasteFields(
+        state = state,
+        uiData = uiData,
+        isAfterSubheaderGroup = isInPalateAromaVisible,
+        onAction = onAction,
+    )
     addTasteComplexityField(state = state, onAction = onAction)
 }
+
+private fun ReviewEditUiState.isTasteTextureVisible(): Boolean =
+    isItemEnabled(ReviewItemId.TASTE_TEXTURE_ROUNDNESS) ||
+        isItemEnabled(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS) ||
+        isItemEnabled(ReviewItemId.TASTE_TEXTURE_NOTE)
+
+private fun ReviewEditUiState.isInPalateAromaVisible(): Boolean =
+    isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY) ||
+        isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES)
 
 private fun LazyListScope.addInPalateAromaFields(
     state: ReviewEditUiState,
@@ -272,7 +325,7 @@ private fun LazyListScope.addInPalateAromaFields(
                 state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES),
     ) {
         if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY)) {
-            steppedField(
+            ReviewChoiceField(
                 labelRes = R.string.detail_label_strength,
                 selectedValue = state.tasteInPalateAromaIntensity?.name,
                 options = uiData.singleChoiceUiData.intensityOptions,
@@ -281,12 +334,13 @@ private fun LazyListScope.addInPalateAromaFields(
             )
         }
         if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES)) {
-            aromaField(
-                labelRes = R.string.detail_label_examples,
+            GroupedMultiSelectDropdown(
+                label = reviewTextResource(R.string.detail_label_examples),
+                groups = uiData.aromaUiData.categories.toDropdownGroups(),
                 selectedValues = state.scentMouth.map { it.name },
-                field = ReviewAromaField.MOUTH,
-                aromaUiData = uiData.aromaUiData,
-                onAction = onAction,
+                onToggle = { value ->
+                    onAction(ReviewEditAction.AromaToggled(field = ReviewAromaField.MOUTH, value = value))
+                },
             )
         }
     }
@@ -351,7 +405,7 @@ private fun LazyListScope.sakeTypeField(
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 text = reviewTextResource(R.string.label_other_sake_types),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
             )
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(items = options, key = { option -> option.value }) { option ->
@@ -571,25 +625,6 @@ private fun LazyListScope.textChoiceField(
             selectedValue = selectedValue.takeIf { it.isNotBlank() },
             onValueChanged = { next ->
                 onAction(ReviewEditAction.TextChanged(field = field, value = next.orEmpty()))
-            },
-        )
-    }
-}
-
-private fun LazyListScope.aromaField(
-    labelRes: Int,
-    selectedValues: List<String>,
-    field: ReviewAromaField,
-    aromaUiData: AromaUiData,
-    onAction: (ReviewEditAction) -> Unit,
-) {
-    item {
-        GroupedMultiSelectDropdown(
-            label = reviewTextResource(labelRes),
-            groups = aromaUiData.categories.toDropdownGroups(),
-            selectedValues = selectedValues,
-            onToggle = { value ->
-                onAction(ReviewEditAction.AromaToggled(field = field, value = value))
             },
         )
     }

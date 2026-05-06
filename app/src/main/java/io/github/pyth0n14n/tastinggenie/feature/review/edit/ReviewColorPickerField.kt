@@ -130,13 +130,16 @@ private fun ColorPickerHeader(
         Text(
             text = label,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
         )
         TextButton(
             onClick = onClear,
             enabled = isClearEnabled,
         ) {
-            Text(text = stringResource(R.string.action_clear))
+            Text(
+                text = stringResource(R.string.action_clear),
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
     }
 }
