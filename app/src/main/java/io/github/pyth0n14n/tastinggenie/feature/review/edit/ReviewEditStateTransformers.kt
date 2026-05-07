@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
@@ -196,6 +198,17 @@ fun ReviewEditUiState.withAromaToggled(
     return when (field) {
         ReviewAromaField.TOP -> copy(scentTop = scentTop.toggle(aroma), error = null)
         ReviewAromaField.MOUTH -> copy(scentMouth = scentMouth.toggle(aroma), error = null)
+    }
+}
+
+fun ReviewEditUiState.withAromaSelectionChanged(
+    field: ReviewAromaField,
+    values: List<Aroma>,
+): ReviewEditUiState {
+    val distinct = values.distinct()
+    return when (field) {
+        ReviewAromaField.TOP -> copy(scentTop = distinct, error = null)
+        ReviewAromaField.MOUTH -> copy(scentMouth = distinct, error = null)
     }
 }
 

@@ -236,7 +236,7 @@
     <string name="action_cleanup_unused_images">未参照アプリ内画像を削除</string>
     <string name="help_intro">用語の意味を確認しながら記録できるよう、主要な観点をまとめています。</string>
     <string name="help_color">色: 透明感や黄みの強さなど、見た目の印象です。</string>
-    <string name="help_aroma">香り: 上立ち香、基調香、含み香の3段階で整理します。</string>
+    <string name="help_aroma">香り: 上立香と含み香を、味わい・香気成分・カテゴリ・具体例で整理します。</string>
     <string name="help_taste">味: 甘味、酸味、苦味、旨味、余韻を5段階で記録します。</string>
     <string name="setting_help_hint">ヘルプ導線を表示する</string>
     <string name="setting_help_hint_short">ヘルプ表示</string>

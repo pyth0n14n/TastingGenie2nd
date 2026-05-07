@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
@@ -22,6 +23,11 @@ sealed interface ReviewEditAction {
     data class AromaToggled(
         val field: ReviewAromaField,
         val value: String,
+    ) : ReviewEditAction
+
+    data class AromaSelectionChanged(
+        val field: ReviewAromaField,
+        val values: List<Aroma>,
     ) : ReviewEditAction
 
     data class SakeTypeToggled(

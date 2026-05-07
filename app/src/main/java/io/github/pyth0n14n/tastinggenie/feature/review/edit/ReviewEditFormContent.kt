@@ -27,7 +27,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
-import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.LabeledTextField
 import io.github.pyth0n14n.tastinggenie.ui.common.ShortcutChips
 import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
@@ -259,12 +258,13 @@ private fun LazyListScope.addAromaTopFields(
             )
         }
         if (state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES)) {
-            GroupedMultiSelectDropdown(
+            AromaPickerField(
                 label = reviewTextResource(R.string.detail_label_examples),
-                groups = aromaUiData.categories.toDropdownGroups(),
-                selectedValues = state.scentTop.map { it.name },
-                onToggle = { value ->
-                    onAction(ReviewEditAction.AromaToggled(field = ReviewAromaField.TOP, value = value))
+                title = reviewTextResource(R.string.detail_label_aroma_top_examples),
+                selectedValues = state.scentTop,
+                fallbackLabels = aromaUiData.categories.toAromaLabelMap(),
+                onSave = { values ->
+                    onAction(ReviewEditAction.AromaSelectionChanged(field = ReviewAromaField.TOP, values = values))
                 },
             )
         }
@@ -334,12 +334,13 @@ private fun LazyListScope.addInPalateAromaFields(
             )
         }
         if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES)) {
-            GroupedMultiSelectDropdown(
+            AromaPickerField(
                 label = reviewTextResource(R.string.detail_label_examples),
-                groups = uiData.aromaUiData.categories.toDropdownGroups(),
-                selectedValues = state.scentMouth.map { it.name },
-                onToggle = { value ->
-                    onAction(ReviewEditAction.AromaToggled(field = ReviewAromaField.MOUTH, value = value))
+                title = reviewTextResource(R.string.detail_label_in_palate_aroma_examples),
+                selectedValues = state.scentMouth,
+                fallbackLabels = uiData.aromaUiData.categories.toAromaLabelMap(),
+                onSave = { values ->
+                    onAction(ReviewEditAction.AromaSelectionChanged(field = ReviewAromaField.MOUTH, values = values))
                 },
             )
         }
