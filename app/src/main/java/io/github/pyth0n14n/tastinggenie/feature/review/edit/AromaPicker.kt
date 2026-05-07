@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -35,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,7 +62,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.AromaTaste
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 
 private const val SUMMARY_LABEL_LIMIT = 3
-private const val SHEET_HEIGHT_FRACTION = 0.95f
 private const val CLEAR_BUTTON_MIN_WIDTH = 72
 private val AromaCardHeight = 64.dp
 private val AromaCardHorizontalPadding = 16.dp
@@ -176,13 +179,22 @@ fun AromaPickerBottomSheet(
     onDismiss: () -> Unit,
     onSave: (List<Aroma>) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { nextValue -> nextValue != SheetValue.Hidden },
+        )
     val viewModel = remember(initialSelection) { AromaPickerViewModel(initialSelection = initialSelection) }
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         sheetState = sheetState,
-        modifier = Modifier.fillMaxHeight(SHEET_HEIGHT_FRACTION),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding(),
+        shape = RectangleShape,
         containerColor = MaterialTheme.colorScheme.surface,
+        dragHandle = null,
     ) {
         AromaPickerSheetContent(
             title = title,
@@ -237,8 +249,7 @@ private fun AromaPickerSheetContent(
                 onSelectionToggled = viewModel::toggleSelection,
                 modifier = Modifier.weight(1f),
             )
-            Button(
-                onClick = onSave,
+            Row(
                 modifier =
                     Modifier
                         .fillMaxWidth()
@@ -249,8 +260,20 @@ private fun AromaPickerSheetContent(
                             top = 8.dp,
                             bottom = SheetBottomPadding,
                         ),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("完了")
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+                Button(
+                    onClick = onSave,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text("完了")
+                }
             }
         }
     }

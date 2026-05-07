@@ -7,6 +7,8 @@
 - 対象項目は `aromaExamples` と `tasteInPalateAroma`
 - `aromaExamples` は香りタブの具体例、`tasteInPalateAroma` は味わいタブの含み香として使う
 - 旧 `scentBase` は使用しない
+- 選択UIはステータスバー下からの全画面表示とし、スワイプ、画面外タップ、戻る操作では閉じない
+- 閉じる操作は左上の閉じるボタン、下部左のキャンセルボタン、下部右の完了ボタンのみとする
 
 ---
 
