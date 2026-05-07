@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -21,9 +23,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,7 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,8 +46,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaComponent
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaLabelByValue
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaMasterEntries
@@ -54,6 +59,11 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 
 private const val SUMMARY_LABEL_LIMIT = 3
 private const val SHEET_HEIGHT_FRACTION = 0.95f
+private const val CLEAR_BUTTON_MIN_WIDTH = 72
+private val AromaCardHeight = 64.dp
+private val AromaCardHorizontalPadding = 16.dp
+private val SheetHorizontalPadding = 16.dp
+private val SheetBottomPadding = 16.dp
 
 @Composable
 fun AromaPickerField(
@@ -72,28 +82,47 @@ fun AromaPickerField(
             .ifBlank { "未選択" }
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(ReviewEditLabelInputSpacing),
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
+        AromaPickerFieldHeader(
+            label = label,
+            isClearEnabled = selectedValues.isNotEmpty(),
+            onClear = { onSave(emptyList()) },
         )
-        Surface(
+        OutlinedCard(
             onClick = { isPickerVisible = true },
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.small,
-            tonalElevation = 1.dp,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(AromaCardHeight),
         ) {
-            ListItem(
-                headlineContent = { Text(summary, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                supportingContent = { Text("${selectedValues.distinct().size}件選択済み") },
-                trailingContent = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(AromaCardHeight)
+                        .padding(horizontal = AromaCardHorizontalPadding),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = summary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge,
                     )
-                },
-            )
+                    Text(
+                        text = "${selectedValues.distinct().size}件選択済み",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
     if (isPickerVisible) {
@@ -107,6 +136,34 @@ fun AromaPickerField(
                 onSave(next)
             },
         )
+    }
+}
+
+@Composable
+private fun AromaPickerFieldHeader(
+    label: String,
+    isClearEnabled: Boolean,
+    onClear: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        TextButton(
+            onClick = onClear,
+            enabled = isClearEnabled,
+            modifier = Modifier.width(CLEAR_BUTTON_MIN_WIDTH.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.action_clear),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
     }
 }
 
@@ -125,6 +182,7 @@ fun AromaPickerBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = Modifier.fillMaxHeight(SHEET_HEIGHT_FRACTION),
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         AromaPickerSheetContent(
             title = title,
@@ -145,40 +203,56 @@ private fun AromaPickerSheetContent(
     onSave: () -> Unit,
 ) {
     val uiModel = viewModel.uiModel
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
+    Surface(
+        modifier = Modifier.fillMaxHeight(),
+        color = MaterialTheme.colorScheme.surface,
     ) {
-        AromaPickerHeader(
-            title = title,
-            selectedCount = viewModel.selected.size,
-            canClear = viewModel.selected.isNotEmpty(),
-            onClear = viewModel::clearSelection,
-            onDismiss = onDismiss,
-            onSave = onSave,
-        )
-        AromaFilterBar(
-            query = viewModel.query,
-            selected = viewModel.selected.toSavedAromaList(),
-            selectedTastes = viewModel.tasteFilters,
-            fallbackLabels = fallbackLabels,
-            onQueryChanged = viewModel::updateQuery,
-            onTasteToggled = viewModel::toggleTasteFilter,
-            onSelectedRemoved = viewModel::toggleSelection,
-        )
-        HorizontalDivider()
-        AromaAccordionList(
-            uiModel = uiModel,
-            selected = viewModel.selected,
-            expandedTasteKeys = viewModel.expandedTasteKeys,
-            expandedCategoryKeys = viewModel.expandedCategoryKeys,
-            forceExpanded = viewModel.query.isNotBlank(),
-            onTasteToggled = viewModel::toggleTasteExpanded,
-            onCategoryToggled = viewModel::toggleCategoryExpanded,
-            onSelectionToggled = viewModel::toggleSelection,
-        )
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+        ) {
+            AromaPickerHeader(
+                title = title,
+                selectedCount = viewModel.selected.size,
+                onDismiss = onDismiss,
+            )
+            AromaFilterBar(
+                query = viewModel.query,
+                selected = viewModel.selected.toSavedAromaList(),
+                fallbackLabels = fallbackLabels,
+                onQueryChanged = viewModel::updateQuery,
+                onSelectedRemoved = viewModel::toggleSelection,
+            )
+            HorizontalDivider()
+            AromaAccordionList(
+                uiModel = uiModel,
+                selected = viewModel.selected,
+                expandedTasteKeys = viewModel.expandedTasteKeys,
+                expandedCategoryKeys = viewModel.expandedCategoryKeys,
+                forceExpanded = viewModel.query.isNotBlank(),
+                onTasteToggled = viewModel::toggleTasteExpanded,
+                onCategoryToggled = viewModel::toggleCategoryExpanded,
+                onSelectionToggled = viewModel::toggleSelection,
+                modifier = Modifier.weight(1f),
+            )
+            Button(
+                onClick = onSave,
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(
+                            start = SheetHorizontalPadding,
+                            end = SheetHorizontalPadding,
+                            top = 8.dp,
+                            bottom = SheetBottomPadding,
+                        ),
+            ) {
+                Text("完了")
+            }
+        }
     }
 }
 
@@ -186,10 +260,7 @@ private fun AromaPickerSheetContent(
 private fun AromaPickerHeader(
     title: String,
     selectedCount: Int,
-    canClear: Boolean,
-    onClear: () -> Unit,
     onDismiss: () -> Unit,
-    onSave: () -> Unit,
 ) {
     Row(
         modifier =
@@ -209,12 +280,6 @@ private fun AromaPickerHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        TextButton(onClick = onClear, enabled = canClear) {
-            Text("クリア")
-        }
-        TextButton(onClick = onSave) {
-            Text("完了")
-        }
     }
 }
 
@@ -223,10 +288,8 @@ private fun AromaPickerHeader(
 fun AromaFilterBar(
     query: String,
     selected: List<Aroma>,
-    selectedTastes: Set<AromaTaste>,
     fallbackLabels: Map<String, String>,
     onQueryChanged: (String) -> Unit,
-    onTasteToggled: (AromaTaste) -> Unit,
     onSelectedRemoved: (Aroma) -> Unit,
 ) {
     Column(
@@ -263,15 +326,6 @@ fun AromaFilterBar(
             fallbackLabels = fallbackLabels,
             onSelectedRemoved = onSelectedRemoved,
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(AromaTaste.entries, key = { taste -> taste.name }) { taste ->
-                FilterChip(
-                    selected = taste in selectedTastes,
-                    onClick = { onTasteToggled(taste) },
-                    label = { Text(taste.label) },
-                )
-            }
-        }
     }
 }
 
@@ -316,8 +370,10 @@ fun AromaAccordionList(
     onTasteToggled: (AromaTaste) -> Unit,
     onCategoryToggled: (String) -> Unit,
     onSelectionToggled: (Aroma) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
+        modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
         if (uiModel.sections.isEmpty()) {
