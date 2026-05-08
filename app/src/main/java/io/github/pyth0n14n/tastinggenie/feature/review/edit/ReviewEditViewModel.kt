@@ -43,6 +43,8 @@ class ReviewEditViewModel
                     is ReviewEditAction.TextChanged -> current.withText(action.field, action.value)
                     is ReviewEditAction.SelectionChanged -> current.withSelection(action.field, action.value)
                     is ReviewEditAction.AromaToggled -> current.withAromaToggled(action.field, action.value)
+                    is ReviewEditAction.AromaSelectionChanged ->
+                        current.withAromaSelectionChanged(action.field, action.values)
                     is ReviewEditAction.SakeTypeToggled -> current.withSakeTypeToggled(action.value)
                     is ReviewEditAction.FlavorProfileSelected ->
                         current.copy(

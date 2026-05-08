@@ -61,6 +61,7 @@ internal fun SakeTextFieldContent(
                         }
                     },
                 suffixText = suffix,
+                prefixText = ui.presentation.prefixText,
                 keyboardOptions =
                     ui.presentation.keyboardType?.let { keyboardType ->
                         KeyboardOptions(keyboardType = keyboardType)
@@ -72,6 +73,7 @@ internal fun SakeTextFieldContent(
 data class SakeFieldPresentation(
     val validationField: SakeValidationField? = null,
     val required: Boolean = false,
+    val prefixText: String? = null,
     @param:StringRes val suffixRes: Int? = null,
     val keyboardType: KeyboardType? = null,
 )

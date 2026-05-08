@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.data.master
 
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaCategoryMaster
+import io.github.pyth0n14n.tastinggenie.domain.model.AromaLabelByValue
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AromaGroup
@@ -54,14 +55,21 @@ private fun parseAroma(
 ): List<AromaCategoryMaster> {
     val raw = source.read(PATH_AROMA)
     val parsed = json.decodeFromString<AromaMasterAsset>(raw)
-    return parsed.categories.map { category ->
+    val legacyCategories =
+        parsed.categories.map { category ->
+            AromaCategoryMaster(
+                group = enumValueOf<AromaGroup>(category.group),
+                label = category.label,
+                items =
+                    category.items.map { item ->
+                        MasterOption(value = item.value, label = item.label, description = item.description)
+                    },
+            )
+        }
+    return legacyCategories +
         AromaCategoryMaster(
-            group = enumValueOf<AromaGroup>(category.group),
-            label = category.label,
-            items =
-                category.items.map { item ->
-                    MasterOption(value = item.value, label = item.label, description = item.description)
-                },
+            group = AromaGroup.FLORAL,
+            label = "香りマスタ",
+            items = AromaLabelByValue.map { (value, label) -> MasterOption(value = value, label = label) },
         )
-    }
 }

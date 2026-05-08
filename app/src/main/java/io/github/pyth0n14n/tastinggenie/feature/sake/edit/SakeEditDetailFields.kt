@@ -1,5 +1,6 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,22 +48,25 @@ private fun SakeDegreeField(
     state: SakeEditUiState,
     callbacks: SakeEditCallbacks,
 ) {
-    SakeTextFieldContent(
-        labelRes = R.string.label_sake_degree,
-        state = state,
-        callbacks = callbacks,
-        ui =
-            SakeTextFieldUi(
-                value = state.sakeDegree,
-                field = SakeTextField.SAKE_DEGREE,
-                presentation =
-                    SakeFieldPresentation(
-                        validationField = SakeValidationField.SAKE_DEGREE,
-                        suffixRes = R.string.suffix_degree,
-                        keyboardType = KeyboardType.Decimal,
-                    ),
-            ),
-    )
+    Column {
+        SakeDegreeTasteLabel(state.sakeDegree)
+        SakeTextFieldContent(
+            labelRes = R.string.label_sake_degree,
+            state = state,
+            callbacks = callbacks,
+            ui =
+                SakeTextFieldUi(
+                    value = state.sakeDegree,
+                    field = SakeTextField.SAKE_DEGREE,
+                    presentation =
+                        SakeFieldPresentation(
+                            validationField = SakeValidationField.SAKE_DEGREE,
+                            prefixText = sakeDegreePrefix(state.sakeDegree),
+                            keyboardType = KeyboardType.Decimal,
+                        ),
+                ),
+        )
+    }
 }
 
 @Composable
@@ -81,7 +85,6 @@ private fun SakeAcidityField(
                 presentation =
                     SakeFieldPresentation(
                         validationField = SakeValidationField.ACIDITY,
-                        suffixRes = R.string.suffix_degree,
                         keyboardType = KeyboardType.Decimal,
                     ),
             ),
@@ -104,7 +107,6 @@ private fun SakeAminoField(
                 presentation =
                     SakeFieldPresentation(
                         validationField = SakeValidationField.AMINO,
-                        suffixRes = R.string.suffix_degree,
                         keyboardType = KeyboardType.Decimal,
                     ),
             ),

@@ -150,6 +150,29 @@ class SakeEditViewModel
             }
         }
 
+        fun onClassificationsChanged(values: List<String>) {
+            val optionOrder = uiState.value.classificationOptions.map { option -> option.value }
+            val selectedClassifications =
+                values
+                    .mapNotNull { value -> SakeClassification.entries.firstOrNull { it.name == value } }
+                    .distinct()
+                    .sortedBy { classification ->
+                        optionOrder.indexOf(classification.name).takeIf { it >= 0 } ?: Int.MAX_VALUE
+                    }
+            updateEditableState { current ->
+                current.copy(
+                    classifications = selectedClassifications,
+                    typeOther =
+                        if (selectedClassifications.contains(SakeClassification.OTHER)) {
+                            current.typeOther
+                        } else {
+                            ""
+                        },
+                    error = null,
+                )
+            }
+        }
+
         fun onPrefectureSelected(value: String?) {
             val selectedPrefecture =
                 when (value) {

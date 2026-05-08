@@ -6,8 +6,6 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import io.github.pyth0n14n.tastinggenie.ui.common.FormFieldState
-import io.github.pyth0n14n.tastinggenie.ui.common.GroupedMultiSelectDropdown
-import io.github.pyth0n14n.tastinggenie.ui.common.GroupedSingleSelectDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.RequiredFieldHint
 import io.github.pyth0n14n.tastinggenie.ui.common.SimpleDropdown
 import io.github.pyth0n14n.tastinggenie.ui.common.validationErrorText
@@ -97,11 +95,11 @@ private fun SakeClassificationField(
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
 ) {
-    GroupedMultiSelectDropdown(
+    SakeClassificationSelectField(
         label = stringResource(R.string.label_classification),
         groups = uiData.classificationGroups,
         selectedValues = state.classifications.map { classification -> classification.name },
-        onToggle = callbacks.onClassificationToggled,
+        onSelectionChanged = callbacks.onClassificationsChanged,
     )
 }
 
@@ -137,7 +135,7 @@ private fun SakePrefectureField(
     uiData: SakeEditFormUiData,
     callbacks: SakeEditCallbacks,
 ) {
-    GroupedSingleSelectDropdown(
+    SakePrefectureSelectField(
         label = stringResource(R.string.label_prefecture),
         groups = uiData.prefectureGroups,
         selectedValue = state.prefecture?.name,

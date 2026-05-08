@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -22,6 +24,7 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 
 private const val CLEAR_BUTTON_MIN_WIDTH = 72
+private val ClearButtonHeight = 32.dp
 private val ChoiceButtonHeight = 32.dp
 private val ChoiceButtonCorner = 12.dp
 
@@ -33,19 +36,32 @@ fun ReviewEditChoiceField(
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(ReviewEditLabelInputSpacing),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = label,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
             )
             TextButton(
                 onClick = { onValueChanged(null) },
                 enabled = selectedValue != null,
-                modifier = Modifier.width(CLEAR_BUTTON_MIN_WIDTH.dp),
+                modifier =
+                    Modifier
+                        .width(CLEAR_BUTTON_MIN_WIDTH.dp)
+                        .height(ClearButtonHeight),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
             ) {
-                Text(text = stringResource(R.string.action_clear))
+                Text(
+                    text = stringResource(R.string.action_clear),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
         ConnectedChoiceButtons(

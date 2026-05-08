@@ -35,6 +35,7 @@ fun LabeledTextField(
         isError = fieldState.isError,
         keyboardOptions = fieldState.keyboardOptions,
         supportingText = supportingTextContent(fieldState.errorText),
+        prefix = fieldState.prefixText?.let { prefixText -> { Text(prefixText) } },
         suffix = fieldState.suffixText?.let { suffixText -> { Text(suffixText) } },
     )
 }
@@ -47,6 +48,24 @@ fun SimpleDropdown(
     options: List<DropdownOption>,
     onSelected: (String) -> Unit,
     fieldState: FormFieldState = FormFieldState(),
+) {
+    SimpleDropdownContent(
+        label = label,
+        selectedLabel = selectedLabel,
+        options = options,
+        onSelected = onSelected,
+        fieldState = fieldState,
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SimpleDropdownContent(
+    label: String,
+    selectedLabel: String,
+    options: List<DropdownOption>,
+    onSelected: (String) -> Unit,
+    fieldState: FormFieldState,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val displayedLabel =
@@ -73,9 +92,7 @@ fun SimpleDropdown(
             singleLine = true,
             isError = fieldState.isError,
             supportingText = supportingTextContent(fieldState.errorText),
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )
         ExposedDropdownMenu(

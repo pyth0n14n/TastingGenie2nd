@@ -4,13 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -58,31 +57,59 @@ internal fun SakeEditSection(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 internal fun SakeEditResponsiveFieldGrid(content: SakeEditFieldGridScope.() -> Unit) {
     val scope = SakeEditFieldGridScope().apply(content)
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val columns = if (maxWidth >= TwoColumnMinWidth) 2 else 1
         val fieldWidth = fieldWidth(maxWidth = maxWidth, columns = columns)
-        FlowRow(
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(FieldSpacing),
             verticalArrangement = Arrangement.spacedBy(FieldSpacing),
-            maxItemsInEachRow = columns,
         ) {
-            scope.fields.forEach { field ->
-                val modifier =
-                    if (field.fullWidth) {
-                        Modifier.fillMaxWidth()
-                    } else {
-                        Modifier.width(fieldWidth)
+            val rows = scope.fields.toFieldRows(columns = columns)
+            rows.forEach { row ->
+                if (row.singleOrNull()?.fullWidth == true) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        row.single()()
                     }
-                Box(modifier = modifier) {
-                    field()
+                } else {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(FieldSpacing),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        row.forEach { field ->
+                            Box(modifier = Modifier.width(fieldWidth)) {
+                                field()
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+private fun List<SakeEditFieldGridItem>.toFieldRows(columns: Int): List<List<SakeEditFieldGridItem>> {
+    val rows = mutableListOf<List<SakeEditFieldGridItem>>()
+    var index = 0
+    while (index < size) {
+        val field = this[index]
+        if (columns == 1 || field.fullWidth) {
+            rows += listOf(field)
+            index += 1
+        } else {
+            val next = getOrNull(index + 1)
+            if (next == null || next.fullWidth) {
+                rows += listOf(field)
+                index += 1
+            } else {
+                rows += listOf(field, next)
+                index += 2
+            }
+        }
+    }
+    return rows
 }
 
 private fun fieldWidth(
