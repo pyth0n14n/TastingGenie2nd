@@ -179,15 +179,14 @@ fun AromaPickerBottomSheet(
     onDismiss: () -> Unit,
     onSave: (List<Aroma>) -> Unit,
 ) {
-    val sheetState =
-        rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-            confirmValueChange = { nextValue -> nextValue != SheetValue.Hidden },
-        )
     val viewModel = remember(initialSelection) { AromaPickerViewModel(initialSelection = initialSelection) }
     ModalBottomSheet(
-        onDismissRequest = {},
-        sheetState = sheetState,
+        onDismissRequest = onDismiss,
+        sheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+                confirmValueChange = { nextValue -> nextValue != SheetValue.Hidden },
+            ),
         modifier =
             Modifier
                 .fillMaxSize()
