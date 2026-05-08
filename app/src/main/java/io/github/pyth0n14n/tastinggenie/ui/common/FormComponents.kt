@@ -35,6 +35,7 @@ fun LabeledTextField(
         isError = fieldState.isError,
         keyboardOptions = fieldState.keyboardOptions,
         supportingText = supportingTextContent(fieldState.errorText),
+        prefix = fieldState.prefixText?.let { prefixText -> { Text(prefixText) } },
         suffix = fieldState.suffixText?.let { suffixText -> { Text(suffixText) } },
     )
 }

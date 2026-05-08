@@ -135,6 +135,13 @@
     <string name="label_prefecture">都道府県</string>
     <string name="label_city">市</string>
     <string name="label_sake_degree">日本酒度</string>
+    <string name="label_sake_degree_super_sweet">大甘口</string>
+    <string name="label_sake_degree_sweet">甘口</string>
+    <string name="label_sake_degree_slightly_sweet">やや甘口</string>
+    <string name="label_sake_degree_medium">普通</string>
+    <string name="label_sake_degree_slightly_dry">やや辛口</string>
+    <string name="label_sake_degree_dry">辛口</string>
+    <string name="label_sake_degree_super_dry">大辛口</string>
     <string name="label_acidity">酸度</string>
     <string name="label_amino">アミノ酸度</string>
     <string name="label_koji_mai">麹米</string>

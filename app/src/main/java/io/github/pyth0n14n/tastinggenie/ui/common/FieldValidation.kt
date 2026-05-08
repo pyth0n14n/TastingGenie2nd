@@ -17,6 +17,7 @@ enum class FieldValidationError {
 data class FormFieldState(
     val required: Boolean = false,
     val errorText: String? = null,
+    val prefixText: String? = null,
     val suffixText: String? = null,
     val keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
