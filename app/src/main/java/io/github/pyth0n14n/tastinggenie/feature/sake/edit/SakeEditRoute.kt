@@ -79,7 +79,7 @@ fun SakeEditRoute(
         SakeEditCallbacks(
             onTextChanged = viewModel::onTextChanged,
             onGradeSelected = viewModel::onGradeSelected,
-            onClassificationToggled = viewModel::onClassificationToggled,
+            onClassificationsChanged = viewModel::onClassificationsChanged,
             onPrefectureSelected = viewModel::onPrefectureSelected,
             onPickImageRequest = {
                 imagePickerLauncher.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
@@ -286,7 +286,7 @@ private fun SaveButton(
 data class SakeEditCallbacks(
     val onTextChanged: (SakeTextField, String) -> Unit,
     val onGradeSelected: (String) -> Unit,
-    val onClassificationToggled: (String) -> Unit,
+    val onClassificationsChanged: (List<String>) -> Unit,
     val onPrefectureSelected: (String?) -> Unit,
     val onPickImageRequest: () -> Unit,
     val onCaptureImageRequest: () -> Unit,

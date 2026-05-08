@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -304,10 +305,10 @@ class SakeEditScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("都道府県: 未選択").assertIsDisplayed()
-        composeRule.onNodeWithText("都道府県: 未選択").performClick()
-        composeRule.onNodeWithText("[+] 北関東").performClick()
-        composeRule.onNodeWithText("  ( ) 長野県").performClick()
+        composeRule.onNodeWithContentDescription("都道府県: 未選択").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("都道府県: 未選択").performClick()
+        composeRule.onNodeWithText("北関東").assertIsDisplayed()
+        composeRule.onNodeWithText("長野県").performClick()
         composeRule.runOnIdle { assertEquals(Prefecture.NAGANO.name, selectedValue) }
     }
 }
@@ -315,7 +316,7 @@ class SakeEditScreenTest {
 private fun defaultCallbacks(
     onTextChanged: (SakeTextField, String) -> Unit = { _, _ -> },
     onGradeSelected: (String) -> Unit = {},
-    onClassificationToggled: (String) -> Unit = {},
+    onClassificationsChanged: (List<String>) -> Unit = {},
     onPrefectureSelected: (String?) -> Unit = {},
     onPickImageRequest: () -> Unit = {},
     onCaptureImageRequest: () -> Unit = {},
@@ -324,7 +325,7 @@ private fun defaultCallbacks(
     SakeEditCallbacks(
         onTextChanged = onTextChanged,
         onGradeSelected = onGradeSelected,
-        onClassificationToggled = onClassificationToggled,
+        onClassificationsChanged = onClassificationsChanged,
         onPrefectureSelected = onPrefectureSelected,
         onPickImageRequest = onPickImageRequest,
         onCaptureImageRequest = onCaptureImageRequest,

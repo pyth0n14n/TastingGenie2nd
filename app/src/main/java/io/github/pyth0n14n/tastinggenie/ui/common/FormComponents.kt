@@ -48,6 +48,24 @@ fun SimpleDropdown(
     onSelected: (String) -> Unit,
     fieldState: FormFieldState = FormFieldState(),
 ) {
+    SimpleDropdownContent(
+        label = label,
+        selectedLabel = selectedLabel,
+        options = options,
+        onSelected = onSelected,
+        fieldState = fieldState,
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SimpleDropdownContent(
+    label: String,
+    selectedLabel: String,
+    options: List<DropdownOption>,
+    onSelected: (String) -> Unit,
+    fieldState: FormFieldState,
+) {
     var expanded by remember { mutableStateOf(false) }
     val displayedLabel =
         if (selectedLabel.isBlank()) {
@@ -73,9 +91,7 @@ fun SimpleDropdown(
             singleLine = true,
             isError = fieldState.isError,
             supportingText = supportingTextContent(fieldState.errorText),
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
         )
         ExposedDropdownMenu(
