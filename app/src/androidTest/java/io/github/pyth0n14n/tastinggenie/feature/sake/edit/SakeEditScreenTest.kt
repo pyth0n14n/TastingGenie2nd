@@ -162,6 +162,67 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun classificationPicker_withHelpHintsOn_showsOptionDescriptions() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = true,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(
+                                    value = SakeClassification.KIMOTO.name,
+                                    label = "生酛",
+                                    description = "自然の乳酸菌を使う、伝統的な酒母づくり",
+                                ),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("分類: 未選択").performClick()
+        composeRule.onNodeWithText("酛").performClick()
+        composeRule.onNodeWithText("自然の乳酸菌を使う、伝統的な酒母づくり").assertIsDisplayed()
+    }
+
+    @Test
+    fun classificationPicker_withHelpHintsOff_hidesOptionDescriptions() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(
+                                    value = SakeClassification.KIMOTO.name,
+                                    label = "生酛",
+                                    description = "自然の乳酸菌を使う、伝統的な酒母づくり",
+                                ),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("分類: 未選択").performClick()
+        composeRule.onNodeWithText("酛").performClick()
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithText("自然の乳酸菌を使う、伝統的な酒母づくり").fetchSemanticsNodes().size,
+        )
+    }
+
+    @Test
     fun selectingBothOtherValues_showsSeparateFields() {
         composeRule.setContent {
             SakeEditScreen(

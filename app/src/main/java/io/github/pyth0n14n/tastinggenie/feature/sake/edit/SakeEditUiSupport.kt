@@ -9,6 +9,7 @@ fun List<MasterOption>.toOptions(): List<DropdownOption> =
         DropdownOption(
             value = option.value,
             label = option.label,
+            description = option.description,
         )
     }
 
