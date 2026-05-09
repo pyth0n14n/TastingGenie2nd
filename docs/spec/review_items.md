@@ -44,7 +44,7 @@
 | 味 | 複雑性 | TASTE_COMPLEXITY | tasteComplexity | 〇 | 〇 | complexity master |
 | 特記 | 個性 | OTHER_INDIVIDUALITY | otherIndividuality | 〇 | 〇 | String |
 | 特記 | 留意点 | OTHER_CAUTIONS | otherCautions | - | 〇 | String |
-| 特記 | 日本酒4タイプ | OTHER_SAKE_TYPES | otherSakeTypes | 〇 | 〇 | SOUSHU, KUNSHU, JUNSHU, JUKUSHU |
+| 特記 | 日本酒4タイプ | OTHER_SAKE_TYPES | otherSakeTypes | 〇 | 〇 | SOUSHU, KUNSHU, JUNSHU, JUKUSHU（単一選択） |
 | 特記 | 自由コメント | OTHER_FREE_COMMENT | otherFreeComment | 〇 | 〇 | String |
 | 特記 | 総合評価 | OTHER_OVERALL_REVIEW | otherOverallReview | 〇 | 〇 | overall review master |
 
@@ -62,3 +62,4 @@
   - 含み香: 強さ、具体例
   - 余韻（自由記述がある場合は直後に表示）
   - 複雑性
+- 特記の日本酒4タイプは、薫酒 / 熟酒 / 爽酒 / 醇酒の4択として2x2グリッドで単一選択する。保存フィールドは既存互換のため `otherSakeTypes` のリスト型を維持し、選択値を1件だけ保持する。

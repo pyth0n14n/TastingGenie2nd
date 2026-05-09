@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -371,8 +368,7 @@ private fun LazyListScope.addNoteFields(
     }
     if (state.isItemEnabled(ReviewItemId.OTHER_SAKE_TYPES)) {
         sakeTypeField(
-            selectedValues = state.otherSakeTypes,
-            options = sakeTypeOptions(),
+            selectedValue = state.otherSakeTypes.firstOrNull(),
             onAction = onAction,
         )
     }
@@ -398,8 +394,7 @@ private fun LazyListScope.addNoteFields(
 }
 
 private fun LazyListScope.sakeTypeField(
-    selectedValues: List<FlavorProfileType>,
-    options: List<DropdownOption>,
+    selectedValue: FlavorProfileType?,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     item {
@@ -408,21 +403,14 @@ private fun LazyListScope.sakeTypeField(
                 text = reviewTextResource(R.string.label_other_sake_types),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(items = options, key = { option -> option.value }) { option ->
-                    val value = FlavorProfileType.valueOf(option.value)
-                    FilterChip(
-                        selected = value in selectedValues,
-                        onClick = { onAction(ReviewEditAction.SakeTypeToggled(value)) },
-                        label = {
-                            Text(
-                                text = option.label,
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        },
+            SakeTypeQuadrantSelector(
+                selectedType = selectedValue,
+                onTypeSelected = { value ->
+                    onAction(
+                        ReviewEditAction.SakeTypeSelected(value),
                     )
-                }
-            }
+                },
+            )
         }
     }
 }

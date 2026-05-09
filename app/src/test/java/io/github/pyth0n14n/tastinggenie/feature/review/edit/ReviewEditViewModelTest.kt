@@ -7,6 +7,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewMode
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewModeDefinition
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
@@ -338,6 +339,23 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(IntensityLevel.STRONG, state.intensity)
             assertEquals(ComplexityLevel.SLIGHTLY_COMPLEX, state.tasteComplexity)
+            assertEquals(null, state.error)
+        }
+
+    @Test
+    fun sakeTypeSelection_keepsSingleSelectedType() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(ReviewEditAction.SakeTypeSelected(FlavorProfileType.KUNSHU))
+            viewModel.onAction(ReviewEditAction.SakeTypeSelected(FlavorProfileType.JUKUSHU))
+
+            val state = viewModel.uiState.value
+            assertEquals(listOf(FlavorProfileType.JUKUSHU), state.otherSakeTypes)
             assertEquals(null, state.error)
         }
 
