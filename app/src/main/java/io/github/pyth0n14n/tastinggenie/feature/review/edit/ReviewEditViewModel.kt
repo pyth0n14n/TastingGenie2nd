@@ -45,7 +45,7 @@ class ReviewEditViewModel
                     is ReviewEditAction.AromaToggled -> current.withAromaToggled(action.field, action.value)
                     is ReviewEditAction.AromaSelectionChanged ->
                         current.withAromaSelectionChanged(action.field, action.values)
-                    is ReviewEditAction.SakeTypeToggled -> current.withSakeTypeToggled(action.value)
+                    is ReviewEditAction.SakeTypeSelected -> current.withSakeTypeSelected(action.value)
                     is ReviewEditAction.FlavorProfileSelected ->
                         current.copy(
                             intensity = action.intensity,

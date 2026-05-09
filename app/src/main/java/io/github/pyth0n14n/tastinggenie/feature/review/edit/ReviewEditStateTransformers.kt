@@ -212,5 +212,5 @@ fun ReviewEditUiState.withAromaSelectionChanged(
     }
 }
 
-fun ReviewEditUiState.withSakeTypeToggled(value: FlavorProfileType): ReviewEditUiState =
-    copy(otherSakeTypes = otherSakeTypes.toggle(value), error = null)
+fun ReviewEditUiState.withSakeTypeSelected(value: FlavorProfileType): ReviewEditUiState =
+    copy(otherSakeTypes = listOf(value), error = null)

@@ -30,7 +30,7 @@ sealed interface ReviewEditAction {
         val values: List<Aroma>,
     ) : ReviewEditAction
 
-    data class SakeTypeToggled(
+    data class SakeTypeSelected(
         val value: FlavorProfileType,
     ) : ReviewEditAction
 

@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.feature.review
 
 import androidx.compose.foundation.background
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -30,8 +33,9 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 
-private const val GRID_SIZE = 5
 private val GridCellShape = RoundedCornerShape(8.dp)
+private const val FLAVOR_PROFILE_GRID_COLUMNS = 2
+private const val FLAVOR_PROFILE_GRID_ROWS = 2
 
 @Composable
 fun ReviewFlavorProfileField(
@@ -45,12 +49,13 @@ fun ReviewFlavorProfileField(
 
     Column(modifier = modifier.fillMaxWidth()) {
         FlavorProfileHeader(selectedType = selectedType)
-        FlavorProfileTopLegend()
+        FlavorProfileAxisLabel(R.string.label_flavor_profile_aroma_high)
         FlavorProfileGrid(
             selectedCell = selectedCell,
             onSelectionChanged = onSelectionChanged,
         )
-        FlavorProfileBottomLegend()
+        FlavorProfileAxisLabel(R.string.label_flavor_profile_aroma_low)
+        FlavorProfileTasteLegend()
     }
 }
 
@@ -74,24 +79,9 @@ private fun FlavorProfileHeader(selectedType: FlavorProfileType?) {
 }
 
 @Composable
-private fun FlavorProfileTopLegend() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = FlavorProfileType.JUNSHU.toLabel(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
-        )
-        Text(
-            text = FlavorProfileType.JUKUSHU.toLabel(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.outline,
-        )
-    }
+private fun FlavorProfileAxisLabel(resId: Int) {
     Text(
-        text = reviewFlavorProfileText(R.string.label_flavor_profile_complexity_complex),
+        text = reviewFlavorProfileText(resId),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.outline,
     )
@@ -107,15 +97,18 @@ private fun FlavorProfileGrid(
             Modifier
                 .fillMaxWidth()
                 .selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        flavorProfileComplexityLevels.forEachIndexed { yIndex, _ ->
+        repeat(FLAVOR_PROFILE_GRID_ROWS) { yIndex ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                repeat(GRID_SIZE) { xIndex ->
+                repeat(FLAVOR_PROFILE_GRID_COLUMNS) { xIndex ->
                     val selection = flavorProfileSelectionAt(xIndex = xIndex, yIndex = yIndex) ?: return@repeat
+                    val type = flavorProfileTypeAt(xIndex = xIndex, yIndex = yIndex) ?: return@repeat
                     FlavorProfileCellBox(
+                        type = type,
                         selection = selection,
                         isSelected = selectedCell == FlavorProfileCell(xIndex = xIndex, yIndex = yIndex),
                         onClick = onSelectionChanged,
@@ -123,37 +116,29 @@ private fun FlavorProfileGrid(
                     )
                 }
             }
-            if (yIndex != flavorProfileComplexityLevels.lastIndex) {
-                Spacer(modifier = Modifier.height(6.dp))
-            }
         }
     }
 }
 
 @Composable
-private fun FlavorProfileBottomLegend() {
-    Text(
-        text = reviewFlavorProfileText(R.string.label_flavor_profile_complexity_simple),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.outline,
-    )
+private fun FlavorProfileTasteLegend() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = FlavorProfileType.SOUSHU.toLabel(),
+            text = reviewFlavorProfileText(R.string.label_flavor_profile_taste_simple),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
         )
         Text(
-            text = reviewFlavorProfileText(R.string.label_flavor_profile_intensity_axis),
+            text = reviewFlavorProfileText(R.string.label_flavor_profile_taste_axis),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
         )
         Text(
-            text = FlavorProfileType.KUNSHU.toLabel(),
+            text = reviewFlavorProfileText(R.string.label_flavor_profile_taste_complex),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.outline,
         )
@@ -162,6 +147,7 @@ private fun FlavorProfileBottomLegend() {
 
 @Composable
 private fun FlavorProfileCellBox(
+    type: FlavorProfileType,
     selection: FlavorProfileSelection,
     isSelected: Boolean,
     onClick: ((FlavorProfileSelection) -> Unit)?,
@@ -212,16 +198,45 @@ private fun FlavorProfileCellBox(
         modifier = cellModifier,
         contentAlignment = Alignment.Center,
     ) {
+        FlavorProfileCellContent(type = type, isSelected = isSelected)
+    }
+}
+
+@Composable
+private fun FlavorProfileCellContent(
+    type: FlavorProfileType,
+    isSelected: Boolean,
+) {
+    Column(
+        modifier = Modifier.padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = type.toLabel(),
+            style = MaterialTheme.typography.titleSmall,
+            color =
+                if (isSelected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+        )
         if (isSelected) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(10.dp)
-                        .clip(RoundedCornerShape(percent = 50))
-                        .background(MaterialTheme.colorScheme.primary),
-            )
+            FlavorProfileSelectedIndicator()
         }
     }
+}
+
+@Composable
+private fun FlavorProfileSelectedIndicator() {
+    Box(
+        modifier =
+            Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(percent = 50))
+                .background(MaterialTheme.colorScheme.primary),
+    )
 }
 
 @Composable

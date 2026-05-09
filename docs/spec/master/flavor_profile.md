@@ -4,12 +4,13 @@
 - `香味特性別分類` は表示専用の導出値
 - 保存元は `aromaIntensity` と `tasteComplexity`
 - DB / backup / domain model に独立した永続列は持たない
+- `OTHER_SAKE_TYPES` の日本酒4タイプ入力は、同じ4タイプを使う独立した単一選択UIとして扱う
 
 ## 2. 表示方式
-- 5 x 5 グリッドで現在位置を表示する
-- X軸は `aromaIntensity`
-- Y軸は `tasteComplexity`
-- グリッドをタップした場合は `aromaIntensity` と `tasteComplexity` を同時に更新する
+- 2 x 2 グリッドで現在位置を表示する
+- X軸は味わいで、左をシンプル、右を複雑とする
+- Y軸は香りで、上を高い、下を低いとする
+- グリッドをタップした場合は、選択した象限の代表値で `aromaIntensity` と `tasteComplexity` を同時に更新する
 - `aromaIntensity` または `tasteComplexity` を直接変更した場合は、グリッド表示も同期する
 - どのセルも未分類にしないため、中央値 `MEDIUM` は低側に含める
 
@@ -25,7 +26,23 @@
 ## 4. 導出ルール
 - `aromaIntensity` の `VERY_WEAK / WEAK / MEDIUM` を低側、`STRONG / VERY_STRONG` を高側とする
 - `tasteComplexity` の `SIMPLE / SLIGHTLY_SIMPLE / MEDIUM` を低側、`SLIGHTLY_COMPLEX / COMPLEX` を高側とする
-- 低香り × 低複雑性 = `SOUSHU`
-- 高香り × 低複雑性 = `KUNSHU`
-- 低香り × 高複雑性 = `JUNSHU`
-- 高香り × 高複雑性 = `JUKUSHU`
+- 低香り × シンプル = `SOUSHU`
+- 高香り × シンプル = `KUNSHU`
+- 低香り × 複雑 = `JUNSHU`
+- 高香り × 複雑 = `JUKUSHU`
+
+## 5. グリッド配置
+
+|  | シンプル | 複雑 |
+|---|---|---|
+| 香り 高い | 薫酒 | 熟酒 |
+| 香り 低い | 爽酒 | 醇酒 |
+
+## 6. 日本酒4タイプ入力
+
+- レビュー編集の `OTHER_SAKE_TYPES` は 2 x 2 グリッドの4択UIで表示する
+- X軸は味で、左を淡い、右を濃いとする
+- Y軸は香りで、上を高い、下を低いとする
+- グリッド配置は「左上: 薫酒」「右上: 熟酒」「左下: 爽酒」「右下: 醇酒」とする
+- 選択は単一選択とし、選択時は `otherSakeTypes` に選択値を1件だけ保持する
+- 既存データに複数値が入っている場合、編集画面では先頭値を選択表示し、次の選択で1件に正規化する
