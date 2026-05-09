@@ -155,13 +155,33 @@
     <string name="label_amino">アミノ酸度</string>
     <string name="label_koji_mai">麹米</string>
     <string name="label_koji_polish">麹米精米歩合</string>
-    <string name="label_kake_mai">酒米</string>
-    <string name="label_kake_polish">酒米精米歩合</string>
+    <string name="label_kake_mai">掛米</string>
+    <string name="label_kake_polish">掛米精米歩合</string>
     <string name="label_alcohol">アルコール度数</string>
     <string name="label_yeast">酵母</string>
     <string name="label_water">水</string>
     <string name="label_sake_image">画像</string>
     <string name="label_sake_section_detail">詳細情報</string>
+    <string name="cd_sake_detail_help">詳細情報のヘルプ</string>
+    <string name="title_sake_detail_help">詳細情報のヘルプ</string>
+    <string name="sake_detail_help_koji_mai_term">麹米</string>
+    <string name="sake_detail_help_koji_mai_message">麹づくりに使用される米。</string>
+    <string name="sake_detail_help_kake_mai_term">掛米</string>
+    <string name="sake_detail_help_kake_mai_message">醪づくりに使用される米。麹に水とともに加える。</string>
+    <string name="sake_detail_help_polish_term">精米歩合</string>
+    <string name="sake_detail_help_polish_message" formatted="false">玄米に対して、精米されて残った米の割合。精米歩合70%ならば、外側30%を削り70%が残っていることを意味する。</string>
+    <string name="sake_detail_help_sake_degree_term">日本酒度</string>
+    <string name="sake_detail_help_sake_degree_message">水の比重を0とした時の日本酒の比重。一般に、マイナスほど甘く、プラスほど辛い傾向がある。</string>
+    <string name="sake_detail_help_acidity_term">酸度</string>
+    <string name="sake_detail_help_acidity_message">酒に含まれる有機酸（乳酸、リンゴ酸）の量を相対的に表す数値。一般に、高いほど辛く濃く、低いほど甘く淡く感じる傾向がある。</string>
+    <string name="sake_detail_help_amino_term">アミノ酸度</string>
+    <string name="sake_detail_help_amino_message">酒のコクや旨味のもとになるアミノ酸の量を相対的に表す数値。高いほど濃淳に、低いほど端麗に感じる傾向がある。</string>
+    <string name="sake_detail_help_alcohol_term">アルコール度数</string>
+    <string name="sake_detail_help_alcohol_message" formatted="false">飲料に含まれるアルコールの割合を、百分率（%）で表したもの。</string>
+    <string name="sake_detail_help_yeast_term">酵母</string>
+    <string name="sake_detail_help_yeast_message">発酵によって糖質からアルコールや香りを生み出す微生物。種類により味や香りの特徴が変わる。</string>
+    <string name="sake_detail_help_water_term">水</string>
+    <string name="sake_detail_help_water_message">仕込みに使う水。発酵や酒の品質・味わいに大きく影響する。</string>
     <string name="suffix_percent">%</string>
     <string name="suffix_degree">度</string>
     <string name="suffix_yen">円</string>

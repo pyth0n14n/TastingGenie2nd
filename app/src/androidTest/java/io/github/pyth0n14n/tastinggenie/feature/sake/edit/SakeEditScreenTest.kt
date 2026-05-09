@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -343,6 +344,54 @@ class SakeEditScreenTest {
         composeRule.onNodeWithText("水").assertIsDisplayed()
         composeRule.onNodeWithText("市").assertIsDisplayed()
         composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
+    }
+
+    @Test
+    fun detailHelp_withHelpHintsOn_opensDictionaryDialog() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = true,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").performClick()
+        composeRule.onAllNodesWithText("詳細情報のヘルプ")[0].assertIsDisplayed()
+        composeRule.onNodeWithText("麹米").assertIsDisplayed()
+        composeRule.onNodeWithText("麹づくりに使用される米。").assertIsDisplayed()
+        composeRule.onNodeWithText("精米歩合").assertIsDisplayed()
+        composeRule.onNodeWithText("閉じる").performClick()
+        assertEquals(0, composeRule.onAllNodesWithText("麹づくりに使用される米。").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun detailHelp_withHelpHintsOff_hidesHelpAction() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithContentDescription("詳細情報のヘルプ").fetchSemanticsNodes().size,
+        )
     }
 
     @Test

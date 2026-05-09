@@ -1,7 +1,15 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import io.github.pyth0n14n.tastinggenie.R
@@ -11,7 +19,23 @@ internal fun SakeEditDetailInfoSection(
     state: SakeEditUiState,
     callbacks: SakeEditCallbacks,
 ) {
-    SakeEditSection(title = stringResource(R.string.label_sake_section_detail)) {
+    var isHelpDialogVisible by remember { mutableStateOf(false) }
+    SakeEditSection(
+        title = stringResource(R.string.label_sake_section_detail),
+        titleAction =
+            if (state.showHelpHints) {
+                {
+                    IconButton(onClick = { isHelpDialogVisible = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                            contentDescription = stringResource(R.string.cd_sake_detail_help),
+                        )
+                    }
+                }
+            } else {
+                null
+            },
+    ) {
         SakeEditResponsiveFieldGrid {
             field { SakeKojiMaiField(state = state, callbacks = callbacks) }
             field { SakeKojiPolishField(state = state, callbacks = callbacks) }
@@ -40,6 +64,9 @@ internal fun SakeEditDetailInfoSection(
                 )
             }
         }
+    }
+    if (isHelpDialogVisible) {
+        SakeDetailHelpDialog(onDismiss = { isHelpDialogVisible = false })
     }
 }
 
