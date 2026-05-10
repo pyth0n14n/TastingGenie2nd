@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 
 internal val ReviewEditSubheaderTopSpacing = 12.dp
 internal val ReviewEditSubheaderAfterGroupTopSpacing = 0.dp
@@ -36,10 +37,13 @@ internal fun ReviewSectionSubheader(
 }
 
 @Composable
+@Suppress("LongParameterList")
 internal fun ReviewFieldGroup(
     heading: String,
     modifier: Modifier = Modifier,
     topSpacing: Dp = ReviewEditSubheaderTopSpacing,
+    showHelpHints: Boolean = false,
+    helpItemId: ReviewItemId? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -49,7 +53,14 @@ internal fun ReviewFieldGroup(
                 .padding(top = topSpacing, bottom = ReviewEditGroupBottomSpacing),
     ) {
         Column {
-            ReviewSectionSubheader(text = heading)
+            ReviewHelpLabel(
+                label = heading,
+                itemId = helpItemId,
+                showHelpHints = showHelpHints,
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             Spacer(modifier = Modifier.height(ReviewEditSubheaderBottomSpacing))
         }
         Column(verticalArrangement = Arrangement.spacedBy(ReviewEditFieldSpacing)) {

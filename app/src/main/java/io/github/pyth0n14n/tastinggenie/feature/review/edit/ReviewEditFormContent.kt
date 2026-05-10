@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -129,10 +127,15 @@ private fun LazyListScope.addChoiceFields(
 ) {
     if (state.showReviewSoundness && state.isItemEnabled(ReviewItemId.APPEARANCE_SOUNDNESS)) {
         steppedResourceField(
-            labelRes = R.string.label_soundness,
-            selectedValue = state.appearanceSoundness.name,
+            ui =
+                ReviewStepFieldUi(
+                    labelRes = R.string.label_soundness,
+                    selectedValue = state.appearanceSoundness.name,
+                    field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
+                    helpItemId = ReviewItemId.APPEARANCE_SOUNDNESS,
+                ),
             options = reviewSoundnessOptions(),
-            field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
+            showHelpHints = state.showHelpHints,
             onAction = onAction,
         )
     }
@@ -145,11 +148,16 @@ private fun LazyListScope.addChoiceFields(
     }
     if (state.isItemEnabled(ReviewItemId.APPEARANCE_VISCOSITY)) {
         steppedField(
-            R.string.label_viscosity,
-            state.viscosity?.toString(),
-            uiData.viscosityOptions,
-            ReviewSelectionField.VISCOSITY,
-            onAction,
+            ui =
+                ReviewStepFieldUi(
+                    labelRes = R.string.label_viscosity,
+                    selectedValue = state.viscosity?.toString(),
+                    field = ReviewSelectionField.VISCOSITY,
+                    helpItemId = ReviewItemId.APPEARANCE_VISCOSITY,
+                ),
+            options = uiData.viscosityOptions,
+            showHelpHints = state.showHelpHints,
+            onAction = onAction,
         )
     }
 }
@@ -198,10 +206,13 @@ private fun LazyListScope.addAromaFields(
     val isSoundnessVisible = state.showReviewSoundness && state.isItemEnabled(ReviewItemId.AROMA_SOUNDNESS)
     if (isSoundnessVisible) {
         steppedResourceField(
-            labelRes = R.string.label_soundness,
-            selectedValue = state.aromaSoundness.name,
+            ui =
+                ReviewStepFieldUi(
+                    labelRes = R.string.label_soundness,
+                    selectedValue = state.aromaSoundness.name,
+                    field = ReviewSelectionField.AROMA_SOUNDNESS,
+                ),
             options = reviewSoundnessOptions(),
-            field = ReviewSelectionField.AROMA_SOUNDNESS,
             onAction = onAction,
         )
     }
@@ -217,15 +228,25 @@ private fun LazyListScope.addAromaFields(
             state = state,
             labelRes = R.string.label_aroma_main_note,
             onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.aromaMainNote, field = ReviewTextField.AROMA_MAIN_NOTE),
+            ui =
+                ReviewTextFieldUi(
+                    value = state.aromaMainNote,
+                    field = ReviewTextField.AROMA_MAIN_NOTE,
+                    helpItemId = ReviewItemId.AROMA_MAIN_NOTE,
+                ),
         )
     }
     if (state.isItemEnabled(ReviewItemId.AROMA_COMPLEXITY)) {
         steppedResourceField(
-            labelRes = R.string.label_aroma_complexity,
-            selectedValue = state.aromaComplexity?.name,
+            ui =
+                ReviewStepFieldUi(
+                    labelRes = R.string.label_aroma_complexity,
+                    selectedValue = state.aromaComplexity?.name,
+                    field = ReviewSelectionField.AROMA_COMPLEXITY,
+                    helpItemId = ReviewItemId.AROMA_COMPLEXITY,
+                ),
             options = complexityOptions(),
-            field = ReviewSelectionField.AROMA_COMPLEXITY,
+            showHelpHints = state.showHelpHints,
             onAction = onAction,
         )
     }
@@ -244,13 +265,19 @@ private fun LazyListScope.addAromaTopFields(
             state.isItemEnabled(ReviewItemId.AROMA_INTENSITY) ||
                 state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES),
         isFirstSubheader = isFirstSubheader,
+        showHelpHints = state.showHelpHints,
+        helpItemId = ReviewItemId.AROMA_INTENSITY,
     ) {
         if (state.isItemEnabled(ReviewItemId.AROMA_INTENSITY)) {
             ReviewChoiceField(
-                labelRes = R.string.detail_label_strength,
-                selectedValue = state.intensity?.name,
-                options = uiData.intensityOptions,
-                field = ReviewSelectionField.INTENSITY,
+                ui =
+                    ReviewDropdownChoiceFieldUi(
+                        labelRes = R.string.detail_label_strength,
+                        selectedValue = state.intensity?.name,
+                        options = uiData.intensityOptions,
+                        field = ReviewSelectionField.INTENSITY,
+                    ),
+                showHelpHints = state.showHelpHints,
                 onAction = onAction,
             )
         }
@@ -260,6 +287,8 @@ private fun LazyListScope.addAromaTopFields(
                 title = reviewTextResource(R.string.detail_label_aroma_top_examples),
                 selectedValues = state.scentTop,
                 fallbackLabels = aromaUiData.categories.toAromaLabelMap(),
+                helpItemId = ReviewItemId.AROMA_EXAMPLES,
+                showHelpHints = state.showHelpHints,
                 onSave = { values ->
                     onAction(ReviewEditAction.AromaSelectionChanged(field = ReviewAromaField.TOP, values = values))
                 },
@@ -320,13 +349,19 @@ private fun LazyListScope.addInPalateAromaFields(
         hasAnyField =
             state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY) ||
                 state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_EXAMPLES),
+        showHelpHints = state.showHelpHints,
+        helpItemId = ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY,
     ) {
         if (state.isItemEnabled(ReviewItemId.TASTE_IN_PALATE_AROMA_INTENSITY)) {
             ReviewChoiceField(
-                labelRes = R.string.detail_label_strength,
-                selectedValue = state.tasteInPalateAromaIntensity?.name,
-                options = uiData.singleChoiceUiData.intensityOptions,
-                field = ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY,
+                ui =
+                    ReviewDropdownChoiceFieldUi(
+                        labelRes = R.string.detail_label_strength,
+                        selectedValue = state.tasteInPalateAromaIntensity?.name,
+                        options = uiData.singleChoiceUiData.intensityOptions,
+                        field = ReviewSelectionField.TASTE_IN_PALATE_AROMA_INTENSITY,
+                    ),
+                showHelpHints = state.showHelpHints,
                 onAction = onAction,
             )
         }
@@ -354,7 +389,12 @@ private fun LazyListScope.addNoteFields(
             state = state,
             labelRes = R.string.label_other_individuality,
             onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.otherIndividuality, field = ReviewTextField.OTHER_INDIVIDUALITY),
+            ui =
+                ReviewTextFieldUi(
+                    value = state.otherIndividuality,
+                    field = ReviewTextField.OTHER_INDIVIDUALITY,
+                    helpItemId = ReviewItemId.OTHER_INDIVIDUALITY,
+                ),
         )
     }
     if (state.isItemEnabled(ReviewItemId.OTHER_CAUTIONS)) {
@@ -362,46 +402,68 @@ private fun LazyListScope.addNoteFields(
             state = state,
             labelRes = R.string.label_cautions,
             onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.otherCautions, field = ReviewTextField.OTHER_CAUTIONS),
-            singleLine = false,
+            ui =
+                ReviewTextFieldUi(
+                    value = state.otherCautions,
+                    field = ReviewTextField.OTHER_CAUTIONS,
+                    helpItemId = ReviewItemId.OTHER_CAUTIONS,
+                    singleLine = false,
+                ),
         )
     }
     if (state.isItemEnabled(ReviewItemId.OTHER_SAKE_TYPES)) {
         sakeTypeField(
+            state = state,
             selectedValue = state.otherSakeTypes.firstOrNull(),
             onAction = onAction,
         )
     }
-    if (state.isItemEnabled(ReviewItemId.OTHER_FREE_COMMENT)) {
-        item {
-            LabeledTextField(
-                label = reviewTextResource(R.string.label_comment),
-                value = state.comment,
-                onValueChange = { next ->
-                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COMMENT, value = next))
-                },
-                singleLine = false,
-            )
-        }
-    }
+    addFreeCommentFieldIfEnabled(state = state, onAction = onAction)
     if (state.isItemEnabled(ReviewItemId.OTHER_OVERALL_REVIEW)) {
         overallReviewField(
             selectedValue = state.review?.name,
             options = overallReviewOptions,
+            showHelpHints = state.showHelpHints,
             onAction = onAction,
         )
     }
 }
 
+private fun LazyListScope.addFreeCommentFieldIfEnabled(
+    state: ReviewEditUiState,
+    onAction: (ReviewEditAction) -> Unit,
+) {
+    if (!state.isItemEnabled(ReviewItemId.OTHER_FREE_COMMENT)) {
+        return
+    }
+    item {
+        ReviewHelpTextField(
+            ui =
+                ReviewHelpTextFieldUi(
+                    label = reviewTextResource(R.string.label_comment),
+                    value = state.comment,
+                    showHelpHints = state.showHelpHints,
+                    helpItemId = ReviewItemId.OTHER_FREE_COMMENT,
+                    singleLine = false,
+                ),
+            onValueChange = { next ->
+                onAction(ReviewEditAction.TextChanged(field = ReviewTextField.COMMENT, value = next))
+            },
+        )
+    }
+}
+
 private fun LazyListScope.sakeTypeField(
+    state: ReviewEditUiState,
     selectedValue: FlavorProfileType?,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     item {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = reviewTextResource(R.string.label_other_sake_types),
-                style = MaterialTheme.typography.bodyMedium,
+            ReviewHelpLabel(
+                label = reviewTextResource(R.string.label_other_sake_types),
+                itemId = ReviewItemId.OTHER_SAKE_TYPES,
+                showHelpHints = state.showHelpHints,
             )
             SakeTypeQuadrantSelector(
                 selectedType = selectedValue,
@@ -570,32 +632,36 @@ internal fun LazyListScope.textField(
     labelRes: Int,
     onAction: (ReviewEditAction) -> Unit,
     ui: ReviewTextFieldUi,
-    singleLine: Boolean = true,
 ) {
     item {
         val label = reviewTextResource(labelRes)
-        LabeledTextField(
-            label = label,
-            value = ui.value,
+        ReviewHelpTextField(
+            ui =
+                ReviewHelpTextFieldUi(
+                    label = label,
+                    value = ui.value,
+                    showHelpHints = state.showHelpHints,
+                    helpItemId = ui.helpItemId,
+                    singleLine = ui.singleLine,
+                    fieldState =
+                        FormFieldState(
+                            errorText =
+                                ui.validationField?.let { validationField ->
+                                    state.validationErrors[validationField]?.let { error ->
+                                        val range = reviewValidationRange(validationField)
+                                        validationErrorText(
+                                            label = label,
+                                            error = error,
+                                            minValue = range?.first,
+                                            maxValue = range?.last,
+                                        )
+                                    }
+                                },
+                        ),
+                ),
             onValueChange = { next ->
                 onAction(ReviewEditAction.TextChanged(field = ui.field, value = next))
             },
-            fieldState =
-                FormFieldState(
-                    errorText =
-                        ui.validationField?.let { validationField ->
-                            state.validationErrors[validationField]?.let { error ->
-                                val range = reviewValidationRange(validationField)
-                                validationErrorText(
-                                    label = label,
-                                    error = error,
-                                    minValue = range?.first,
-                                    maxValue = range?.last,
-                                )
-                            }
-                        },
-                ),
-            singleLine = singleLine,
         )
     }
 }
@@ -609,9 +675,13 @@ private fun LazyListScope.textChoiceField(
 ) {
     item {
         ReviewEditChoiceField(
-            label = reviewTextResource(labelRes),
-            options = options,
-            selectedValue = selectedValue.takeIf { it.isNotBlank() },
+            ui =
+                ReviewEditChoiceFieldUi(
+                    label = reviewTextResource(labelRes),
+                    options = options,
+                    selectedValue = selectedValue.takeIf { it.isNotBlank() },
+                    showHelpHints = false,
+                ),
             onValueChanged = { next ->
                 onAction(ReviewEditAction.TextChanged(field = field, value = next.orEmpty()))
             },
@@ -644,4 +714,6 @@ internal data class ReviewTextFieldUi(
     val value: String,
     val field: ReviewTextField,
     val validationField: ReviewValidationField? = null,
+    val helpItemId: ReviewItemId? = null,
+    val singleLine: Boolean = true,
 )

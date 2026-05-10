@@ -71,12 +71,14 @@ fun DiscreteSliderField(
 }
 
 @Composable
+@Suppress("LongParameterList")
 fun StarRatingField(
     label: String,
     options: List<DropdownOption>,
     selectedValue: String?,
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier,
+    labelAction: (@Composable () -> Unit)? = null,
 ) {
     val selectedIndex = options.indexOfFirst { option -> option.value == selectedValue }
     val isSelected = selectedValue != null
@@ -84,6 +86,7 @@ fun StarRatingField(
     Column(modifier = modifier.fillMaxWidth()) {
         RatingFieldHeader(
             label = label,
+            labelAction = labelAction,
             isClearEnabled = selectedValue != null,
             onClear = { onValueChanged(null) },
         )
@@ -119,15 +122,21 @@ fun StarRatingField(
 @Composable
 private fun RatingFieldHeader(
     label: String,
+    labelAction: (@Composable () -> Unit)? = null,
     isClearEnabled: Boolean,
     onClear: () -> Unit,
 ) {
     androidx.compose.foundation.layout.Row(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
+        androidx.compose.foundation.layout.Row(
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
-        )
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            labelAction?.invoke()
+        }
         TextButton(
             onClick = onClear,
             enabled = isClearEnabled,
