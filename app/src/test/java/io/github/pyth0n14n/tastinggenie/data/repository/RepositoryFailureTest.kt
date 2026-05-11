@@ -106,6 +106,8 @@ private class FailingSakeDao : SakeDao {
 
     override suspend fun insertAll(entities: List<SakeEntity>): Unit = throw DaoFailureException("DAO failure")
 
+    override suspend fun deleteAll(): Unit = throw DaoFailureException("DAO failure")
+
     override suspend fun update(entity: SakeEntity): Int = throw DaoFailureException("DAO failure")
 
     override suspend fun updatePinned(
@@ -127,6 +129,8 @@ private class FailingReviewDao : ReviewDao {
     override suspend fun insert(entity: ReviewEntity): Long = throw DaoFailureException("DAO failure")
 
     override suspend fun insertAll(entities: List<ReviewEntity>): Unit = throw DaoFailureException("DAO failure")
+
+    override suspend fun deleteAll(): Unit = throw DaoFailureException("DAO failure")
 
     override suspend fun update(entity: ReviewEntity): Int = throw DaoFailureException("DAO failure")
 

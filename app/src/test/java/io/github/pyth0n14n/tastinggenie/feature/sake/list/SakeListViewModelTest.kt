@@ -658,6 +658,10 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
     }
+
+    override suspend fun replaceSettings(settings: AppSettings) {
+        stream.value = settings
+    }
 }
 
 private fun testReview(
