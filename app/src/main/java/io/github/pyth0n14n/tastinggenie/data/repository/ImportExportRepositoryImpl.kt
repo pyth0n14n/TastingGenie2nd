@@ -85,6 +85,7 @@ class ImportExportRepositoryImpl
                 withContext(ioDispatcher) {
                     val entries = readZipEntries(input)
                     val payload = decodeAndValidate(entries)
+                    val previousSettings = settingsRepository.getCurrentSettings()
                     val restoredImages = restoreImages(payload, entries)
                     val restoreResult =
                         runCatching {
@@ -92,31 +93,28 @@ class ImportExportRepositoryImpl
                                 payload.withRestoredImageUris(
                                     restoredImages.associate { it.entryName to it.uri },
                                 )
+                            val restoredReviewModes = restoredPayload.reviewModes.map { it.toEntity() }
+                            val restoredReviewModeItems = restoredPayload.reviewModeItems.map { it.toEntity() }
+                            val restoredSakes = restoredPayload.sakes.map { it.toRestoredEntity() }
+                            val restoredReviews = restoredPayload.reviews.map { it.toRestoredEntity() }
+                            val restoredSettings = restoredPayload.settings.toAppSettings()
+                            settingsRepository.replaceSettings(restoredSettings)
                             database.withTransaction {
                                 database.reviewDao().deleteAll()
                                 database.sakeDao().deleteAll()
                                 database.reviewModeDao().deleteAllModeItems()
                                 database.reviewModeDao().deleteAllModes()
-                                database.reviewModeDao().upsertModes(
-                                    restoredPayload.reviewModes.map { it.toEntity() },
-                                )
-                                database.reviewModeDao().upsertModeItems(
-                                    restoredPayload.reviewModeItems.map { it.toEntity() },
-                                )
-                                database.sakeDao().insertAll(
-                                    restoredPayload.sakes.map { it.toRestoredEntity() },
-                                )
-                                database.reviewDao().insertAll(
-                                    restoredPayload.reviews.map { it.toRestoredEntity() },
-                                )
+                                database.reviewModeDao().upsertModes(restoredReviewModes)
+                                database.reviewModeDao().upsertModeItems(restoredReviewModeItems)
+                                database.sakeDao().insertAll(restoredSakes)
+                                database.reviewDao().insertAll(restoredReviews)
                             }
-                            settingsRepository.replaceSettings(restoredPayload.settings.toAppSettings())
-                            cleanupUnusedManagedImages()
-                        }
-                    restoreResult
-                        .onFailure {
+                        }.onFailure {
+                            runCatching { settingsRepository.replaceSettings(previousSettings) }
                             restoredImages.forEach { image -> image.file.delete() }
-                        }.getOrThrow()
+                        }
+                    restoreResult.getOrThrow()
+                    cleanupUnusedManagedImagesAfterRestore()
                 }
             }
 
@@ -200,6 +198,8 @@ class ImportExportRepositoryImpl
             require(reviewIds.size == reviewIds.toSet().size) { "Backup contains duplicate review ids" }
             val modeIds = payload.reviewModes.map { it.id }
             require(modeIds.size == modeIds.toSet().size) { "Backup contains duplicate review mode ids" }
+            val modeItemIds = payload.reviewModeItems.map { it.modeId to it.itemId }
+            require(modeItemIds.size == modeItemIds.toSet().size) { "Backup contains duplicate review mode item ids" }
             val allowedModeIds = modeIds.toSet()
             payload.reviewModeItems.firstOrNull { it.modeId !in allowedModeIds }?.let { item ->
                 throw IllegalArgumentException("Review mode item references unknown modeId: ${item.modeId}")
@@ -252,6 +252,10 @@ class ImportExportRepositoryImpl
                     file.delete()
                 }
             }
+        }
+
+        private suspend fun cleanupUnusedManagedImagesAfterRestore() {
+            runSuspendCatching { cleanupUnusedManagedImages() }
         }
 
         private fun imageEntryName(uri: String): String {

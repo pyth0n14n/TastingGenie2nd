@@ -245,6 +245,43 @@ class ImportExportRepositoryImplTest {
         }
 
     @Test
+    fun restoreBackup_settingsFailureReturnsFailureAndPreservesExistingData() =
+        runTest {
+            val repository = createRepository(settingsRepository = FailingReplaceSettingsRepository())
+            database.sakeDao().insert(sampleSakeEntity(id = EXISTING_SAKE_ID, name = "既存酒"))
+            val backupBytes = createBackupZip(samplePayload())
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertEquals(
+                "既存酒",
+                database
+                    .sakeDao()
+                    .getAllOnce()
+                    .single()
+                    .name,
+            )
+        }
+
+    @Test
+    fun restoreBackup_duplicateReviewModeItemIdsReturnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val duplicateItem = SerializableReviewModeItem("normal", "APPEARANCE_COLOR", true)
+            val payload =
+                samplePayload(
+                    reviewModeItems = listOf(duplicateItem, duplicateItem.copy(isEnabled = false)),
+                )
+            val backupBytes = createBackupZip(payload)
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        }
+
+    @Test
     fun exportBackup_cancellationPropagates() =
         runTest {
             val repository = createRepository(ioDispatcher = CancellationDispatcher())
@@ -259,6 +296,7 @@ class ImportExportRepositoryImplTest {
 
     private fun createRepository(
         ioDispatcher: CoroutineDispatcher = Dispatchers.Unconfined,
+        settingsRepository: SettingsRepository = this.settingsRepository,
     ): ImportExportRepositoryImpl =
         ImportExportRepositoryImpl(
             context = context,
@@ -277,13 +315,15 @@ class ImportExportRepositoryImplTest {
         settings: SerializableAppSettings = SerializableAppSettings(reviewModeId = "normal"),
         sakes: List<SerializableSake> = listOf(sampleSerializableSake()),
         reviews: List<SerializableReview> = listOf(sampleSerializableReview()),
+        reviewModeItems: List<SerializableReviewModeItem> =
+            listOf(SerializableReviewModeItem("normal", "APPEARANCE_COLOR", true)),
     ): BackupPayload =
         BackupPayload(
             schemaVersion = CURRENT_SCHEMA_VERSION,
             sakes = sakes,
             reviews = reviews,
             reviewModes = listOf(SerializableReviewMode("normal", "通常", true)),
-            reviewModeItems = listOf(SerializableReviewModeItem("normal", "APPEARANCE_COLOR", true)),
+            reviewModeItems = reviewModeItems,
             settings = settings,
         )
 
@@ -465,6 +505,36 @@ private class BackupSettingsRepository(
 
     override suspend fun replaceSettings(settings: AppSettings) {
         stream.value = settings
+    }
+}
+
+private class FailingReplaceSettingsRepository(
+    initialSettings: AppSettings = AppSettings(),
+) : SettingsRepository {
+    private val stream = MutableStateFlow(initialSettings)
+
+    override fun observeSettings(): Flow<AppSettings> = stream
+
+    override suspend fun getCurrentSettings(): AppSettings = stream.value
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) {
+        stream.value = stream.value.copy(showHelpHints = enabled)
+    }
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) {
+        stream.value = stream.value.copy(showReviewSoundness = enabled)
+    }
+
+    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
+        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
+    }
+
+    override suspend fun updateReviewMode(modeId: String) {
+        stream.value = stream.value.copy(reviewModeId = modeId)
+    }
+
+    override suspend fun replaceSettings(settings: AppSettings) {
+        error("settings write failed")
     }
 }
 
