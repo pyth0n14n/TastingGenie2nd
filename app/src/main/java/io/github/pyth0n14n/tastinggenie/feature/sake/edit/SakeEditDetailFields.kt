@@ -1,17 +1,48 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
+
+private val DetailHelpIconTouchSize = 24.dp
 
 @Composable
 internal fun SakeEditDetailInfoSection(
     state: SakeEditUiState,
     callbacks: SakeEditCallbacks,
 ) {
-    SakeEditSection(title = stringResource(R.string.label_sake_section_detail)) {
+    var isHelpSheetVisible by remember { mutableStateOf(false) }
+    SakeEditSection(
+        title = stringResource(R.string.label_sake_section_detail),
+        titleAction =
+            if (state.showHelpHints) {
+                {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                        contentDescription = stringResource(R.string.cd_sake_detail_help),
+                        modifier =
+                            Modifier
+                                .size(DetailHelpIconTouchSize)
+                                .clickable(onClick = { isHelpSheetVisible = true }),
+                    )
+                }
+            } else {
+                null
+            },
+    ) {
         SakeEditResponsiveFieldGrid {
             field { SakeKojiMaiField(state = state, callbacks = callbacks) }
             field { SakeKojiPolishField(state = state, callbacks = callbacks) }
@@ -40,6 +71,9 @@ internal fun SakeEditDetailInfoSection(
                 )
             }
         }
+    }
+    if (isHelpSheetVisible) {
+        SakeDetailHelpBottomSheet(onDismiss = { isHelpSheetVisible = false })
     }
 }
 

@@ -1,150 +1,111 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 
-private val HelpIconSize = 32.dp
-private val LeftSwipeDismissDistance = 96.dp
-
 @Composable
-internal fun SakeHelpLabel(
-    label: String,
-    helpMessage: SakeDetailHelpMessage,
-) {
-    var visibleHelp by remember { mutableStateOf<SakeDetailHelpMessage?>(null) }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label)
-        IconButton(
-            onClick = { visibleHelp = helpMessage },
-            modifier = Modifier.size(HelpIconSize),
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun SakeDetailHelpBottomSheet(onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val entries = sakeDetailHelpEntries()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Text(
+            text = stringResource(R.string.title_sake_detail_help),
+            style = MaterialTheme.typography.titleMedium,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+        )
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 520.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
-                contentDescription = stringResource(R.string.cd_sake_field_help, label),
-            )
+            items(entries, key = { entry -> entry.term }) { entry ->
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = entry.term,
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = entry.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    },
+                )
+                HorizontalDivider()
+            }
         }
     }
-    visibleHelp?.let { help ->
-        SakeDetailHelpDialog(
-            helpMessage = help,
-            onDismiss = { visibleHelp = null },
-        )
-    }
 }
 
 @Composable
-private fun SakeDetailHelpDialog(
-    helpMessage: SakeDetailHelpMessage,
-    onDismiss: () -> Unit,
-) {
-    val dismissDistancePx = with(LocalDensity.current) { LeftSwipeDismissDistance.toPx() }
-    var horizontalDrag by remember { mutableFloatStateOf(0f) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        modifier =
-            Modifier.pointerInput(onDismiss, dismissDistancePx) {
-                detectHorizontalDragGestures(
-                    onDragStart = { horizontalDrag = 0f },
-                    onHorizontalDrag = { _, dragAmount ->
-                        horizontalDrag += dragAmount
-                        if (horizontalDrag <= -dismissDistancePx) {
-                            onDismiss()
-                        }
-                    },
-                    onDragEnd = { horizontalDrag = 0f },
-                    onDragCancel = { horizontalDrag = 0f },
-                )
-            },
-        title = { Text(text = stringResource(helpMessage.titleRes)) },
-        text = {
-            Text(
-                text = stringResource(helpMessage.messageRes),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.action_ok))
-            }
-        },
+private fun sakeDetailHelpEntries(): List<SakeDetailHelpEntry> =
+    listOf(
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_koji_mai_term),
+            message = stringResource(R.string.sake_detail_help_koji_mai_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_kake_mai_term),
+            message = stringResource(R.string.sake_detail_help_kake_mai_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_polish_term),
+            message = stringResource(R.string.sake_detail_help_polish_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_sake_degree_term),
+            message = stringResource(R.string.sake_detail_help_sake_degree_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_acidity_term),
+            message = stringResource(R.string.sake_detail_help_acidity_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_amino_term),
+            message = stringResource(R.string.sake_detail_help_amino_message),
+        ),
+        // SakeDetailHelpEntry(
+        //     term = stringResource(R.string.sake_detail_help_alcohol_term),
+        //     message = stringResource(R.string.sake_detail_help_alcohol_message),
+        // ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_yeast_term),
+            message = stringResource(R.string.sake_detail_help_yeast_message),
+        ),
+        SakeDetailHelpEntry(
+            term = stringResource(R.string.sake_detail_help_water_term),
+            message = stringResource(R.string.sake_detail_help_water_message),
+        ),
     )
-}
 
-internal data class SakeDetailHelpMessage(
-    val titleRes: Int,
-    val messageRes: Int,
+private data class SakeDetailHelpEntry(
+    val term: String,
+    val message: String,
 )
-
-internal fun SakeTextField.toSakeDetailHelpMessage(): SakeDetailHelpMessage? =
-    when (this) {
-        SakeTextField.KOJI_MAI ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_koji_mai_term,
-                R.string.sake_detail_help_koji_mai_message,
-            )
-        SakeTextField.KAKE_MAI ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_kake_mai_term,
-                R.string.sake_detail_help_kake_mai_message,
-            )
-        SakeTextField.KOJI_POLISH,
-        SakeTextField.KAKE_POLISH,
-        ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_polish_term,
-                R.string.sake_detail_help_polish_message,
-            )
-        SakeTextField.SAKE_DEGREE ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_sake_degree_term,
-                R.string.sake_detail_help_sake_degree_message,
-            )
-        SakeTextField.ACIDITY ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_acidity_term,
-                R.string.sake_detail_help_acidity_message,
-            )
-        SakeTextField.AMINO ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_amino_term,
-                R.string.sake_detail_help_amino_message,
-            )
-        SakeTextField.ALCOHOL ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_alcohol_term,
-                R.string.sake_detail_help_alcohol_message,
-            )
-        SakeTextField.YEAST ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_yeast_term,
-                R.string.sake_detail_help_yeast_message,
-            )
-        SakeTextField.WATER ->
-            SakeDetailHelpMessage(
-                R.string.sake_detail_help_water_term,
-                R.string.sake_detail_help_water_message,
-            )
-        else -> null
-    }
