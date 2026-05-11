@@ -59,6 +59,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.AromaLabelByValue
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaMasterEntries
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaMasterEntry
 import io.github.pyth0n14n.tastinggenie.domain.model.AromaTaste
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 
 private const val SUMMARY_LABEL_LIMIT = 3
@@ -76,6 +77,8 @@ fun AromaPickerField(
     fallbackLabels: Map<String, String>,
     onSave: (List<Aroma>) -> Unit,
     modifier: Modifier = Modifier,
+    helpItemId: ReviewItemId? = null,
+    showHelpHints: Boolean = false,
 ) {
     var isPickerVisible by remember { mutableStateOf(false) }
     val summary =
@@ -88,6 +91,8 @@ fun AromaPickerField(
     ) {
         AromaPickerFieldHeader(
             label = label,
+            helpItemId = helpItemId,
+            showHelpHints = showHelpHints,
             isClearEnabled = selectedValues.isNotEmpty(),
             onClear = { onSave(emptyList()) },
         )
@@ -145,6 +150,8 @@ fun AromaPickerField(
 @Composable
 private fun AromaPickerFieldHeader(
     label: String,
+    helpItemId: ReviewItemId?,
+    showHelpHints: Boolean,
     isClearEnabled: Boolean,
     onClear: () -> Unit,
 ) {
@@ -152,10 +159,11 @@ private fun AromaPickerFieldHeader(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = label,
+        ReviewHelpLabel(
+            label = label,
+            itemId = helpItemId,
+            showHelpHints = showHelpHints,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
         )
         TextButton(
             onClick = onClear,

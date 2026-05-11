@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption
 
 private const val CLEAR_BUTTON_MIN_WIDTH = 72
@@ -30,9 +31,7 @@ private val ChoiceButtonCorner = 12.dp
 
 @Composable
 fun ReviewEditChoiceField(
-    label: String,
-    options: List<DropdownOption>,
-    selectedValue: String?,
+    ui: ReviewEditChoiceFieldUi,
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -44,14 +43,15 @@ fun ReviewEditChoiceField(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = label,
+            ReviewHelpLabel(
+                label = ui.label,
+                itemId = ui.helpItemId,
+                showHelpHints = ui.showHelpHints,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
             )
             TextButton(
                 onClick = { onValueChanged(null) },
-                enabled = selectedValue != null,
+                enabled = ui.selectedValue != null,
                 modifier =
                     Modifier
                         .width(CLEAR_BUTTON_MIN_WIDTH.dp)
@@ -65,12 +65,20 @@ fun ReviewEditChoiceField(
             }
         }
         ConnectedChoiceButtons(
-            options = options,
-            selectedValue = selectedValue,
+            options = ui.options,
+            selectedValue = ui.selectedValue,
             onSelected = onValueChanged,
         )
     }
 }
+
+data class ReviewEditChoiceFieldUi(
+    val label: String,
+    val options: List<DropdownOption>,
+    val selectedValue: String?,
+    val showHelpHints: Boolean,
+    val helpItemId: ReviewItemId? = null,
+)
 
 @Composable
 private fun ConnectedChoiceButtons(

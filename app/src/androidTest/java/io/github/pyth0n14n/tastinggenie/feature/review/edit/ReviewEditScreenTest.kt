@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -203,6 +204,79 @@ class ReviewEditScreenTest {
     }
 
     @Test
+    fun reviewHelp_withHelpHintsOn_opensSmallDialogAndClosesWithOk() {
+        val helpMessage =
+            "グラスの内側を流れ落ちる「脚」を見て判断する。アルコール度数と糖分が高いほど高くなる。" +
+                "日本酒は、基本的にはアルコール度数が15%前後で変わらないため、中程度に位置づけられる場合が多い。"
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = ReviewEditUiState(isLoading = false, showHelpHints = true),
+                        onAction = {},
+                        onSave = {},
+                        viscosityOptions = reviewTestViscosityOptions(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.APPEARANCE,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("粘性のヘルプ").performClick()
+        composeRule.onNodeWithText("粘性").assertIsDisplayed()
+        composeRule.onNodeWithText(helpMessage).assertIsDisplayed()
+        composeRule.onNodeWithText("OK").performClick()
+        composeRule.onNodeWithText(helpMessage).assertDoesNotExist()
+    }
+
+    @Test
+    fun reviewHelpDialog_closesWithLeftSwipe() {
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = ReviewEditUiState(isLoading = false, showHelpHints = true),
+                        onAction = {},
+                        onSave = {},
+                        viscosityOptions = reviewTestViscosityOptions(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.TASTE,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("アタックのヘルプ").performClick()
+        composeRule.onNodeWithText("口に含んだ瞬間の印象を示す。時間軸で最初の印象。").assertIsDisplayed()
+        composeRule.onNodeWithText("口に含んだ瞬間の印象を示す。時間軸で最初の印象。").performTouchInput { swipeLeft() }
+        composeRule.onNodeWithText("口に含んだ瞬間の印象を示す。時間軸で最初の印象。").assertDoesNotExist()
+    }
+
+    @Test
+    fun reviewHelp_withHelpHintsOff_hidesHelpActions() {
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = ReviewEditUiState(isLoading = false, showHelpHints = false),
+                        onAction = {},
+                        onSave = {},
+                        viscosityOptions = reviewTestViscosityOptions(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.APPEARANCE,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("粘性のヘルプ").fetchSemanticsNodes().size)
+    }
+
+    @Test
     fun basicInfo_priceAndVolumeAreSideBySideWithUnits() {
         composeRule.setContent {
             ReviewEditScreen(
@@ -293,4 +367,14 @@ private fun MasterOption.toDropdownOption() =
     io.github.pyth0n14n.tastinggenie.ui.common.DropdownOption(
         value = value,
         label = label,
+    )
+
+private fun reviewTestViscosityOptions() =
+    listOf(
+        io.github.pyth0n14n.tastinggenie.ui.common
+            .DropdownOption(value = "1", label = "低い"),
+        io.github.pyth0n14n.tastinggenie.ui.common
+            .DropdownOption(value = "2", label = "中程度"),
+        io.github.pyth0n14n.tastinggenie.ui.common
+            .DropdownOption(value = "3", label = "高い"),
     )

@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import io.github.pyth0n14n.tastinggenie.R
@@ -38,7 +39,7 @@ fun LazyListScope.textFieldItem(
     }
 }
 
-@androidx.compose.runtime.Composable
+@Composable
 internal fun SakeTextFieldContent(
     @StringRes labelRes: Int,
     state: SakeEditUiState,
@@ -47,26 +48,27 @@ internal fun SakeTextFieldContent(
 ) {
     val label = stringResource(labelRes)
     val suffix = ui.presentation.suffixRes?.let { suffixRes -> stringResource(suffixRes) }
+    val fieldState =
+        FormFieldState(
+            required = ui.presentation.required,
+            errorText =
+                ui.presentation.validationField?.let { validationField ->
+                    state.validationErrors[validationField]?.let { error ->
+                        validationErrorText(label = label, error = error)
+                    }
+                },
+            suffixText = suffix,
+            prefixText = ui.presentation.prefixText,
+            keyboardOptions =
+                ui.presentation.keyboardType?.let { keyboardType ->
+                    KeyboardOptions(keyboardType = keyboardType)
+                } ?: KeyboardOptions.Default,
+        )
     LabeledTextField(
         label = label,
         value = ui.value,
         onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
-        fieldState =
-            FormFieldState(
-                required = ui.presentation.required,
-                errorText =
-                    ui.presentation.validationField?.let { validationField ->
-                        state.validationErrors[validationField]?.let { error ->
-                            validationErrorText(label = label, error = error)
-                        }
-                    },
-                suffixText = suffix,
-                prefixText = ui.presentation.prefixText,
-                keyboardOptions =
-                    ui.presentation.keyboardType?.let { keyboardType ->
-                        KeyboardOptions(keyboardType = keyboardType)
-                    } ?: KeyboardOptions.Default,
-            ),
+        fieldState = fieldState,
     )
 }
 

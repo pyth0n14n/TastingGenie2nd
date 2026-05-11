@@ -67,16 +67,23 @@ class ReviewEditViewModelTest {
         }
 
     @Test
-    fun loadInitial_appliesReviewSoundnessVisibilitySetting() =
+    fun loadInitial_appliesReviewDisplaySettings() =
         runTest {
             val viewModel =
                 reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
-                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = false)),
+                    settingsRepository =
+                        FakeSettingsRepository(
+                            AppSettings(
+                                showHelpHints = false,
+                                showReviewSoundness = false,
+                            ),
+                        ),
                 )
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
+            assertFalse(state.showHelpHints)
             assertFalse(state.showReviewSoundness)
         }
 

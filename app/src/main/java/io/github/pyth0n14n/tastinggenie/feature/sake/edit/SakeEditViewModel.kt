@@ -20,6 +20,7 @@ import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -262,17 +263,20 @@ class SakeEditViewModel
                 // 編集モードでは既存データを読み込み、新規モードでは空フォームを返す。
                 runCatching {
                     val master = masterDataRepository.getMasterData()
+                    val settings = settingsRepository.observeSettings().first()
                     val existing = sakeId?.let { sakeRepository.getSake(it) }
-                    master to existing
-                }.onSuccess { (master, existing) ->
+                    SakeEditInitialData(master = master, settings = settings, existing = existing)
+                }.onSuccess { loaded ->
+                    val master = loaded.master
+                    val existing = loaded.existing
                     if (sakeId != null && existing == null) {
                         _uiState.update { state ->
-                            state.withMissingEditTarget(master = master, sakeId = sakeId)
+                            state.withMissingEditTarget(master = master, settings = loaded.settings, sakeId = sakeId)
                         }
                         return@onSuccess
                     }
                     _uiState.update { state ->
-                        state.withLoadedData(master = master, existing = existing)
+                        state.withLoadedData(master = master, settings = loaded.settings, existing = existing)
                     }
                 }.onFailure { throwable ->
                     _uiState.update {
@@ -313,6 +317,12 @@ class SakeEditViewModel
             }
         }
     }
+
+private data class SakeEditInitialData(
+    val master: MasterDataBundle,
+    val settings: AppSettings,
+    val existing: Sake?,
+)
 
 private fun SakeEditUiState.withTextFieldValue(
     field: SakeTextField,
@@ -396,11 +406,13 @@ private fun cleanupPendingImageSourcesOnClear(
 
 private fun SakeEditUiState.withMissingEditTarget(
     master: MasterDataBundle,
+    settings: AppSettings,
     sakeId: Long,
 ): SakeEditUiState =
     copy(
         isLoading = false,
         isEditTargetMissing = true,
+        showHelpHints = settings.showHelpHints,
         gradeOptions = master.sakeGrades,
         classificationOptions = master.classifications,
         prefectureOptions = master.prefectures,
@@ -427,11 +439,13 @@ private object NoOpSettingsRepository : SettingsRepository {
 
 private fun SakeEditUiState.withLoadedData(
     master: MasterDataBundle,
+    settings: AppSettings,
     existing: Sake?,
 ): SakeEditUiState =
     copy(
         isLoading = false,
         isEditTargetMissing = false,
+        showHelpHints = settings.showHelpHints,
         gradeOptions = master.sakeGrades,
         classificationOptions = master.classifications,
         prefectureOptions = master.prefectures,

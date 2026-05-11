@@ -99,6 +99,7 @@ private fun SakeClassificationField(
         label = stringResource(R.string.label_classification),
         groups = uiData.classificationGroups,
         selectedValues = state.classifications.map { classification -> classification.name },
+        showHelpHints = state.showHelpHints,
         onSelectionChanged = callbacks.onClassificationsChanged,
     )
 }

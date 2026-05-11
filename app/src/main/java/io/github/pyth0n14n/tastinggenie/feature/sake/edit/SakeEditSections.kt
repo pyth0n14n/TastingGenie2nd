@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +20,7 @@ import io.github.pyth0n14n.tastinggenie.R
 
 private val SectionSpacing = 12.dp
 private val FieldSpacing = 12.dp
+private val TitleActionStartPadding = 0.dp
 private val TwoColumnMinWidth = 320.dp
 
 @Composable
@@ -40,18 +43,28 @@ internal fun SakeEditImageSection(
 @Composable
 internal fun SakeEditSection(
     title: String,
+    titleAction: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SectionSpacing),
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            titleAction?.let { action ->
+                Box(modifier = Modifier.padding(start = TitleActionStartPadding)) {
+                    action()
+                }
+            }
+        }
         content()
     }
 }

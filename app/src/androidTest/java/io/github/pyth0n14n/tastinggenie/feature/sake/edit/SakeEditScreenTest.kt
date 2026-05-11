@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -162,6 +163,67 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun classificationPicker_withHelpHintsOn_showsOptionDescriptions() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = true,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(
+                                    value = SakeClassification.KIMOTO.name,
+                                    label = "生酛",
+                                    description = "自然の乳酸菌を使う、伝統的な酒母づくり",
+                                ),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("分類: 未選択").performClick()
+        composeRule.onNodeWithText("酛").performClick()
+        composeRule.onNodeWithText("自然の乳酸菌を使う、伝統的な酒母づくり").assertIsDisplayed()
+    }
+
+    @Test
+    fun classificationPicker_withHelpHintsOff_hidesOptionDescriptions() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                        classificationOptions =
+                            listOf(
+                                MasterOption(
+                                    value = SakeClassification.KIMOTO.name,
+                                    label = "生酛",
+                                    description = "自然の乳酸菌を使う、伝統的な酒母づくり",
+                                ),
+                            ),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("分類: 未選択").performClick()
+        composeRule.onNodeWithText("酛").performClick()
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithText("自然の乳酸菌を使う、伝統的な酒母づくり").fetchSemanticsNodes().size,
+        )
+    }
+
+    @Test
     fun selectingBothOtherValues_showsSeparateFields() {
         composeRule.setContent {
             SakeEditScreen(
@@ -282,6 +344,53 @@ class SakeEditScreenTest {
         composeRule.onNodeWithText("水").assertIsDisplayed()
         composeRule.onNodeWithText("市").assertIsDisplayed()
         composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
+    }
+
+    @Test
+    fun detailHelp_withHelpHintsOn_opensBottomSheet() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = true,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNodeWithTag("sake_edit_form").performScrollToNode(hasText("詳細情報"))
+        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").performClick()
+        composeRule.onAllNodesWithText("詳細情報のヘルプ")[0].assertIsDisplayed()
+        composeRule.onAllNodesWithText("麹米")[0].assertIsDisplayed()
+        composeRule.onNodeWithText("麹づくりに使用される米。").assertIsDisplayed()
+        composeRule.onNodeWithText("精米歩合").assertIsDisplayed()
+    }
+
+    @Test
+    fun detailHelp_withHelpHintsOff_hidesHelpAction() {
+        composeRule.setContent {
+            SakeEditScreen(
+                state =
+                    SakeEditUiState(
+                        isLoading = false,
+                        showHelpHints = false,
+                        gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                    ),
+                callbacks = defaultCallbacks(),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        assertEquals(
+            0,
+            composeRule.onAllNodesWithContentDescription("詳細情報のヘルプ").fetchSemanticsNodes().size,
+        )
     }
 
     @Test

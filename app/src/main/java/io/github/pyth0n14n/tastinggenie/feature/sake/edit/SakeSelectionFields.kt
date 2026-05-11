@@ -100,6 +100,7 @@ internal fun SakeClassificationSelectField(
     label: String,
     groups: List<DropdownOptionGroup>,
     selectedValues: List<String>,
+    showHelpHints: Boolean,
     onSelectionChanged: (List<String>) -> Unit,
 ) {
     var isPickerVisible by remember { mutableStateOf(false) }
@@ -115,6 +116,7 @@ internal fun SakeClassificationSelectField(
             title = label,
             groups = groups,
             selectedValues = selectedValues,
+            showHelpHints = showHelpHints,
             onDismiss = { isPickerVisible = false },
             onSave = { values ->
                 onSelectionChanged(values)
@@ -246,6 +248,7 @@ private fun SakeClassificationBottomSheet(
     title: String,
     groups: List<DropdownOptionGroup>,
     selectedValues: List<String>,
+    showHelpHints: Boolean,
     onDismiss: () -> Unit,
     onSave: (List<String>) -> Unit,
 ) {
@@ -302,6 +305,7 @@ private fun SakeClassificationBottomSheet(
                 selectedValues = stagedValues,
                 expandedGroupKeys = expandedGroupKeys,
                 forceExpanded = forceExpanded,
+                showHelpHints = showHelpHints,
                 onGroupToggled = { key -> expandedGroupKeys = expandedGroupKeys.toggle(key) },
                 onSelectionToggled = { value -> stagedValues = stagedValues.toggle(value) },
                 modifier = Modifier.weight(1f),
@@ -459,6 +463,7 @@ private fun GroupedMultiSelectList(
     selectedValues: Set<String>,
     expandedGroupKeys: Set<String>,
     forceExpanded: Boolean,
+    showHelpHints: Boolean,
     onGroupToggled: (String) -> Unit,
     onSelectionToggled: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -484,6 +489,18 @@ private fun GroupedMultiSelectList(
                     ListItem(
                         modifier = Modifier.clickable { onSelectionToggled(option.value) },
                         headlineContent = { Text(option.label) },
+                        supportingContent =
+                            option.description
+                                ?.takeIf { showHelpHints }
+                                ?.let { description ->
+                                    {
+                                        Text(
+                                            text = description,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                },
                         leadingContent = {
                             Checkbox(
                                 checked = selected,
