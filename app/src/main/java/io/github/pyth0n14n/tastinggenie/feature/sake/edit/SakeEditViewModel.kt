@@ -435,6 +435,8 @@ private object NoOpSettingsRepository : SettingsRepository {
     override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit
 
     override suspend fun updateReviewMode(modeId: String) = Unit
+
+    override suspend fun replaceSettings(settings: AppSettings) = Unit
 }
 
 private fun SakeEditUiState.withLoadedData(

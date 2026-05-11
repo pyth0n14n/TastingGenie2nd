@@ -62,7 +62,7 @@ class SettingsScreenTest {
             SettingsScreen(
                 state = SettingsUiState(isLoading = false),
                 onBack = {},
-                actions = emptySettingsActions(onExportJson = { exportClicked = true }),
+                actions = emptySettingsActions(onExportBackup = { exportClicked = true }),
             )
         }
 
@@ -78,13 +78,13 @@ class SettingsScreenTest {
             SettingsScreen(
                 state = SettingsUiState(isLoading = false),
                 onBack = {},
-                actions = emptySettingsActions(onImportJson = { importClicked = true }),
+                actions = emptySettingsActions(onRestoreBackup = { importClicked = true }),
             )
         }
 
         composeRule.onNodeWithText("バックアップから復元").performClick()
         composeRule.onNodeWithText("バックアップから復元しますか？").assertIsDisplayed()
-        composeRule.onNodeWithText("復元すると現在のデータが失われます。").assertIsDisplayed()
+        composeRule.onNodeWithText("復元すると現在のデータはバックアップ内容で上書きされます。").assertIsDisplayed()
         composeRule.onNodeWithText("復元する").performClick()
 
         composeRule.runOnIdle { assertTrue(importClicked) }
@@ -126,8 +126,8 @@ class SettingsScreenTest {
 }
 
 private fun emptySettingsActions(
-    onExportJson: () -> Unit = {},
-    onImportJson: () -> Unit = {},
+    onExportBackup: () -> Unit = {},
+    onRestoreBackup: () -> Unit = {},
     onOpenGlossary: () -> Unit = {},
     onDismissMessage: () -> Unit = {},
 ) = SettingsScreenActions(
@@ -136,8 +136,8 @@ private fun emptySettingsActions(
     onToggleAutoDeleteUnusedImages = {},
     onSelectReviewMode = {},
     onCleanupUnusedImages = {},
-    onExportJson = onExportJson,
-    onImportJson = onImportJson,
+    onExportBackup = onExportBackup,
+    onRestoreBackup = onRestoreBackup,
     onOpenGlossary = onOpenGlossary,
     onDismissMessage = onDismissMessage,
 )

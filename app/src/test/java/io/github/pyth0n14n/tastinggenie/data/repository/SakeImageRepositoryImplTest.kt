@@ -144,6 +144,8 @@ class SakeImageRepositoryImplTest {
 
         override suspend fun insertAll(entities: List<SakeEntity>) = Unit
 
+        override suspend fun deleteAll() = Unit
+
         override suspend fun update(entity: SakeEntity): Int = 0
 
         override suspend fun updatePinned(

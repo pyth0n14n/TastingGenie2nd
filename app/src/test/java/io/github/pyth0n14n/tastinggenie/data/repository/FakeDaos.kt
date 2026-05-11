@@ -41,6 +41,11 @@ class FakeSakeDao : SakeDao {
         entities.forEach { insert(it) }
     }
 
+    override suspend fun deleteAll() {
+        entries.clear()
+        emit()
+    }
+
     override suspend fun update(entity: SakeEntity): Int {
         val index = entries.indexOfFirst { it.id == entity.id }
         return if (index >= 0) {
@@ -107,6 +112,11 @@ class FakeReviewDao : ReviewDao {
 
     override suspend fun insertAll(entities: List<ReviewEntity>) {
         entities.forEach { insert(it) }
+    }
+
+    override suspend fun deleteAll() {
+        entries.clear()
+        emit()
     }
 
     override suspend fun update(entity: ReviewEntity): Int {

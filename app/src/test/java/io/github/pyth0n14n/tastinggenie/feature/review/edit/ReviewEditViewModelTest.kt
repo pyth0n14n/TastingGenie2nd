@@ -470,6 +470,10 @@ private class FakeSettingsRepository(
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
     }
+
+    override suspend fun replaceSettings(settings: AppSettings) {
+        stream.value = settings
+    }
 }
 
 private class FakeReviewModeRepository : ReviewModeRepository {

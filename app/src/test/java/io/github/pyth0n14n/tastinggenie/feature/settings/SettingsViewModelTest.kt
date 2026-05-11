@@ -17,6 +17,12 @@ import kotlinx.serialization.SerializationException
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+
+private val TEST_EXPORT_BYTES = "export-backup".toByteArray()
+private val TEST_IMPORT_BYTES = "restore-backup".toByteArray()
+private val TEST_INVALID_BYTES = "invalid-backup".toByteArray()
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
@@ -80,25 +86,22 @@ class SettingsViewModelTest {
     @Test
     fun exportBackup_successPublishesSuccessMessage() =
         runTest {
-            var writtenJson: String? = null
+            val writtenBackup = ByteArrayOutputStream()
             val viewModel =
                 SettingsViewModel(
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportBytes = TEST_EXPORT_BYTES,
                         ),
                 )
             advanceUntilIdle()
 
-            viewModel.exportBackup { rawJson ->
-                writtenJson = rawJson
-                Result.success(Unit)
-            }
+            viewModel.exportBackup { Result.success(writtenBackup) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals("""{"schemaVersion":1}""", writtenJson)
+            Assert.assertArrayEquals(TEST_EXPORT_BYTES, writtenBackup.toByteArray())
             Assert.assertEquals(R.string.message_export_success, state.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
             Assert.assertNull(state.error)
@@ -117,7 +120,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.exportBackup { Result.success(Unit) }
+            viewModel.exportBackup { Result.success(ByteArrayOutputStream()) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -138,7 +141,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.exportBackup { Result.success(Unit) }
+            viewModel.exportBackup { Result.success(ByteArrayOutputStream()) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -157,11 +160,11 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_IMPORT_BYTES)) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals("""{"schemaVersion":1}""", repository.importedJson)
+            Assert.assertArrayEquals(TEST_IMPORT_BYTES, repository.importedBytes)
             Assert.assertEquals(R.string.message_import_success, state.messageResId)
             Assert.assertNull(state.error)
             Assert.assertFalse(state.isProcessingTransfer)
@@ -180,7 +183,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":99}""") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_INVALID_BYTES)) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -201,11 +204,11 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("{not-json") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_INVALID_BYTES)) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals(R.string.error_import_invalid_json, state.error?.messageResId)
+            Assert.assertEquals(R.string.error_import_invalid_backup, state.error?.messageResId)
             Assert.assertFalse(state.isProcessingTransfer)
         }
 
@@ -222,7 +225,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_INVALID_BYTES)) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -243,7 +246,7 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_INVALID_BYTES)) }
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
@@ -277,11 +280,11 @@ class SettingsViewModelTest {
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportBytes = TEST_EXPORT_BYTES,
                         ),
                 )
             advanceUntilIdle()
-            viewModel.exportBackup { Result.success(Unit) }
+            viewModel.exportBackup { Result.success(ByteArrayOutputStream()) }
             advanceUntilIdle()
 
             viewModel.clearTransferFeedback()
@@ -301,7 +304,7 @@ class SettingsViewModelTest {
                         ),
                 )
             advanceUntilIdle()
-            viewModel.exportBackup { Result.success(Unit) }
+            viewModel.exportBackup { Result.success(ByteArrayOutputStream()) }
             advanceUntilIdle()
 
             viewModel.clearTransferFeedback()
@@ -337,13 +340,13 @@ class SettingsViewModelTest {
                     settingsRepository = FakeSettingsRepository(),
                     importExportRepository =
                         FakeImportExportRepository(
-                            exportJson = """{"schemaVersion":1}""",
+                            exportBytes = TEST_EXPORT_BYTES,
                         ),
                 )
             advanceUntilIdle()
             viewModel.setSettingsVisible(visible = true)
 
-            viewModel.exportBackup { Result.success(Unit) }
+            viewModel.exportBackup { Result.success(ByteArrayOutputStream()) }
             advanceUntilIdle()
             Assert.assertEquals(R.string.message_export_success, viewModel.uiState.value.messageResId)
 
@@ -369,7 +372,7 @@ class SettingsViewModelTest {
             advanceUntilIdle()
             viewModel.setSettingsVisible(visible = false)
 
-            viewModel.importBackup { Result.success("""{"schemaVersion":1}""") }
+            viewModel.importBackup { Result.success(ByteArrayInputStream(TEST_INVALID_BYTES)) }
             advanceUntilIdle()
             val initialState = viewModel.uiState.value
             val initialError = initialState.error?.messageResId
@@ -411,24 +414,31 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
     }
+
+    override suspend fun replaceSettings(settings: AppSettings) {
+        stream.value = settings
+    }
 }
 
 private class FakeImportExportRepository(
-    private val exportJson: String = """{"schemaVersion":1,"sakes":[],"reviews":[]}""",
+    private val exportBytes: ByteArray = byteArrayOf(),
     private val exportFailure: Throwable? = null,
     private val importFailure: Throwable? = null,
 ) : ImportExportRepository {
-    var importedJson: String? = null
+    var importedBytes: ByteArray? = null
 
-    override suspend fun exportJson(): Result<String> =
+    override suspend fun exportBackup(output: java.io.OutputStream): Result<Unit> =
         when (val failure = exportFailure) {
             is kotlinx.coroutines.CancellationException -> throw failure
-            null -> Result.success(exportJson)
+            null -> {
+                output.write(exportBytes)
+                Result.success(Unit)
+            }
             else -> Result.failure(failure)
         }
 
-    override suspend fun importJson(rawJson: String): Result<Unit> {
-        importedJson = rawJson
+    override suspend fun restoreBackup(input: java.io.InputStream): Result<Unit> {
+        importedBytes = input.readBytes()
         return when (val failure = importFailure) {
             is kotlinx.coroutines.CancellationException -> throw failure
             null -> Result.success(Unit)
@@ -455,6 +465,10 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateReviewMode(modeId: String) {
+        error("settings write failed")
+    }
+
+    override suspend fun replaceSettings(settings: AppSettings) {
         error("settings write failed")
     }
 }

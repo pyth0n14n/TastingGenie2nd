@@ -15,4 +15,6 @@ interface SettingsRepository {
     suspend fun updateAutoDeleteUnusedImages(enabled: Boolean)
 
     suspend fun updateReviewMode(modeId: String)
+
+    suspend fun replaceSettings(settings: AppSettings)
 }

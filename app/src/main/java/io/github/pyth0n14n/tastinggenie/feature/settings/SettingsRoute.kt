@@ -63,14 +63,13 @@ import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.nio.charset.StandardCharsets
 
 private const val SCREEN_PADDING = 16
 private const val SECTION_SPACING = 10
 private const val SETTINGS_ROW_MIN_HEIGHT = 56
 private const val SETTINGS_CARD_CORNER = 8
 private const val REQUIRED_VERSION_PARTS = 3
-private const val EXPORT_FILE_NAME = "tastinggenie-backup.json"
+private const val EXPORT_FILE_NAME = "tastinggenie-backup.zip"
 private const val DEFAULT_APP_VERSION = "1.0"
 private const val VERSION_PART_PADDING = "0"
 
@@ -92,12 +91,12 @@ fun SettingsRoute(
         }
     }
     val exportLauncher =
-        rememberLauncherForActivityResult(CreateDocument("application/json")) { uri ->
+        rememberLauncherForActivityResult(CreateDocument("application/zip")) { uri ->
             if (uri == null) {
                 return@rememberLauncherForActivityResult
             }
-            viewModel.exportBackup { rawJson ->
-                runRouteTransferCatching { writeBackupJson(context, uri, rawJson) }
+            viewModel.exportBackup {
+                runRouteTransferCatching { openBackupOutput(context, uri) }
             }
         }
     val importLauncher =
@@ -106,7 +105,7 @@ fun SettingsRoute(
                 return@rememberLauncherForActivityResult
             }
             viewModel.importBackup {
-                runRouteTransferCatching { readBackupJson(context, uri) }
+                runRouteTransferCatching { openBackupInput(context, uri) }
             }
         }
     SettingsScreen(
@@ -119,8 +118,12 @@ fun SettingsRoute(
                 onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
                 onSelectReviewMode = viewModel::selectReviewMode,
                 onCleanupUnusedImages = viewModel::cleanupUnusedImages,
-                onExportJson = { if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME) },
-                onImportJson = { if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/json")) },
+                onExportBackup = {
+                    if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME)
+                },
+                onRestoreBackup = {
+                    if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/zip"))
+                },
                 onOpenGlossary = onOpenGlossary,
                 onDismissMessage = viewModel::clearTransferFeedback,
             ),
@@ -143,32 +146,23 @@ private suspend fun <T> runRouteTransferCatching(block: suspend () -> T): Result
         }
     }
 
-private suspend fun writeBackupJson(
+private suspend fun openBackupOutput(
     context: Context,
     uri: Uri,
-    rawJson: String,
-) = withContext(Dispatchers.IO) {
-    // Export success depends on both JSON generation and URI write completion.
-    val outputStream =
+): java.io.OutputStream =
+    withContext(Dispatchers.IO) {
         checkNotNull(context.contentResolver.openOutputStream(uri, "wt")) {
             "Failed to open output stream for export"
         }
-    outputStream.writer(StandardCharsets.UTF_8).use { writer ->
-        writer.write(rawJson)
     }
-}
 
-private suspend fun readBackupJson(
+private suspend fun openBackupInput(
     context: Context,
     uri: Uri,
-): String =
+): java.io.InputStream =
     withContext(Dispatchers.IO) {
-        val inputStream =
-            checkNotNull(context.contentResolver.openInputStream(uri)) {
-                "Failed to open input stream for import"
-            }
-        inputStream.reader(StandardCharsets.UTF_8).use { reader ->
-            reader.readText()
+        checkNotNull(context.contentResolver.openInputStream(uri)) {
+            "Failed to open input stream for restore"
         }
     }
 
@@ -292,7 +286,7 @@ private fun SettingsContent(
             SettingsSection(title = stringResource(R.string.settings_section_data)) {
                 SettingNavigationRow(
                     label = stringResource(R.string.setting_backup_export),
-                    onClick = actions.onExportJson,
+                    onClick = actions.onExportBackup,
                     enabled = !state.isProcessingTransfer,
                 )
                 SettingsDivider()
@@ -336,7 +330,7 @@ private fun SettingsContent(
             onDismiss = { isRestoreConfirmOpen = false },
             onRestore = {
                 isRestoreConfirmOpen = false
-                actions.onImportJson()
+                actions.onRestoreBackup()
             },
         )
     }
@@ -348,8 +342,8 @@ data class SettingsScreenActions(
     val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
     val onSelectReviewMode: (String) -> Unit,
     val onCleanupUnusedImages: () -> Unit,
-    val onExportJson: () -> Unit,
-    val onImportJson: () -> Unit,
+    val onExportBackup: () -> Unit,
+    val onRestoreBackup: () -> Unit,
     val onOpenGlossary: () -> Unit,
     val onDismissMessage: () -> Unit,
 )
