@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -385,17 +387,21 @@ private fun LazyListScope.addNoteFields(
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.isItemEnabled(ReviewItemId.OTHER_INDIVIDUALITY)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_other_individuality,
-            onAction = onAction,
-            ui =
-                ReviewTextFieldUi(
-                    value = state.otherIndividuality,
-                    field = ReviewTextField.OTHER_INDIVIDUALITY,
-                    helpItemId = ReviewItemId.OTHER_INDIVIDUALITY,
-                ),
-        )
+        item {
+            ReviewStandaloneHelpTextField(
+                ui =
+                    ReviewStandaloneHelpTextFieldUi(
+                        label = reviewTextResource(R.string.label_other_individuality),
+                        value = state.otherIndividuality,
+                        showHelpHints = state.showHelpHints,
+                        helpItemId = ReviewItemId.OTHER_INDIVIDUALITY,
+                        singleLine = false,
+                    ),
+                onValueChange = { next ->
+                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.OTHER_INDIVIDUALITY, value = next))
+                },
+            )
+        }
     }
     if (state.isItemEnabled(ReviewItemId.OTHER_CAUTIONS)) {
         textField(
@@ -437,9 +443,9 @@ private fun LazyListScope.addFreeCommentFieldIfEnabled(
         return
     }
     item {
-        ReviewHelpTextField(
+        ReviewStandaloneHelpTextField(
             ui =
-                ReviewHelpTextFieldUi(
+                ReviewStandaloneHelpTextFieldUi(
                     label = reviewTextResource(R.string.label_comment),
                     value = state.comment,
                     showHelpHints = state.showHelpHints,
@@ -452,6 +458,35 @@ private fun LazyListScope.addFreeCommentFieldIfEnabled(
         )
     }
 }
+
+@Composable
+private fun ReviewStandaloneHelpTextField(
+    ui: ReviewStandaloneHelpTextFieldUi,
+    onValueChange: (String) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(ReviewEditLabelInputSpacing)) {
+        ReviewHelpLabel(
+            label = ui.label,
+            itemId = ui.helpItemId,
+            showHelpHints = ui.showHelpHints,
+        )
+        OutlinedTextField(
+            value = ui.value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = stringResource(R.string.label_unwritten)) },
+            singleLine = ui.singleLine,
+        )
+    }
+}
+
+private data class ReviewStandaloneHelpTextFieldUi(
+    val label: String,
+    val value: String,
+    val showHelpHints: Boolean,
+    val helpItemId: ReviewItemId,
+    val singleLine: Boolean = true,
+)
 
 private fun LazyListScope.sakeTypeField(
     state: ReviewEditUiState,

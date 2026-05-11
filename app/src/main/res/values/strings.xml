@@ -115,6 +115,7 @@
     <string name="label_dish">料理</string>
     <string name="label_cautions">留意点</string>
     <string name="label_comment">自由コメント</string>
+    <string name="label_unwritten">未記載</string>
     <string name="label_overall_review">総合評価</string>
     <string name="label_average_review">平均評価</string>
     <string name="label_review_count">レビュー数</string>
