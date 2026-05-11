@@ -53,25 +53,24 @@ This document captures common issues from Codex reviews to prevent regressions. 
 ### Problem: Accepts invalid data that app cannot handle, creating uneditable records.
 - **Example**: Blank sake names or invalid viscosity values imported without validation.
 - **Root Cause**: From commit `2af8ba1` (fix(import): validate backup sake names and viscosity) - Mapper trusted input without app-level validation.
-- **Preventive Measure**: Validate all imported data against the same rules as UI input; reject invalid payloads with clear error.
+- **Preventive Measure**: Validate restored backup data against the same rules as UI input; reject invalid payloads with clear error.
 - **Test Coverage**:
-  - Import JSON with blank sake name; verify rejection with error_import_invalid_payload.
-  - Import JSON with viscosity=0 or 6; verify rejection.
+  - Restore ZIP with blank sake name; verify rejection with error_import_invalid_payload.
+  - Restore ZIP with viscosity=0 or 6; verify rejection.
 
-### Problem: Uses auto-generated IDs as merge keys, causing data corruption on import.
-- **Example**: Importing backup overwrites unrelated records due to ID collision.
-- **Root Cause**: From commit `6e964a0` (fix(import-export): avoid corrupt backup merges) - Upserted by numeric ID without considering logical identity.
-- **Preventive Measure**: Use business keys (e.g., sake name + grade) for merging; never rely on auto-generated IDs for cross-device sync.
+### Problem: Restore behaves like a merge, leaving stale records or mixing unrelated IDs.
+- **Example**: Restoring a backup leaves records that were created after the backup, so the restored state is not the backed-up state.
+- **Preventive Measure**: Treat restore as full replacement. Validate the ZIP first, then replace DB rows, settings, and image references with the backup contents. Do not merge.
 - **Test Coverage**:
-  - Import backup into device with existing data; verify no overwrites of unrelated records.
-  - Merge backups with conflicting IDs; ensure logical deduplication.
+  - Restore backup into a device with existing data; verify only backup records remain.
+  - Force restore validation failure; verify the existing DB remains unchanged.
 
-### Problem: Exports non-portable image URIs, breaking restores.
-- **Example**: Imported sake records have broken image links on new devices.
-- **Root Cause**: From commit `771110e` (fix(import-export): address PR6 review findings) - Serialized content:// URIs directly.
-- **Preventive Measure**: Omit image URIs from backups; inform users images are not portable.
+### Problem: Exports local image URIs instead of portable ZIP image entries.
+- **Example**: Restored sake records point to a file URI from the source device and images are broken.
+- **Preventive Measure**: Store images as ZIP entries under `images/sakes/*`; store only relative entry names in `data.json`; create new app-managed files and URI values during restore.
 - **Test Coverage**:
-  - Export/import round-trip; verify images are not restored (show message_no_image).
+  - Export/restore an image-backed sake; verify the restored URI points to a readable app-managed file.
+  - Remove a referenced image entry from ZIP; verify restore fails before DB replacement.
 
 ### Problem: Replacing or deleting images mutates persisted files before save, so cancel or save failure loses the old managed set.
 - **Example**: SakeEdit imports a new image immediately and deletes an existing managed file before the form save succeeds.
@@ -370,7 +369,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ## General Preventive Measures
 
-- Always validate imports against UI validation rules.
+- Always validate backup restores against UI validation rules.
 - Keep image ownership on `Sake`; review flows may display that image but must not persist their own image URI.
 - Delete only app-managed image URIs; never assume arbitrary external URIs are safe to remove.
 - Use transactions for multi-table operations.

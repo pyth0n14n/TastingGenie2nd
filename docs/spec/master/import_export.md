@@ -1,52 +1,70 @@
-# インポート/エクスポート仕様
+# バックアップ/リストア仕様
 
-## 1. 実装時期
+## 1. 形式
 
-- 第2マイルストーン（M2）で実装する
-- 形式は JSON のみ
+- バックアップ形式は ZIP のみ
+- 拡張子: `.zip`
+- MIME: `application/zip`
+- 旧 JSON バックアップは読み込み対象外とし、読み込み時は失敗として UI に表示する
 
 ---
 
-## 2. 形式
+## 2. ZIP 構成
 
-- UTF-8
-- 拡張子: `.json`
-- 1ファイルに `sakes` と `reviews` を含める
+```text
+manifest.json
+data.json
+images/sakes/*
+```
+
+- `manifest.json` はバックアップ形式と `schemaVersion` を保持する
+- `data.json` は UTF-8 JSON とする
+- `images/sakes/*` は `Sake.imageUris` から参照される app-managed 酒画像を格納する
+
+---
+
+## 3. data.json
 
 ```json
 {
-  "schemaVersion": 9,
+  "schemaVersion": 10,
   "sakes": [],
-  "reviews": []
+  "reviews": [],
+  "reviewModes": [],
+  "reviewModeItems": [],
+  "settings": {
+    "showHelpHints": true,
+    "showReviewSoundness": true,
+    "autoDeleteUnusedImages": false,
+    "reviewModeId": "normal"
+  }
 }
 ```
 
----
-
-## 3. バリデーション
-
 - `schemaVersion` 必須
-- 未対応バージョンは読み込み失敗としてUIに表示
-- JSON破損時は読み込み失敗としてUIに表示
-- schemaVersion 9 は新レビュー項目、`reviewModeId` とは独立した Review 保存フィールド、DB v10 の項目名に対応する
-- import は legacy schema 3..8 を受け付ける。legacy レビュー評価項目は新構成へ自動対応せず、基本情報のみ保持して評価項目は初期化する
+- schemaVersion 10 は ZIP フルバックアップ形式を表す
+- 未対応バージョンは読み込み失敗として UI に表示する
+- ZIP破損、必須ファイル欠落、JSON破損は読み込み失敗として UI に表示する
 
 ---
 
 ## 4. 読み込みポリシー
 
-- バックアップ内の `id` / `sakeId` は payload 内参照用であり、端末ローカルの DB 主キーとしては再利用しない
-- `sakes`: import 時に新しいローカル ID を採番して追加する
-- `reviews`: import 時に新しいローカル ID を採番して追加する
+- リストアは既存データへマージしない
+- バックアップ検証後、現在の DB データ、設定、画像参照をバックアップ内容で上書きする
+- `sakes` / `reviews` の `id` はバックアップ内の値をそのまま復元する
 - `reviews.sakeId` は同じ payload 内の `sakes.id` を参照している必要がある
-- payload 内で `sakes.id` が重複している場合は失敗扱い
+- `reviewModeItems.modeId` は同じ payload 内の `reviewModes.id` を参照している必要がある
+- payload 内で主キーが重複している場合は失敗扱い
+- 復元失敗時は既存 DB を削除しない
 
 ---
 
 ## 5. 画像の扱い
 
-- 現行の JSON backup は画像バイト列を含めない
-- `Sake.imageUris` はアプリ専用領域の URI 一覧を指すため、端末やインストール状態をまたいで復元可能な値ではない
-- そのため、画像は export/import 対象にしない
-- 複数画像対応後も backup では画像 URI 一覧を保存しない
-- 画像付き backup の扱いは ZIP 化を行う後続 PR で定義する
+- export は app-managed 酒画像を `images/sakes/*` に同梱する
+- `data.json` 内の `Sake.imageUris` は端末ローカル URI ではなく ZIP 内の相対画像パスとする
+- restore は相対画像パスを検証し、画像を app-managed 領域へ新しいファイル名でコピーする
+- restore 後の `Sake.imageUris` は新しい app-managed file URI に置換する
+- `data.json` が参照する画像が ZIP 内に存在しない場合は失敗扱い
+- 復元成功後、DB から参照されなくなった app-managed 酒画像は削除する
