@@ -1,8 +1,13 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import io.github.pyth0n14n.tastinggenie.R
@@ -38,7 +43,7 @@ fun LazyListScope.textFieldItem(
     }
 }
 
-@androidx.compose.runtime.Composable
+@Composable
 internal fun SakeTextFieldContent(
     @StringRes labelRes: Int,
     state: SakeEditUiState,
@@ -47,28 +52,72 @@ internal fun SakeTextFieldContent(
 ) {
     val label = stringResource(labelRes)
     val suffix = ui.presentation.suffixRes?.let { suffixRes -> stringResource(suffixRes) }
-    LabeledTextField(
-        label = label,
-        value = ui.value,
-        onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
-        fieldState =
-            FormFieldState(
-                required = ui.presentation.required,
-                errorText =
-                    ui.presentation.validationField?.let { validationField ->
-                        state.validationErrors[validationField]?.let { error ->
-                            validationErrorText(label = label, error = error)
-                        }
-                    },
-                suffixText = suffix,
-                prefixText = ui.presentation.prefixText,
-                keyboardOptions =
-                    ui.presentation.keyboardType?.let { keyboardType ->
-                        KeyboardOptions(keyboardType = keyboardType)
-                    } ?: KeyboardOptions.Default,
-            ),
+    val fieldState =
+        FormFieldState(
+            required = ui.presentation.required,
+            errorText =
+                ui.presentation.validationField?.let { validationField ->
+                    state.validationErrors[validationField]?.let { error ->
+                        validationErrorText(label = label, error = error)
+                    }
+                },
+            suffixText = suffix,
+            prefixText = ui.presentation.prefixText,
+            keyboardOptions =
+                ui.presentation.keyboardType?.let { keyboardType ->
+                    KeyboardOptions(keyboardType = keyboardType)
+                } ?: KeyboardOptions.Default,
+        )
+    val helpMessage = ui.field.toSakeDetailHelpMessage()
+    if (state.showHelpHints && helpMessage != null) {
+        SakeHelpTextField(
+            label = label,
+            value = ui.value,
+            onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
+            fieldState = fieldState,
+            helpMessage = helpMessage,
+        )
+    } else {
+        LabeledTextField(
+            label = label,
+            value = ui.value,
+            onValueChange = { updated -> callbacks.onTextChanged(ui.field, updated) },
+            fieldState = fieldState,
+        )
+    }
+}
+
+@Composable
+private fun SakeHelpTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    fieldState: FormFieldState,
+    helpMessage: SakeDetailHelpMessage,
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = {
+            SakeHelpLabel(
+                label = formFieldLabel(label = label, required = fieldState.required),
+                helpMessage = helpMessage,
+            )
+        },
+        singleLine = true,
+        isError = fieldState.isError,
+        keyboardOptions = fieldState.keyboardOptions,
+        supportingText = fieldState.errorText?.let { errorText -> { Text(errorText) } },
+        prefix = fieldState.prefixText?.let { prefixText -> { Text(prefixText) } },
+        suffix = fieldState.suffixText?.let { suffixText -> { Text(suffixText) } },
     )
 }
+
+private fun formFieldLabel(
+    label: String,
+    required: Boolean,
+): String = if (required) "$label *" else label
 
 data class SakeFieldPresentation(
     val validationField: SakeValidationField? = null,

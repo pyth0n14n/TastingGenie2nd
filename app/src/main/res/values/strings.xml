@@ -164,6 +164,7 @@
     <string name="label_sake_image">画像</string>
     <string name="label_sake_section_detail">詳細情報</string>
     <string name="cd_sake_detail_help">詳細情報のヘルプ</string>
+    <string name="cd_sake_field_help">%1$sのヘルプ</string>
     <string name="title_sake_detail_help">詳細情報のヘルプ</string>
     <string name="sake_detail_help_koji_mai_term">麹米</string>
     <string name="sake_detail_help_koji_mai_message">麹づくりに使用される米。</string>

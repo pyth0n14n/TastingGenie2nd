@@ -347,7 +347,7 @@ class SakeEditScreenTest {
     }
 
     @Test
-    fun detailHelp_withHelpHintsOn_opensDictionaryDialog() {
+    fun detailHelp_withHelpHintsOn_opensFieldDialog() {
         composeRule.setContent {
             SakeEditScreen(
                 state =
@@ -362,13 +362,12 @@ class SakeEditScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("詳細情報のヘルプ").performClick()
-        composeRule.onAllNodesWithText("詳細情報のヘルプ")[0].assertIsDisplayed()
-        composeRule.onNodeWithText("麹米").assertIsDisplayed()
+        composeRule.onNodeWithTag("sake_edit_form").performScrollToNode(hasText("麹米"))
+        composeRule.onNodeWithContentDescription("麹米のヘルプ").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("麹米のヘルプ").performClick()
+        composeRule.onAllNodesWithText("麹米")[0].assertIsDisplayed()
         composeRule.onNodeWithText("麹づくりに使用される米。").assertIsDisplayed()
-        composeRule.onNodeWithText("精米歩合").assertIsDisplayed()
-        composeRule.onNodeWithText("閉じる").performClick()
+        composeRule.onNodeWithText("OK").performClick()
         assertEquals(0, composeRule.onAllNodesWithText("麹づくりに使用される米。").fetchSemanticsNodes().size)
     }
 
@@ -388,10 +387,7 @@ class SakeEditScreenTest {
             )
         }
 
-        assertEquals(
-            0,
-            composeRule.onAllNodesWithContentDescription("詳細情報のヘルプ").fetchSemanticsNodes().size,
-        )
+        assertEquals(0, composeRule.onAllNodesWithContentDescription("麹米のヘルプ").fetchSemanticsNodes().size)
     }
 
     @Test
