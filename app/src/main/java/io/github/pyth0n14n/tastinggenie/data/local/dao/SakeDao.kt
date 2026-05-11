@@ -43,6 +43,9 @@ interface SakeDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<SakeEntity>)
 
+    @Query("DELETE FROM sakes")
+    suspend fun deleteAll()
+
     @Update
     suspend fun update(entity: SakeEntity): Int
 

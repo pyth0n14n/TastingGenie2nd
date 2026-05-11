@@ -25,6 +25,9 @@ interface ReviewDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entities: List<ReviewEntity>)
 
+    @Query("DELETE FROM reviews")
+    suspend fun deleteAll()
+
     @Update
     suspend fun update(entity: ReviewEntity): Int
 

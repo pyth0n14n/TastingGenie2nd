@@ -49,6 +49,15 @@ class SettingsRepositoryImpl
             }
         }
 
+        override suspend fun replaceSettings(settings: AppSettings) {
+            dataStore.edit { preferences ->
+                preferences[showHelpHintsKey] = settings.showHelpHints
+                preferences[showReviewSoundnessKey] = settings.showReviewSoundness
+                preferences[autoDeleteUnusedImagesKey] = settings.autoDeleteUnusedImages
+                preferences[reviewModeIdKey] = settings.reviewModeId
+            }
+        }
+
         private companion object {
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
             val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")

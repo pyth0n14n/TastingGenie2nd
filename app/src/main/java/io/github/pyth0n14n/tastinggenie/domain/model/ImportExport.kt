@@ -2,26 +2,45 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 9
-const val LEGACY_SCHEMA_VERSION_8 = 8
-const val LEGACY_SCHEMA_VERSION_7 = 7
-const val LEGACY_SCHEMA_VERSION_6 = 6
-const val LEGACY_SCHEMA_VERSION_5 = 5
-const val LEGACY_SCHEMA_VERSION_4 = 4
-const val LEGACY_SCHEMA_VERSION_3 = 3
+const val CURRENT_SCHEMA_VERSION = 10
 
 @Serializable
 data class BackupPayload(
     val schemaVersion: Int,
     val sakes: List<SerializableSake>,
     val reviews: List<SerializableReview>,
+    val reviewModes: List<SerializableReviewMode> = emptyList(),
+    val reviewModeItems: List<SerializableReviewModeItem> = emptyList(),
+    val settings: SerializableAppSettings = SerializableAppSettings(),
 )
 
 @Serializable
-data class LegacyBackupPayloadV3(
+data class BackupManifest(
     val schemaVersion: Int,
-    val sakes: List<SerializableSake>,
-    val reviews: List<LegacySerializableReviewV3>,
+    val app: String = "tastinggenie",
+    val format: String = "full-zip",
+)
+
+@Serializable
+data class SerializableAppSettings(
+    val showHelpHints: Boolean = true,
+    val showReviewSoundness: Boolean = true,
+    val autoDeleteUnusedImages: Boolean = false,
+    val reviewModeId: String = ReviewMode.NORMAL.id,
+)
+
+@Serializable
+data class SerializableReviewMode(
+    val id: String,
+    val label: String,
+    val isBuiltIn: Boolean,
+)
+
+@Serializable
+data class SerializableReviewModeItem(
+    val modeId: String,
+    val itemId: String,
+    val isEnabled: Boolean,
 )
 
 @Serializable
@@ -30,6 +49,7 @@ data class SerializableSake(
     val name: String,
     val grade: String,
     val isPinned: Boolean = false,
+    val imageUris: List<String> = emptyList(),
     val gradeOther: String? = null,
     val type: List<String>,
     val typeOther: String? = null,
@@ -89,32 +109,6 @@ data class SerializableReview(
     val otherSakeTypes: List<String> = emptyList(),
     val otherFreeComment: String? = null,
     val otherOverallReview: String? = null,
-)
-
-@Serializable
-data class LegacySerializableReviewV3(
-    val id: Long,
-    val sakeId: Long,
-    val date: String,
-    val bar: String? = null,
-    val price: Int? = null,
-    val volume: Int? = null,
-    val temperature: String? = null,
-    val color: String? = null,
-    val viscosity: Int? = null,
-    val intensity: String? = null,
-    val scentTop: List<String> = emptyList(),
-    val scentBase: List<String> = emptyList(),
-    val scentMouth: List<String> = emptyList(),
-    val sweet: String? = null,
-    val sour: String? = null,
-    val bitter: String? = null,
-    val umami: String? = null,
-    val sharp: String? = null,
-    val scene: String? = null,
-    val dish: String? = null,
-    val comment: String? = null,
-    val review: String? = null,
 )
 
 class UnsupportedSchemaVersionException(

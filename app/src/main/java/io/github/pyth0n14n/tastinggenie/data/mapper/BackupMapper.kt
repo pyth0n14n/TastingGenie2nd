@@ -1,8 +1,9 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.data.mapper
 
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
-import io.github.pyth0n14n.tastinggenie.domain.model.LegacySerializableReviewV3
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableReview
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
@@ -13,7 +14,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
@@ -33,6 +33,7 @@ fun SakeEntity.toSerializable(): SerializableSake =
         name = name,
         grade = grade.name,
         isPinned = isPinned,
+        imageUris = imageUris,
         gradeOther = gradeOther,
         type = type.map { classification -> classification.name },
         typeOther = typeOther,
@@ -51,15 +52,21 @@ fun SakeEntity.toSerializable(): SerializableSake =
         water = water,
     )
 
-fun SerializableSake.toImportedEntity(): SakeEntity =
+fun SerializableSake.toImportedEntity(): SakeEntity = toRestoredEntity(id = 0L, imageUris = emptyList())
+
+fun SerializableSake.toRestoredEntity(
+    id: Long = this.id,
+    imageUris: List<String> = this.imageUris,
+): SakeEntity =
     SakeEntity(
+        id = id,
         name =
             name
                 .trim()
                 .also { trimmedName -> require(trimmedName.isNotEmpty()) { "Backup sake name must not be blank" } },
         grade = enumValueOf<SakeGrade>(grade),
         isPinned = isPinned,
-        imageUris = emptyList(),
+        imageUris = imageUris,
         gradeOther = gradeOther,
         type = type.map { classification -> enumValueOf<SakeClassification>(classification) },
         typeOther = typeOther,
@@ -121,8 +128,14 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         otherOverallReview = otherOverallReview?.name,
     )
 
-fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
+fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity = toRestoredEntity(id = 0L, sakeId = sakeId)
+
+fun SerializableReview.toRestoredEntity(
+    id: Long = this.id,
+    sakeId: Long = this.sakeId,
+): ReviewEntity =
     ReviewEntity(
+        id = id,
         sakeId = sakeId,
         dateEpochDay = LocalDate.parse(date).toEpochDay(),
         bar = bar,
@@ -161,33 +174,6 @@ fun SerializableReview.toImportedEntity(sakeId: Long): ReviewEntity =
         otherSakeTypes = otherSakeTypes.map { type -> enumValueOf<FlavorProfileType>(type) },
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
-    )
-
-fun LegacySerializableReviewV3.toSerializableV4(): SerializableReview =
-    SerializableReview(
-        id = id,
-        sakeId = sakeId,
-        date = date,
-        bar = bar,
-        price = price,
-        volume = volume,
-        temperature = temperature,
-        dish = dish,
-        appearanceSoundness = ReviewSoundness.SOUND.name,
-        appearanceColor = color,
-        appearanceViscosity = viscosity,
-        aromaSoundness = ReviewSoundness.SOUND.name,
-        aromaIntensity = intensity,
-        aromaExamples = scentTop,
-        tasteSoundness = ReviewSoundness.SOUND.name,
-        tasteSweetness = sweet,
-        tasteSourness = sour,
-        tasteBitterness = bitter,
-        tasteUmami = umami,
-        tasteInPalateAroma = scentMouth,
-        tasteAftertaste = sharp,
-        otherCautions = comment,
-        otherOverallReview = review,
     )
 
 private inline fun <reified T : Enum<T>> String.toEnum(): T = enumValueOf<T>(this)

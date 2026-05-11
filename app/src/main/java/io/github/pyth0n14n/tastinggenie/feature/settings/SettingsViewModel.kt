@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.zip.ZipException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -132,14 +135,30 @@ class SettingsViewModel
             }
         }
 
-        fun exportBackup(writeJson: suspend (String) -> Result<Unit>) {
+        fun exportBackup(openOutput: suspend () -> Result<OutputStream>) {
             hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
-                    val rawJson = exportJsonPayload() ?: return@launch
-                    writeJson(rawJson)
-                        .onSuccess {
+                    val output =
+                        openOutput().getOrElse { throwable ->
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    error =
+                                        UiError(
+                                            messageResId = R.string.error_export_failed,
+                                            causeKey = throwable.message,
+                                        ),
+                                )
+                            }
+                            hasUnseenTransferFeedback = !isSettingsVisible
+                            return@launch
+                        }
+                    output
+                        .use { stream ->
+                            importExportRepository.exportBackup(stream)
+                        }.onSuccess {
                             _uiState.update {
                                 it.copy(
                                     isProcessingTransfer = false,
@@ -168,13 +187,13 @@ class SettingsViewModel
             }
         }
 
-        fun importBackup(readJson: suspend () -> Result<String>) {
+        fun importBackup(openInput: suspend () -> Result<InputStream>) {
             hasUnseenTransferFeedback = false
             _uiState.update { it.copy(isProcessingTransfer = true, messageResId = null, error = null) }
             viewModelScope.launch {
                 try {
-                    val rawJson =
-                        readJson().getOrElse { throwable ->
+                    val input =
+                        openInput().getOrElse { throwable ->
                             _uiState.update {
                                 it.copy(
                                     isProcessingTransfer = false,
@@ -188,7 +207,27 @@ class SettingsViewModel
                             hasUnseenTransferFeedback = !isSettingsVisible
                             return@launch
                         }
-                    importJsonPayload(rawJson)
+                    input
+                        .use { stream ->
+                            importExportRepository.restoreBackup(stream)
+                        }.onSuccess {
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    messageResId = R.string.message_import_success,
+                                    error = null,
+                                )
+                            }
+                            hasUnseenTransferFeedback = !isSettingsVisible
+                        }.onFailure { throwable ->
+                            _uiState.update {
+                                it.copy(
+                                    isProcessingTransfer = false,
+                                    error = mapImportError(throwable),
+                                )
+                            }
+                            hasUnseenTransferFeedback = !isSettingsVisible
+                        }
                 } catch (throwable: CancellationException) {
                     _uiState.update { it.copy(isProcessingTransfer = false) }
                     throw throwable
@@ -224,46 +263,6 @@ class SettingsViewModel
             }
         }
 
-        private suspend fun exportJsonPayload(): String? =
-            importExportRepository
-                .exportJson()
-                .onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            error =
-                                UiError(
-                                    messageResId = R.string.error_export_failed,
-                                    causeKey = throwable.message,
-                                ),
-                        )
-                    }
-                    hasUnseenTransferFeedback = !isSettingsVisible
-                }.getOrNull()
-
-        private suspend fun importJsonPayload(rawJson: String) {
-            importExportRepository
-                .importJson(rawJson)
-                .onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            messageResId = R.string.message_import_success,
-                            error = null,
-                        )
-                    }
-                    hasUnseenTransferFeedback = !isSettingsVisible
-                }.onFailure { throwable ->
-                    _uiState.update {
-                        it.copy(
-                            isProcessingTransfer = false,
-                            error = mapImportError(throwable),
-                        )
-                    }
-                    hasUnseenTransferFeedback = !isSettingsVisible
-                }
-        }
-
         private fun observeSettings() {
             viewModelScope.launch {
                 settingsRepository
@@ -296,7 +295,9 @@ private fun mapImportError(throwable: Throwable): UiError {
     val messageResId =
         when (throwable) {
             is UnsupportedSchemaVersionException -> R.string.error_import_unsupported_version
-            is SerializationException -> R.string.error_import_invalid_json
+            is SerializationException,
+            is ZipException,
+            -> R.string.error_import_invalid_backup
             is InvalidBackupReferenceException,
             is IllegalArgumentException,
             -> R.string.error_import_invalid_payload
@@ -312,7 +313,7 @@ private fun SettingsUiState.hasTransferFeedback(): Boolean =
 private fun Int.isTransferFeedbackMessage(): Boolean =
     this == R.string.error_export_failed ||
         this == R.string.error_import_failed ||
-        this == R.string.error_import_invalid_json ||
+        this == R.string.error_import_invalid_backup ||
         this == R.string.error_import_unsupported_version ||
         this == R.string.error_import_invalid_payload
 
