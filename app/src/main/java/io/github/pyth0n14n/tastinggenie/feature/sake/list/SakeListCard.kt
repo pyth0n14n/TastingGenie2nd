@@ -222,8 +222,11 @@ private fun SakeListTrailing(
 private fun SakeListRating(labels: SakeListCardLabels) {
     val ratingText = labels.latestOverallReview?.let { review -> "${review.ordinal + 1}.00" }
     val contentDescription =
-        labels.latestOverallReviewLabel?.let { label ->
-            stringResource(R.string.content_latest_overall_review, label)
+        labels.latestOverallReview?.let { review ->
+            stringResource(
+                R.string.content_latest_overall_review,
+                labels.latestOverallReviewLabel ?: review.name,
+            )
         } ?: stringResource(R.string.content_latest_overall_review_none)
     Row(
         modifier = Modifier.semantics { this.contentDescription = contentDescription },

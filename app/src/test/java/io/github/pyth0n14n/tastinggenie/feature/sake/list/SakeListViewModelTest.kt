@@ -507,6 +507,40 @@ class SakeListViewModelTest {
             assertEquals("後勝ち", pending?.sakeName)
             assertEquals(1, pending?.reviewCount)
         }
+
+    @Test
+    fun dismissDeleteSakeDialog_cancelsPendingDeleteLookup() =
+        runTest {
+            val reviewRepository = SequencedReviewRepository()
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(
+                        initial =
+                            listOf(
+                                Sake(
+                                    id = DELETE_SAKE_ID,
+                                    name = "削除対象",
+                                    grade = SakeGrade.JUNMAI,
+                                ),
+                            ),
+                    ),
+                    reviewRepository,
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.requestDeleteSake(DELETE_SAKE_ID)
+            advanceUntilIdle()
+            viewModel.dismissDeleteSakeDialog()
+            reviewRepository.complete(
+                DELETE_SAKE_ID,
+                listOf(testReview(id = SECOND_REVIEW_ID, sakeId = DELETE_SAKE_ID)),
+            )
+            advanceUntilIdle()
+
+            assertEquals(null, viewModel.uiState.value.pendingDeleteSake)
+        }
 }
 
 private class FakeSakeRepository(
