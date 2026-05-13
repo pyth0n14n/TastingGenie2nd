@@ -58,7 +58,7 @@ fun ReviewDetailScreen(
                     if (content.state.sakeName.isBlank()) {
                         stringResource(R.string.screen_review_detail)
                     } else {
-                        "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                        content.state.sakeName
                     },
                 onBack = onBack,
                 actions = {

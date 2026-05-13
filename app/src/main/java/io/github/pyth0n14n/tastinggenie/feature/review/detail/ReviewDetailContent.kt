@@ -74,13 +74,17 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingGenie2ndAndroidTheme
-import java.time.LocalDate
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipOutline
 
 private val ScreenPadding = 16.dp
 private val SectionSpacing = 16.dp
 private val CardShape = RoundedCornerShape(8.dp)
 private val SmallShape = RoundedCornerShape(6.dp)
-private val ChipShape = RoundedCornerShape(50)
+private val ReviewChipHorizontalPadding = 10.dp
+private val ReviewChipVerticalPadding = 3.dp
 private const val SUMMARY_COMMENT_MAX_LENGTH = 54
 private const val SCALE_STEPS = 5
 private const val SWEET_DRY_STEPS = 4
@@ -395,7 +399,12 @@ private fun SectionBody(section: DetailSection) {
         section.rows.forEachIndexed { index, row ->
             when (row) {
                 is DetailDisplayRow.KeyValue -> InfoKeyValueRow(label = row.label, value = row.value)
-                is DetailDisplayRow.Chips -> ReadonlyChipGroup(label = row.label, values = row.values)
+                is DetailDisplayRow.Chips ->
+                    ReadonlyChipGroup(
+                        label = row.label,
+                        values = row.values,
+                        isTopAroma = row.isTopAroma,
+                    )
                 is DetailDisplayRow.TasteScale -> TasteScaleRow(row = row)
                 is DetailDisplayRow.TextBlock -> TextBlock(label = row.label, value = row.value)
                 is DetailDisplayRow.ColorValue -> ColorInfoRow(label = row.label, value = row.value, color = row.color)
@@ -439,6 +448,7 @@ private fun InfoKeyValueRow(
 private fun ReadonlyChipGroup(
     label: String,
     values: List<String>,
+    isTopAroma: Boolean,
 ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Text(
@@ -454,14 +464,23 @@ private fun ReadonlyChipGroup(
         ) {
             values.forEach { value ->
                 Surface(
-                    shape = ChipShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = if (isTopAroma) TastingTypeChipContainer else TastingSakeChipContainer,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    shape = MaterialTheme.shapes.small,
+                    border =
+                        BorderStroke(
+                            1.dp,
+                            if (isTopAroma) TastingTypeChipOutline else TastingSakeChipOutline,
+                        ),
                 ) {
                     Text(
                         text = value,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                        modifier =
+                            Modifier.padding(
+                                horizontal = ReviewChipHorizontalPadding,
+                                vertical = ReviewChipVerticalPadding,
+                            ),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 }
             }
@@ -636,6 +655,7 @@ private sealed interface DetailDisplayRow {
     data class Chips(
         override val label: String,
         val values: List<String>,
+        val isTopAroma: Boolean = false,
     ) : DetailDisplayRow
 
     data class TasteScale(
@@ -810,7 +830,7 @@ private fun Review.toAromaSection(
                 add(DetailDisplayRow.TasteScale(textLabels.aromaComplexity, it.toLabel(), it.ordinal))
             }
             aromaExamples.asLabels(labels.aroma)?.let {
-                add(DetailDisplayRow.Chips(textLabels.aromaExamples, it))
+                add(DetailDisplayRow.Chips(textLabels.aromaExamples, it, isTopAroma = true))
             }
             aromaMainNote.trimmedOrNull()?.let {
                 add(DetailDisplayRow.TextBlock(textLabels.aromaMainNote, it))
@@ -1095,7 +1115,7 @@ private fun ReviewDetailContentPreview() {
                         Review(
                             id = 1,
                             sakeId = 1,
-                            date = LocalDate.parse("2026-05-09"),
+                            date = java.time.LocalDate.parse("2026-05-09"),
                             volume = 720,
                             otherOverallReview = OverallReview.GOOD,
                             otherFreeComment = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
