@@ -195,6 +195,12 @@ class ImportExportRepositoryImpl
             payload: BackupPayload,
             entries: Map<String, ByteArray>,
         ) {
+            validateSakeReferences(payload)
+            validateReviewModes(payload)
+            validateReferencedImages(payload, entries)
+        }
+
+        private fun validateSakeReferences(payload: BackupPayload) {
             val sakeIds = payload.sakes.map { it.id }
             require(sakeIds.size == sakeIds.toSet().size) { "Backup contains duplicate sake ids" }
             val allowedSakeIds = sakeIds.toSet()
@@ -203,6 +209,9 @@ class ImportExportRepositoryImpl
             }
             val reviewIds = payload.reviews.map { it.id }
             require(reviewIds.size == reviewIds.toSet().size) { "Backup contains duplicate review ids" }
+        }
+
+        private fun validateReviewModes(payload: BackupPayload) {
             val modeIds = payload.reviewModes.map { it.id }
             require(modeIds.size == modeIds.toSet().size) { "Backup contains duplicate review mode ids" }
             val modeItemIds = payload.reviewModeItems.map { it.modeId to it.itemId }
@@ -211,6 +220,12 @@ class ImportExportRepositoryImpl
             payload.reviewModeItems.firstOrNull { it.modeId !in allowedModeIds }?.let { item ->
                 throw IllegalArgumentException("Review mode item references unknown modeId: ${item.modeId}")
             }
+        }
+
+        private fun validateReferencedImages(
+            payload: BackupPayload,
+            entries: Map<String, ByteArray>,
+        ) {
             val referencedImageEntries = payload.sakes.flatMap { it.imageUris }.distinct()
             require(referencedImageEntries.size <= MAX_IMAGE_ENTRY_COUNT) {
                 "Backup contains too many images: ${referencedImageEntries.size}"
@@ -296,31 +311,55 @@ class ImportExportRepositoryImpl
             ZipInputStream(input).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
-                    entryCount++
-                    if (entryCount > MAX_ZIP_ENTRY_COUNT) {
-                        throw SerializationException("Backup has too many ZIP entries")
-                    }
+                    entryCount = checkedZipEntryCount(entryCount + 1)
                     if (!entry.isDirectory) {
-                        if (entry.name.startsWith(IMAGE_ENTRY_PREFIX)) {
-                            imageEntryCount++
-                            if (imageEntryCount > MAX_IMAGE_ENTRY_COUNT) {
-                                throw SerializationException("Backup contains too many images")
+                        imageEntryCount = checkedImageEntryCount(entry, imageEntryCount)
+                        val bytes =
+                            zip.readLimitedEntry(entry, buffer) { bytesRead ->
+                                totalExpandedBytes += bytesRead
+                                checkTotalExpandedBytes(totalExpandedBytes)
                             }
-                        }
-                        val bytes = zip.readLimitedEntry(entry, buffer) { bytesRead ->
-                            totalExpandedBytes += bytesRead
-                            if (totalExpandedBytes > MAX_TOTAL_EXPANDED_BYTES) {
-                                throw SerializationException("Backup expanded size is too large")
-                            }
-                        }
-                        if (entries.put(entry.name, bytes) != null) {
-                            throw SerializationException("Backup contains duplicate ZIP entry: ${entry.name}")
-                        }
+                        storeZipEntry(entries, entry.name, bytes)
                     }
                     zip.closeEntry()
                 }
             }
             return entries
+        }
+
+        private fun checkedZipEntryCount(entryCount: Int): Int {
+            if (entryCount > MAX_ZIP_ENTRY_COUNT) {
+                throw SerializationException("Backup has too many ZIP entries")
+            }
+            return entryCount
+        }
+
+        private fun checkedImageEntryCount(
+            entry: ZipEntry,
+            imageEntryCount: Int,
+        ): Int {
+            if (!entry.name.startsWith(IMAGE_ENTRY_PREFIX)) return imageEntryCount
+            val updatedCount = imageEntryCount + 1
+            if (updatedCount > MAX_IMAGE_ENTRY_COUNT) {
+                throw SerializationException("Backup contains too many images")
+            }
+            return updatedCount
+        }
+
+        private fun checkTotalExpandedBytes(totalExpandedBytes: Long) {
+            if (totalExpandedBytes > MAX_TOTAL_EXPANDED_BYTES) {
+                throw SerializationException("Backup expanded size is too large")
+            }
+        }
+
+        private fun storeZipEntry(
+            entries: MutableMap<String, ByteArray>,
+            name: String,
+            bytes: ByteArray,
+        ) {
+            if (entries.put(name, bytes) != null) {
+                throw SerializationException("Backup contains duplicate ZIP entry: $name")
+            }
         }
 
         private fun ZipInputStream.readLimitedEntry(

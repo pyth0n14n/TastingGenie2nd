@@ -62,6 +62,7 @@ private const val SAMPLE_REVIEW_ID = 202L
 private const val UNSUPPORTED_BACKUP_VERSION = 99
 private const val EXISTING_SAKE_ID = 1L
 private const val ZIP_ENTRY_LIMIT = 1_000
+private const val ONE_MIB_BYTES = 1024 * 1024
 private const val DATA_JSON_LIMIT_BYTES = 8 * 1024 * 1024
 private const val IMAGE_LIMIT_BYTES = 10 * 1024 * 1024
 private const val TOTAL_EXPANDED_LIMIT_BYTES = 128 * 1024 * 1024
@@ -270,7 +271,13 @@ class ImportExportRepositoryImplTest {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is SerializationException)
-            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("data.json"))
+            assertTrue(
+                result
+                    .exceptionOrNull()
+                    ?.message
+                    .orEmpty()
+                    .contains("data.json"),
+            )
         }
 
     @Test
@@ -290,7 +297,13 @@ class ImportExportRepositoryImplTest {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is SerializationException)
-            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("too many ZIP entries"))
+            assertTrue(
+                result
+                    .exceptionOrNull()
+                    ?.message
+                    .orEmpty()
+                    .contains("too many ZIP entries"),
+            )
         }
 
     @Test
@@ -312,7 +325,13 @@ class ImportExportRepositoryImplTest {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is SerializationException)
-            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains(imageEntry))
+            assertTrue(
+                result
+                    .exceptionOrNull()
+                    ?.message
+                    .orEmpty()
+                    .contains(imageEntry),
+            )
         }
 
     @Test
@@ -325,7 +344,13 @@ class ImportExportRepositoryImplTest {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is SerializationException)
-            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("expanded size"))
+            assertTrue(
+                result
+                    .exceptionOrNull()
+                    ?.message
+                    .orEmpty()
+                    .contains("expanded size"),
+            )
         }
 
     @Test
@@ -545,7 +570,7 @@ class ImportExportRepositoryImplTest {
 
     private fun createZipWithExpandedBytes(expandedBytes: Int): ByteArray {
         val output = ByteArrayOutputStream()
-        val chunk = ByteArray(1024 * 1024)
+        val chunk = ByteArray(ONE_MIB_BYTES)
         var remaining = expandedBytes
         var index = 0
         ZipOutputStream(output).use { zip ->
