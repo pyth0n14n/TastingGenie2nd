@@ -2,9 +2,13 @@ package io.github.pyth0n14n.tastinggenie.data.repository
 
 import android.content.ContentProvider
 import android.content.ContentValues
+import android.content.Context
+import android.content.pm.ProviderInfo
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import androidx.test.core.app.ApplicationProvider
+import org.robolectric.shadows.ShadowContentResolver
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -55,8 +59,10 @@ class TestImageContentProvider : ContentProvider() {
             file: File,
             mimeType: String,
         ): Uri {
+            ensureProviderRegistered()
             val uri =
-                Uri.Builder()
+                Uri
+                    .Builder()
                     .scheme("content")
                     .authority(AUTHORITY)
                     .appendPath(file.nameWithoutExtension)
@@ -64,6 +70,14 @@ class TestImageContentProvider : ContentProvider() {
                     .build()
             images[uri] = TestImage(file = file, mimeType = mimeType)
             return uri
+        }
+
+        private fun ensureProviderRegistered() {
+            val provider = TestImageContentProvider()
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val providerInfo = ProviderInfo().apply { authority = AUTHORITY }
+            provider.attachInfo(context, providerInfo)
+            ShadowContentResolver.registerProviderInternal(AUTHORITY, provider)
         }
     }
 
