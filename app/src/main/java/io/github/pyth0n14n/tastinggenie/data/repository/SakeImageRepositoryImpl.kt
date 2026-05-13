@@ -2,12 +2,12 @@ package io.github.pyth0n14n.tastinggenie.data.repository
 
 import android.content.Context
 import android.net.Uri
-import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
 import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageImportException
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.image.SAKE_MANAGED_IMAGE_DIRECTORY
 import io.github.pyth0n14n.tastinggenie.image.ownedSakeImageFileOrNull
@@ -17,6 +17,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
+
+internal const val SAKE_IMAGE_MAX_BYTES = 10L * 1024L * 1024L
 
 class SakeImageRepositoryImpl
     @Inject
@@ -28,16 +30,22 @@ class SakeImageRepositoryImpl
         override suspend fun importImage(sourceUri: String): String =
             withContext(ioDispatcher) {
                 val source = Uri.parse(sourceUri)
-                val targetFile = createManagedImageFile(source)
-                val inputStream =
-                    checkNotNull(context.contentResolver.openInputStream(source)) {
-                        "Failed to open input stream for $sourceUri"
+                val imageMimeType = source.requireSupportedImageMimeType(context)
+                val targetFile = createManagedImageFile(imageMimeType)
+                val importResult =
+                    runCatching {
+                        val inputStream =
+                            checkNotNull(context.contentResolver.openInputStream(source)) {
+                                "Failed to open input stream for $sourceUri"
+                            }
+                        inputStream.use { input ->
+                            targetFile.outputStream().use { output ->
+                                input.copyToLimited(output = output, maxBytes = SAKE_IMAGE_MAX_BYTES)
+                            }
+                        }
                     }
-                inputStream.use { input ->
-                    targetFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
+                importResult.exceptionOrNull()?.let { targetFile.delete() }
+                importResult.getOrThrow()
                 Uri.fromFile(targetFile).toString()
             }
 
@@ -56,14 +64,9 @@ class SakeImageRepositoryImpl
                 }
             }
 
-        private fun createManagedImageFile(source: Uri): File {
+        private fun createManagedImageFile(mimeType: SakeImageMimeType): File {
             val directory = File(context.filesDir, SAKE_MANAGED_IMAGE_DIRECTORY).apply { mkdirs() }
-            val extension = source.extensionOrNull(context)
-            val filename =
-                buildString {
-                    append(UUID.randomUUID())
-                    extension?.let { append('.').append(it) }
-                }
+            val filename = "${UUID.randomUUID()}.${mimeType.extension}"
             return File(directory, filename)
         }
 
@@ -86,16 +89,46 @@ class SakeImageRepositoryImpl
         }
     }
 
-private fun Uri.extensionOrNull(context: Context): String? {
-    val contentResolverExtension =
-        context.contentResolver
-            .getType(this)
-            ?.let { mimeType -> MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) }
-    if (!contentResolverExtension.isNullOrBlank()) {
-        return contentResolverExtension
+private fun Uri.requireSupportedImageMimeType(context: Context): SakeImageMimeType {
+    val rawMimeType = context.contentResolver.getType(this)
+    return SakeImageMimeType.from(rawMimeType)
+        ?: throw SakeImageImportException.UnsupportedMimeType(rawMimeType)
+}
+
+private fun java.io.InputStream.copyToLimited(
+    output: java.io.OutputStream,
+    maxBytes: Long,
+): Long {
+    var copiedBytes = 0L
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    while (true) {
+        val readBytes = read(buffer)
+        if (readBytes < 0) {
+            return copiedBytes
+        }
+        copiedBytes += readBytes.toLong()
+        if (copiedBytes > maxBytes) {
+            throw SakeImageImportException.ImageTooLarge(maxBytes)
+        }
+        output.write(buffer, 0, readBytes)
     }
-    val name = lastPathSegment.orEmpty()
-    return name.substringAfterLast('.', "").lowercase().ifBlank { null }
+}
+
+private enum class SakeImageMimeType(
+    val mimeType: String,
+    val extension: String,
+) {
+    JPEG(mimeType = "image/jpeg", extension = "jpg"),
+    PNG(mimeType = "image/png", extension = "png"),
+    WEBP(mimeType = "image/webp", extension = "webp"),
+    ;
+
+    companion object {
+        fun from(mimeType: String?): SakeImageMimeType? {
+            val normalizedMimeType = mimeType?.substringBefore(';')?.trim()?.lowercase()
+            return entries.firstOrNull { it.mimeType == normalizedMimeType }
+        }
+    }
 }
 
 private object NoOpSakeDao : SakeDao {

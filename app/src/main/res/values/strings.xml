@@ -358,6 +358,8 @@
     <string name="error_load_review">レビュー情報の読み込みに失敗しました</string>
     <string name="error_load_settings">設定の読み込みに失敗しました</string>
     <string name="error_save_sake">酒情報の保存に失敗しました</string>
+    <string name="error_sake_image_unsupported_type">対応していない画像形式です。JPEG、PNG、WebP の画像を選択してください</string>
+    <string name="error_sake_image_too_large">画像サイズが大きすぎます。10MB以下の画像を選択してください</string>
     <string name="error_save_review">レビュー情報の保存に失敗しました</string>
     <string name="error_delete_sake">酒の削除に失敗しました</string>
     <string name="error_delete_sake_image_cleanup">酒は削除しましたが画像の削除に失敗しました</string>
