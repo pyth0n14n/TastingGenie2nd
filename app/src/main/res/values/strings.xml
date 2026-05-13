@@ -366,7 +366,7 @@
     <string name="error_cleanup_unused_images">未参照画像の削除に失敗しました</string>
     <string name="error_export_failed">バックアップの書き出しに失敗しました</string>
     <string name="error_import_failed">バックアップの読み込みに失敗しました</string>
-    <string name="error_import_invalid_backup">バックアップが破損しています</string>
+    <string name="error_import_invalid_backup">バックアップファイルが大きすぎるか不正です</string>
     <string name="error_import_unsupported_version">未対応のバックアップバージョンです</string>
     <string name="error_import_invalid_payload">バックアップの内容が不正です</string>
     <string name="error_invalid_sake_grade">種別の選択値が不正です</string>

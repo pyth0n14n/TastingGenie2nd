@@ -42,6 +42,13 @@ import javax.inject.Inject
 private const val MANIFEST_ENTRY = "manifest.json"
 private const val DATA_ENTRY = "data.json"
 private const val IMAGE_ENTRY_PREFIX = "images/sakes/"
+private const val MAX_ZIP_ENTRY_COUNT = 1_000
+private const val MAX_MANIFEST_BYTES = 64L * 1024L
+private const val MAX_DATA_BYTES = 8L * 1024L * 1024L
+private const val MAX_IMAGE_BYTES = 10L * 1024L * 1024L
+private const val MAX_TOTAL_EXPANDED_BYTES = 128L * 1024L * 1024L
+private const val MAX_IMAGE_ENTRY_COUNT = 500
+private const val ZIP_BUFFER_BYTES = 8 * 1024
 
 @Suppress("TooManyFunctions")
 class ImportExportRepositoryImpl
@@ -204,9 +211,17 @@ class ImportExportRepositoryImpl
             payload.reviewModeItems.firstOrNull { it.modeId !in allowedModeIds }?.let { item ->
                 throw IllegalArgumentException("Review mode item references unknown modeId: ${item.modeId}")
             }
-            payload.sakes.flatMap { it.imageUris }.forEach { entryName ->
+            val referencedImageEntries = payload.sakes.flatMap { it.imageUris }.distinct()
+            require(referencedImageEntries.size <= MAX_IMAGE_ENTRY_COUNT) {
+                "Backup contains too many images: ${referencedImageEntries.size}"
+            }
+            referencedImageEntries.forEach { entryName ->
                 require(entryName.isSafeImageEntryName()) { "Invalid backup image path: $entryName" }
-                require(entries.containsKey(entryName)) { "Backup image is missing: $entryName" }
+                val imageBytes =
+                    requireNotNull(entries[entryName]) { "Backup image is missing: $entryName" }
+                if (imageBytes.size > MAX_IMAGE_BYTES) {
+                    throw SerializationException("Backup image is too large: $entryName")
+                }
             }
         }
 
@@ -218,8 +233,13 @@ class ImportExportRepositoryImpl
                 .flatMap { it.imageUris }
                 .distinct()
                 .map { entryName ->
+                    val imageBytes =
+                        requireNotNull(entries[entryName]) { "Backup image is missing: $entryName" }
+                    if (imageBytes.size > MAX_IMAGE_BYTES) {
+                        throw SerializationException("Backup image is too large: $entryName")
+                    }
                     val restoredFile = createManagedImageFile(entryName)
-                    restoredFile.writeBytes(checkNotNull(entries[entryName]))
+                    restoredFile.writeBytes(imageBytes)
                     RestoredBackupImage(
                         entryName = entryName,
                         file = restoredFile,
@@ -269,19 +289,72 @@ class ImportExportRepositoryImpl
 
         private fun readZipEntries(input: InputStream): Map<String, ByteArray> {
             val entries = mutableMapOf<String, ByteArray>()
+            var entryCount = 0
+            var imageEntryCount = 0
+            var totalExpandedBytes = 0L
+            val buffer = ByteArray(ZIP_BUFFER_BYTES)
             ZipInputStream(input).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
+                    entryCount++
+                    if (entryCount > MAX_ZIP_ENTRY_COUNT) {
+                        throw SerializationException("Backup has too many ZIP entries")
+                    }
                     if (!entry.isDirectory) {
-                        val output = ByteArrayOutputStream()
-                        zip.copyTo(output)
-                        entries[entry.name] = output.toByteArray()
+                        if (entry.name.startsWith(IMAGE_ENTRY_PREFIX)) {
+                            imageEntryCount++
+                            if (imageEntryCount > MAX_IMAGE_ENTRY_COUNT) {
+                                throw SerializationException("Backup contains too many images")
+                            }
+                        }
+                        val bytes = zip.readLimitedEntry(entry, buffer) { bytesRead ->
+                            totalExpandedBytes += bytesRead
+                            if (totalExpandedBytes > MAX_TOTAL_EXPANDED_BYTES) {
+                                throw SerializationException("Backup expanded size is too large")
+                            }
+                        }
+                        if (entries.put(entry.name, bytes) != null) {
+                            throw SerializationException("Backup contains duplicate ZIP entry: ${entry.name}")
+                        }
                     }
                     zip.closeEntry()
                 }
             }
             return entries
         }
+
+        private fun ZipInputStream.readLimitedEntry(
+            entry: ZipEntry,
+            buffer: ByteArray,
+            onBytesRead: (Long) -> Unit,
+        ): ByteArray {
+            val maxEntryBytes = entry.maxAllowedBytes()
+            val shouldStore = entry.name.shouldStoreEntry()
+            val output = if (shouldStore) ByteArrayOutputStream() else null
+            var entryBytes = 0L
+            while (true) {
+                val read = read(buffer)
+                if (read == -1) break
+                entryBytes += read.toLong()
+                onBytesRead(read.toLong())
+                if (entryBytes > maxEntryBytes) {
+                    throw SerializationException("Backup entry is too large: ${entry.name}")
+                }
+                output?.write(buffer, 0, read)
+            }
+            return output?.toByteArray() ?: ByteArray(0)
+        }
+
+        private fun ZipEntry.maxAllowedBytes(): Long =
+            when {
+                name == MANIFEST_ENTRY -> MAX_MANIFEST_BYTES
+                name == DATA_ENTRY -> MAX_DATA_BYTES
+                name.startsWith(IMAGE_ENTRY_PREFIX) -> MAX_IMAGE_BYTES
+                else -> MAX_TOTAL_EXPANDED_BYTES
+            }
+
+        private fun String.shouldStoreEntry(): Boolean =
+            this == MANIFEST_ENTRY || this == DATA_ENTRY || startsWith(IMAGE_ENTRY_PREFIX)
 
         private fun ZipOutputStream.writeJsonEntry(
             entryName: String,

@@ -61,6 +61,10 @@ private const val SAMPLE_SAKE_ID = 101L
 private const val SAMPLE_REVIEW_ID = 202L
 private const val UNSUPPORTED_BACKUP_VERSION = 99
 private const val EXISTING_SAKE_ID = 1L
+private const val ZIP_ENTRY_LIMIT = 1_000
+private const val DATA_JSON_LIMIT_BYTES = 8 * 1024 * 1024
+private const val IMAGE_LIMIT_BYTES = 10 * 1024 * 1024
+private const val TOTAL_EXPANDED_LIMIT_BYTES = 128 * 1024 * 1024
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -242,6 +246,86 @@ class ImportExportRepositoryImplTest {
 
             assertTrue(result.isFailure)
             assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+        }
+
+    @Test
+    fun restoreBackup_dataJsonLargerThanLimitReturnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val backupBytes =
+                createZip(
+                    mapOf(
+                        "manifest.json" to
+                            json
+                                .encodeToString(
+                                    BackupManifest.serializer(),
+                                    BackupManifest(schemaVersion = CURRENT_SCHEMA_VERSION),
+                                ).toByteArray(),
+                        "data.json" to
+                            ByteArray(DATA_JSON_LIMIT_BYTES + 1) { ' '.code.toByte() },
+                    ),
+                )
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is SerializationException)
+            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("data.json"))
+        }
+
+    @Test
+    fun restoreBackup_tooManyZipEntriesReturnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val backupBytes =
+                createZip(
+                    buildMap {
+                        repeat(ZIP_ENTRY_LIMIT + 1) { index ->
+                            put("extras/$index.txt", byteArrayOf(index.toByte()))
+                        }
+                    },
+                )
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is SerializationException)
+            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("too many ZIP entries"))
+        }
+
+    @Test
+    fun restoreBackup_imageLargerThanLimitReturnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val imageEntry = "images/sakes/large.jpg"
+            val payload =
+                samplePayload(
+                    sakes = listOf(sampleSerializableSake().copy(imageUris = listOf(imageEntry))),
+                )
+            val backupBytes =
+                createBackupZip(
+                    payload,
+                    images = mapOf(imageEntry to ByteArray(IMAGE_LIMIT_BYTES + 1)),
+                )
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is SerializationException)
+            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains(imageEntry))
+        }
+
+    @Test
+    fun restoreBackup_expandedZipLargerThanLimitReturnsFailure() =
+        runTest {
+            val repository = createRepository()
+            val backupBytes = createZipWithExpandedBytes(TOTAL_EXPANDED_LIMIT_BYTES + 1)
+
+            val result = repository.restoreBackup(ByteArrayInputStream(backupBytes))
+
+            assertTrue(result.isFailure)
+            assertTrue(result.exceptionOrNull() is SerializationException)
+            assertTrue(result.exceptionOrNull()?.message.orEmpty().contains("expanded size"))
         }
 
     @Test
@@ -454,6 +538,24 @@ class ImportExportRepositoryImplTest {
                 zip.putNextEntry(ZipEntry(name))
                 zip.write(bytes)
                 zip.closeEntry()
+            }
+        }
+        return output.toByteArray()
+    }
+
+    private fun createZipWithExpandedBytes(expandedBytes: Int): ByteArray {
+        val output = ByteArrayOutputStream()
+        val chunk = ByteArray(1024 * 1024)
+        var remaining = expandedBytes
+        var index = 0
+        ZipOutputStream(output).use { zip ->
+            while (remaining > 0) {
+                zip.putNextEntry(ZipEntry("extras/$index.bin"))
+                val bytesToWrite = minOf(remaining, chunk.size)
+                zip.write(chunk, 0, bytesToWrite)
+                zip.closeEntry()
+                remaining -= bytesToWrite
+                index++
             }
         }
         return output.toByteArray()
