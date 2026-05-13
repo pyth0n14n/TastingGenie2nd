@@ -68,3 +68,23 @@ images/sakes/*
 - restore 後の `Sake.imageUris` は新しい app-managed file URI に置換する
 - `data.json` が参照する画像が ZIP 内に存在しない場合は失敗扱い
 - 復元成功後、DB から参照されなくなった app-managed 酒画像は削除する
+
+---
+
+## 6. インポート安全上限
+
+読み込み時は ZIP をストリーミング展開しながら以下の上限を検証し、超過した場合はバックアップファイルが大きすぎる、または不正なファイルとして失敗扱いにする。
+
+| 対象 | 上限 |
+| --- | ---: |
+| ZIP ファイル内のエントリ数（`manifest.json`、`data.json`、`images/sakes/*`、ディレクトリ、未知エントリを含む） | 1,000 件 |
+| `manifest.json` 展開後サイズ | 64 KiB |
+| `data.json` 展開後サイズ | 8 MiB |
+| `images/sakes/` 配下の画像 1 件あたり展開後サイズ | 10 MiB |
+| ZIP 全体の合計展開後サイズ | 128 MiB |
+| `images/sakes/` 配下の画像エントリ数 | 500 件 |
+
+- ZIP エントリ数は、酒リスト (`sakes`) の件数やレビュー (`reviews`) の件数ではなく、ZIP コンテナ内のファイル/ディレクトリ項目数を指す
+- 合計展開後サイズには、未使用または未知の ZIP エントリも含める
+- `manifest.json`、`data.json`、`images/sakes/` 配下の画像は、個別上限と合計上限の両方を満たす必要がある
+- `data.json` が参照する画像の件数も最大画像件数以下である必要がある
