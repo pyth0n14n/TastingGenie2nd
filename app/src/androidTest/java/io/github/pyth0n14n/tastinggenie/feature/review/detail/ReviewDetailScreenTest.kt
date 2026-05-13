@@ -1,20 +1,18 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.swipeLeft
-import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
+import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
+import io.github.pyth0n14n.tastinggenie.feature.review.TEST_SAKE_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -37,8 +35,6 @@ class ReviewDetailScreenTest {
                                 review = testReview(),
                             ),
                         onEditReview = { _, _, _ -> },
-                        selectedSection = ReviewSection.BASIC,
-                        onSectionSelected = {},
                     ),
             )
         }
@@ -48,7 +44,7 @@ class ReviewDetailScreenTest {
     }
 
     @Test
-    fun editAction_opensEditor() {
+    fun editAction_opensEditorAtBasicSection() {
         var openedReview: Triple<Long, Long, ReviewSection>? = null
         composeRule.setContent {
             ReviewDetailScreen(
@@ -63,30 +59,55 @@ class ReviewDetailScreenTest {
                         onEditReview = { sakeId, reviewId, section ->
                             openedReview = Triple(sakeId, reviewId, section)
                         },
-                        selectedSection = ReviewSection.TASTE,
-                        onSectionSelected = {},
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription("編集").performClick()
+        composeRule.onNodeWithText("編集").performClick()
         composeRule.runOnIdle {
             assertEquals(
-                Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
+                Triple(testReview().sakeId, testReview().id, ReviewSection.BASIC),
                 openedReview,
             )
         }
     }
 
     @Test
-    fun editAction_usesTappedSectionBeforePagerSettles() {
-        val tasteLabel =
-            composeRule.activity.getString(
-                R.string.label_review_section_taste,
+    fun summary_showsImportantReviewValues() {
+        composeRule.setContent {
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review =
+                                    testReview().copy(
+                                        volume = 720,
+                                        foodCompatibility = FoodCompatibility.SLIGHTLY_GOOD,
+                                        otherFreeComment = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
+                                        otherSakeTypes = listOf(FlavorProfileType.SOUSHU),
+                                    ),
+                                temperatureLabels = mapOf("JOON" to "常温"),
+                                overallReviewLabels = mapOf("GOOD" to "やや良い"),
+                            ),
+                        onEditReview = { _, _, _ -> },
+                    ),
             )
-        var selectedSection by mutableStateOf(ReviewSection.BASIC)
-        var openedReview: Triple<Long, Long, ReviewSection>? = null
-        composeRule.mainClock.autoAdvance = false
+        }
+
+        composeRule.onNodeWithText("2026-03-14").assertIsDisplayed()
+        composeRule.onNodeWithText("やや良い").assertIsDisplayed()
+        composeRule.onNodeWithText("常温").assertIsDisplayed()
+        composeRule.onNodeWithText("720ml").assertIsDisplayed()
+        composeRule.onNodeWithText("料理との相性: やや良い").assertIsDisplayed()
+        composeRule.onNodeWithText("すっきりした立ち上がりだが、後半に旨味が伸びる。").assertIsDisplayed()
+        composeRule.onNodeWithText("日本酒4タイプ: 爽酒").assertIsDisplayed()
+    }
+
+    @Test
+    fun aromaAndTasteSections_areExpandedInitially() {
         composeRule.setContent {
             ReviewDetailScreen(
                 onBack = {},
@@ -96,27 +117,72 @@ class ReviewDetailScreenTest {
                             ReviewDetailUiState(
                                 isLoading = false,
                                 review = testReview(),
+                                intensityLabels = mapOf("WEAK" to "やや弱い"),
+                                tasteLabels = mapOf("STRONG" to "やや強い"),
                             ),
-                        onEditReview = { sakeId, reviewId, section ->
-                            openedReview = Triple(sakeId, reviewId, section)
-                        },
-                        selectedSection = selectedSection,
-                        onSectionSelected = { next -> selectedSection = next },
+                        onEditReview = { _, _, _ -> },
                     ),
             )
         }
 
-        composeRule.onNodeWithContentDescription(tasteLabel).performClick()
-        composeRule.mainClock.advanceTimeByFrame()
-        composeRule.onNodeWithContentDescription("編集").performClick()
+        composeRule.onNodeWithText("香り").assertIsDisplayed()
+        composeRule.onNodeWithText("強さ").assertIsDisplayed()
+        composeRule.onNodeWithText("やや弱い").assertIsDisplayed()
+        composeRule.onNodeWithText("味").assertIsDisplayed()
+        composeRule.onNodeWithText("甘味").assertIsDisplayed()
+        composeRule.onNodeWithText("やや強い").assertIsDisplayed()
+    }
 
-        composeRule.runOnIdle {
-            assertEquals(
-                Triple(testReview().sakeId, testReview().id, ReviewSection.TASTE),
-                openedReview,
+    @Test
+    fun collapsedSections_expandWhenTapped() {
+        composeRule.setContent {
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review = testReview().copy(appearanceColor = null),
+                                temperatureLabels = mapOf("JOON" to "常温"),
+                            ),
+                        onEditReview = { _, _, _ -> },
+                    ),
             )
         }
-        composeRule.mainClock.autoAdvance = true
+
+        composeRule.onNodeWithText("日付").assertDoesNotExist()
+        composeRule.onNodeWithContentDescription("基本情報").performClick()
+        composeRule.onNodeWithText("日付").assertIsDisplayed()
+        composeRule.onNodeWithText("2026-03-14").assertIsDisplayed()
+    }
+
+    @Test
+    fun emptySections_areHidden() {
+        composeRule.setContent {
+            ReviewDetailScreen(
+                onBack = {},
+                content =
+                    ReviewDetailScreenContent(
+                        state =
+                            ReviewDetailUiState(
+                                isLoading = false,
+                                review =
+                                    Review(
+                                        id = TEST_REVIEW_ID,
+                                        sakeId = TEST_SAKE_ID,
+                                        date = java.time.LocalDate.parse("2026-03-14"),
+                                    ),
+                            ),
+                        onEditReview = { _, _, _ -> },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("香り").assertDoesNotExist()
+        composeRule.onNodeWithText("味").assertDoesNotExist()
+        composeRule.onNodeWithText("見た目").assertDoesNotExist()
+        composeRule.onNodeWithText("メモ・評価").assertDoesNotExist()
     }
 
     @Test
@@ -132,37 +198,10 @@ class ReviewDetailScreenTest {
                                 review = testReview(),
                             ),
                         onEditReview = { _, _, _ -> },
-                        selectedSection = ReviewSection.BASIC,
-                        onSectionSelected = {},
                     ),
             )
         }
 
         assertEquals(0, composeRule.onAllNodesWithText("画像").fetchSemanticsNodes().size)
-    }
-
-    @Test
-    fun swipeChangesVisibleDetailSection() {
-        composeRule.setContent {
-            var selectedSection by mutableStateOf(ReviewSection.BASIC)
-            ReviewDetailScreen(
-                onBack = {},
-                content =
-                    ReviewDetailScreenContent(
-                        state =
-                            ReviewDetailUiState(
-                                isLoading = false,
-                                review = testReview(),
-                            ),
-                        onEditReview = { _, _, _ -> },
-                        selectedSection = selectedSection,
-                        onSectionSelected = { next -> selectedSection = next },
-                    ),
-            )
-        }
-
-        composeRule.onNodeWithText("日付: 2026-03-14").assertIsDisplayed()
-        composeRule.onNodeWithTag("review_detail_pager").performTouchInput { swipeLeft() }
-        composeRule.onNodeWithText("色: CLEAR").assertIsDisplayed()
     }
 }
