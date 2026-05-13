@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_SAKE_ID
@@ -84,9 +85,14 @@ class ReviewDetailScreenTest {
                                 isLoading = false,
                                 review =
                                     testReview().copy(
+                                        bar = "テスト店",
+                                        price = 1440,
                                         volume = 720,
+                                        dish = "刺身",
                                         foodCompatibility = FoodCompatibility.SLIGHTLY_GOOD,
-                                        otherFreeComment = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
+                                        tasteSweetDryness = SweetDryness.MEDIUM_DRY,
+                                        otherIndividuality = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
+                                        otherFreeComment = "サマリには出さない自由コメント",
                                         otherSakeTypes = listOf(FlavorProfileType.SOUSHU),
                                     ),
                                 temperatureLabels = mapOf("JOON" to "常温"),
@@ -99,11 +105,15 @@ class ReviewDetailScreenTest {
 
         composeRule.onNodeWithText("2026-03-14").assertIsDisplayed()
         composeRule.onNodeWithText("やや良い").assertIsDisplayed()
-        composeRule.onNodeWithText("常温").assertIsDisplayed()
-        composeRule.onNodeWithText("720ml").assertIsDisplayed()
-        composeRule.onNodeWithText("料理との相性: やや良い").assertIsDisplayed()
+        composeRule.onNodeWithText("常温（20℃）").assertIsDisplayed()
+        composeRule.onNodeWithText("テスト店").assertIsDisplayed()
+        composeRule.onNodeWithText("200 円 / 100ml").assertIsDisplayed()
+        composeRule.onNodeWithText("やや辛口").assertIsDisplayed()
+        composeRule.onNodeWithText("刺身").assertIsDisplayed()
+        composeRule.onNodeWithText("相性: やや良い").assertIsDisplayed()
         composeRule.onNodeWithText("すっきりした立ち上がりだが、後半に旨味が伸びる。").assertIsDisplayed()
-        composeRule.onNodeWithText("日本酒4タイプ: 爽酒").assertIsDisplayed()
+        composeRule.onNodeWithText("サマリには出さない自由コメント").assertDoesNotExist()
+        composeRule.onNodeWithText("爽酒").assertIsDisplayed()
     }
 
     @Test
@@ -182,7 +192,7 @@ class ReviewDetailScreenTest {
         composeRule.onNodeWithText("香り").assertDoesNotExist()
         composeRule.onNodeWithText("味").assertDoesNotExist()
         composeRule.onNodeWithText("見た目").assertDoesNotExist()
-        composeRule.onNodeWithText("メモ・評価").assertDoesNotExist()
+        composeRule.onNodeWithText("評価・特記事項").assertDoesNotExist()
     }
 
     @Test

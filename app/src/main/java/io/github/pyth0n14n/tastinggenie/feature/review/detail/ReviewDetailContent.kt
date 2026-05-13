@@ -33,9 +33,11 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalBar
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Thermostat
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.HorizontalDivider
@@ -73,16 +75,20 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.feature.review.aftertasteLabel
+import io.github.pyth0n14n.tastinggenie.feature.review.guideTemperatureLabel
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingGenie2ndAndroidTheme
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipOutline
+import kotlin.math.roundToInt
 
 private val ScreenPadding = 16.dp
 private val SectionSpacing = 16.dp
 private val CardShape = RoundedCornerShape(8.dp)
 private val SmallShape = RoundedCornerShape(6.dp)
+private val DetailLabelWidth = 92.dp
+private val DetailScaleWidth = 116.dp
 private val ReviewChipHorizontalPadding = 10.dp
 private val ReviewChipVerticalPadding = 3.dp
 private const val SUMMARY_COMMENT_MAX_LENGTH = 54
@@ -267,12 +273,23 @@ private fun SummaryBadge(
                 modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = badge.text,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = badge.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                badge.supportingText?.let { supportingText ->
+                    Text(
+                        text = supportingText,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
@@ -430,7 +447,7 @@ private fun InfoKeyValueRow(
     ) {
         Text(
             text = label,
-            modifier = Modifier.width(128.dp),
+            modifier = Modifier.width(DetailLabelWidth),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -453,7 +470,7 @@ private fun ReadonlyChipGroup(
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Text(
             text = label,
-            modifier = Modifier.width(128.dp),
+            modifier = Modifier.width(DetailLabelWidth),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -496,7 +513,7 @@ private fun TasteScaleRow(row: DetailDisplayRow.TasteScale) {
     ) {
         Text(
             text = row.label,
-            modifier = Modifier.width(92.dp),
+            modifier = Modifier.width(DetailLabelWidth),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -509,7 +526,7 @@ private fun TasteScaleRow(row: DetailDisplayRow.TasteScale) {
         ScaleIndicator(
             selectedIndex = row.position,
             steps = row.steps,
-            modifier = Modifier.width(116.dp),
+            modifier = Modifier.width(DetailScaleWidth),
         )
     }
 }
@@ -560,14 +577,19 @@ private fun TextBlock(
     label: String,
     value: String,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+    ) {
         Text(
             text = label,
+            modifier = Modifier.width(DetailLabelWidth),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             text = value,
+            modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -586,7 +608,7 @@ private fun ColorInfoRow(
     ) {
         Text(
             text = label,
-            modifier = Modifier.width(128.dp),
+            modifier = Modifier.width(DetailLabelWidth),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -629,6 +651,7 @@ private data class RatingSummary(
 private data class SummaryBadge(
     val text: String,
     val icon: ImageVector,
+    val supportingText: String? = null,
 )
 
 private data class SummaryHighlights(
@@ -793,17 +816,29 @@ private fun Review.toSummary(
             },
         badges =
             listOfNotNull(
-                temperature?.let { SummaryBadge(it.labelFrom(labels.temperature), Icons.Outlined.Thermostat) },
-                volume?.let { SummaryBadge("${it}ml", Icons.Outlined.LocalBar) },
-                foodCompatibility?.let {
-                    SummaryBadge("${textLabels.foodCompatibility}: ${it.toLabel()}", Icons.Outlined.Restaurant)
+                temperature?.let {
+                    SummaryBadge(it.summaryLabel(labels.temperature), Icons.Outlined.Thermostat)
                 },
+                bar.trimmedOrNull()?.let { SummaryBadge(it, Icons.Outlined.LocalBar) },
+                pricePer100mlText()?.let { SummaryBadge(it, Icons.Outlined.Payments) },
+                tasteSweetDryness?.let { SummaryBadge(it.toLabel(), Icons.Outlined.Tune) },
+                foodSummaryBadge(),
                 otherSakeTypes.firstOrNull()?.let {
-                    SummaryBadge("${textLabels.sakeTypes}: ${it.toLabel()}", Icons.Outlined.Eco)
+                    SummaryBadge(it.toLabel(), Icons.Outlined.Eco)
                 },
             ),
-        commentPreview = otherFreeComment.trimmedOrNull()?.summaryPreview(),
+        commentPreview = otherIndividuality.trimmedOrNull()?.summaryPreview(),
     )
+
+private fun Review.foodSummaryBadge(): SummaryBadge? {
+    val dishText = dish.trimmedOrNull()
+    val compatibilityText = foodCompatibility?.let { "相性: ${it.toLabel()}" }
+    return when {
+        dishText != null -> SummaryBadge(dishText, Icons.Outlined.Restaurant, compatibilityText)
+        compatibilityText != null -> SummaryBadge(compatibilityText, Icons.Outlined.Restaurant)
+        else -> null
+    }
+}
 
 private fun Review.toHighlights(labels: ReviewDetailLabels): SummaryHighlights? {
     val aroma = aromaExamples.asDisplayText(labels.aroma)
@@ -987,13 +1022,19 @@ private fun Review.toMemoSection(
             otherCautions.trimmedOrNull()?.let { add(DetailDisplayRow.TextBlock(textLabels.cautions, it)) }
             otherFreeComment.trimmedOrNull()?.let { add(DetailDisplayRow.TextBlock(textLabels.freeComment, it)) }
             otherOverallReview?.let {
-                add(DetailDisplayRow.KeyValue(textLabels.overallReview, labels.overallReview[it.name] ?: it.name))
+                add(
+                    DetailDisplayRow.TasteScale(
+                        textLabels.overallReview,
+                        labels.overallReview[it.name] ?: it.name,
+                        it.ordinal,
+                    ),
+                )
             }
-            otherSakeTypes.asFlavorProfileLabels()?.let { add(DetailDisplayRow.Chips(textLabels.sakeTypes, it)) }
+            otherSakeTypes.asFlavorProfileText()?.let { add(DetailDisplayRow.KeyValue(textLabels.sakeTypes, it)) }
         }
     return rows.toSection(
         key = "memo",
-        title = "メモ・評価",
+        title = "評価・特記事項",
         icon = Icons.Outlined.Description,
         initiallyExpanded = false,
     )
@@ -1017,13 +1058,28 @@ private fun List<DetailDisplayRow>.toSection(
 
 private fun Enum<*>.labelFrom(labels: Map<String, String>): String = labels[name] ?: name
 
+private fun io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature.summaryLabel(
+    labels: Map<String, String>,
+): String = "${labelFrom(labels)}（${guideTemperatureLabel()}）"
+
+private fun Review.pricePer100mlText(): String? {
+    val totalPrice = price
+    val totalVolume = volume?.takeIf { it > 0 }
+    return if (totalPrice != null && totalVolume != null) {
+        val unitPrice = (totalPrice.toDouble() / totalVolume * 100).roundToInt()
+        "$unitPrice 円 / 100ml"
+    } else {
+        null
+    }
+}
+
 private fun List<Aroma>.asDisplayText(labels: Map<String, String>): String? = asLabels(labels)?.joinToString("、")
 
 private fun List<Aroma>.asLabels(labels: Map<String, String>): List<String>? =
     takeIf { it.isNotEmpty() }?.map { aroma -> labels[aroma.name] ?: aroma.name }
 
-private fun List<FlavorProfileType>.asFlavorProfileLabels(): List<String>? =
-    takeIf { it.isNotEmpty() }?.map { type -> type.toLabel() }
+private fun List<FlavorProfileType>.asFlavorProfileText(): String? =
+    takeIf { it.isNotEmpty() }?.joinToString { type -> type.toLabel() }
 
 private fun SakeColor?.displayColor(
     labels: Map<String, String>,
