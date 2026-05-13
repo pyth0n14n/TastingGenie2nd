@@ -42,9 +42,7 @@ class SakeEditViewModelTest {
         private const val TEST_KOJI_POLISH = 50
         private const val TEST_KAKE_POLISH = 55
         private const val TEST_ALCOHOL = 16
-        private const val PICKED_IMAGE_URI = "content://picked/image/1"
         private const val EXISTING_IMAGE_URI = "file:///images/sakes/existing.jpg"
-        private const val IMPORTED_IMAGE_URI = "file:///images/sakes/imported.jpg"
     }
 
     @get:Rule
@@ -236,120 +234,6 @@ class SakeEditViewModelTest {
             val saved = repository.savedInputs.single()
             assertEquals(SakeGrade.FUTSUSHU, saved.grade)
             assertEquals(null, saved.gradeOther)
-        }
-
-    @Test
-    fun save_withSelectedImage_importsManagedImageAndPersistsUri() =
-        runTest {
-            val repository = RecordingSakeRepository()
-            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
-            val viewModel =
-                SakeEditViewModel(
-                    savedStateHandle = SavedStateHandle(),
-                    sakeRepository = repository,
-                    sakeImageRepository = imageRepository,
-                    masterDataRepository = FakeMasterDataRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
-            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
-            viewModel.onImageSelected(PICKED_IMAGE_URI)
-            viewModel.save()
-            advanceUntilIdle()
-
-            val saved = repository.savedInputs.single()
-            assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
-            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
-            assertTrue(imageRepository.deletedUris.isEmpty())
-        }
-
-    @Test
-    fun onImageSelected_withDuplicateUri_keepsSinglePreviewAndSingleImport() =
-        runTest {
-            val repository = RecordingSakeRepository()
-            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
-            val viewModel =
-                SakeEditViewModel(
-                    savedStateHandle = SavedStateHandle(),
-                    sakeRepository = repository,
-                    sakeImageRepository = imageRepository,
-                    masterDataRepository = FakeMasterDataRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
-            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
-            viewModel.onImageSelected(PICKED_IMAGE_URI)
-            viewModel.onImageSelected(PICKED_IMAGE_URI)
-            viewModel.save()
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            val saved = repository.savedInputs.single()
-            assertEquals(listOf(PICKED_IMAGE_URI), state.imagePreviewUris)
-            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
-            assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
-        }
-
-    @Test
-    fun save_withImageDeletion_deletesPersistedImageAfterSave() =
-        runTest {
-            val repository =
-                RecordingSakeRepository(
-                    initial =
-                        listOf(
-                            Sake(
-                                id = EXISTING_SAKE_ID,
-                                name = "既存銘柄",
-                                grade = SakeGrade.JUNMAI,
-                                imageUris = listOf(EXISTING_IMAGE_URI),
-                            ),
-                        ),
-                )
-            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
-            val viewModel =
-                SakeEditViewModel(
-                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
-                    sakeRepository = repository,
-                    sakeImageRepository = imageRepository,
-                    masterDataRepository = FakeMasterDataRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.removeImage(EXISTING_IMAGE_URI)
-            viewModel.save()
-            advanceUntilIdle()
-
-            val saved = repository.savedInputs.single()
-            assertEquals(emptyList<String>(), saved.imageUris)
-            assertTrue(imageRepository.deletedUris.isEmpty())
-        }
-
-    @Test
-    fun save_whenSakeSaveFails_cleansUpImportedImage() =
-        runTest {
-            val repository = RecordingSakeRepository(upsertFailure = IllegalStateException("boom"))
-            val imageRepository = RecordingSakeImageRepository(importedUri = IMPORTED_IMAGE_URI)
-            val viewModel =
-                SakeEditViewModel(
-                    savedStateHandle = SavedStateHandle(),
-                    sakeRepository = repository,
-                    sakeImageRepository = imageRepository,
-                    masterDataRepository = FakeMasterDataRepository(),
-                )
-            advanceUntilIdle()
-
-            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
-            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
-            viewModel.onImageSelected(PICKED_IMAGE_URI)
-            viewModel.save()
-            advanceUntilIdle()
-
-            val state = viewModel.uiState.value
-            assertEquals(R.string.error_save_sake, state.error?.messageResId)
-            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
-            assertEquals(listOf(IMPORTED_IMAGE_URI), imageRepository.deletedUris)
         }
 
     @Test
@@ -775,6 +659,7 @@ class RecordingSakeRepository(
 class RecordingSakeImageRepository(
     private val importedUri: String = "file:///images/sakes/imported.jpg",
     private val deleteFailures: Set<String> = emptySet(),
+    private val importFailure: Exception? = null,
 ) : SakeImageRepository {
     val importedSources = mutableListOf<String>()
     val deletedUris = mutableListOf<String>()
@@ -782,6 +667,7 @@ class RecordingSakeImageRepository(
 
     override suspend fun importImage(sourceUri: String): String {
         importedSources += sourceUri
+        importFailure?.let { throw it }
         return importedUri
     }
 

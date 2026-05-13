@@ -7,6 +7,8 @@ import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
 import io.github.pyth0n14n.tastinggenie.data.local.query.SakeListSummaryRow
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageImportException
+import io.github.pyth0n14n.tastinggenie.image.SAKE_MANAGED_IMAGE_DIRECTORY
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -29,29 +32,93 @@ class SakeImageRepositoryImplTest {
     fun importImage_copiesEachSelectionIntoManagedDirectory() =
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
+            clearManagedImages(context)
             val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
-            val firstSource = createSourceFile(context, name = "first.jpg", content = "first")
-            val firstUri = repository.importImage(sourceUri = Uri.fromFile(firstSource).toString())
+            val firstSource = createSourceImage(context, name = "first.any", mimeType = "image/jpeg", content = "first")
+            val firstUri = repository.importImage(sourceUri = firstSource.toString())
             val firstManagedFile = requireNotNull(Uri.parse(firstUri).path).let(::File)
 
-            val secondSource = createSourceFile(context, name = "second.jpg", content = "second")
-            val secondUri = repository.importImage(sourceUri = Uri.fromFile(secondSource).toString())
+            val secondSource =
+                createSourceImage(context, name = "second.txt", mimeType = "image/jpeg", content = "second")
+            val secondUri = repository.importImage(sourceUri = secondSource.toString())
             val secondManagedFile = requireNotNull(Uri.parse(secondUri).path).let(::File)
 
             assertTrue(firstManagedFile.exists())
             assertTrue(secondManagedFile.exists())
+            assertEquals("jpg", firstManagedFile.extension)
+            assertEquals("jpg", secondManagedFile.extension)
             assertEquals("second", secondManagedFile.readText())
+        }
+
+    @Test
+    fun importImage_rejectsNonImageMimeType() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            clearManagedImages(context)
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val source = createSourceImage(context, name = "not-image.jpg", mimeType = "text/plain", content = "text")
+
+            try {
+                repository.importImage(sourceUri = source.toString())
+                fail("Expected unsupported MIME type to fail")
+            } catch (exception: SakeImageImportException.UnsupportedMimeType) {
+                assertEquals("Unsupported image MIME type: text/plain", exception.message)
+            }
+
+            assertEquals(0, managedImageFiles(context).size)
+        }
+
+    @Test
+    fun importImage_deletesPartialFileWhenImageExceedsMaximumSize() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            clearManagedImages(context)
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val source =
+                createSourceImage(
+                    context = context,
+                    name = "large.png",
+                    mimeType = "image/png",
+                    sizeBytes = SAKE_IMAGE_MAX_BYTES + 1,
+                )
+
+            try {
+                repository.importImage(sourceUri = source.toString())
+                fail("Expected oversized image to fail")
+            } catch (exception: SakeImageImportException.ImageTooLarge) {
+                assertEquals("Image exceeds maximum size: $SAKE_IMAGE_MAX_BYTES bytes", exception.message)
+            }
+
+            assertEquals(0, managedImageFiles(context).size)
+        }
+
+    @Test
+    fun importImage_usesPngExtensionForPngMimeType() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            clearManagedImages(context)
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val source = createSourceImage(context, name = "source.jpg", mimeType = "image/png", content = "png")
+
+            val importedUri = repository.importImage(sourceUri = source.toString())
+            val managedFile = requireNotNull(Uri.parse(importedUri).path).let(::File)
+
+            assertTrue(managedFile.exists())
+            assertEquals("png", managedFile.extension)
+            assertEquals("png", managedFile.readText())
         }
 
     @Test
     fun cleanupUnusedImages_deletesOnlyUnreferencedManagedFiles() =
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
-            val usedSource = createSourceFile(context, name = "used.jpg", content = "used")
-            val unusedSource = createSourceFile(context, name = "unused.jpg", content = "unused")
+            clearManagedImages(context)
+            val usedSource = createSourceImage(context, name = "used.jpg", mimeType = "image/jpeg", content = "used")
+            val unusedSource =
+                createSourceImage(context, name = "unused.jpg", mimeType = "image/jpeg", content = "unused")
             val seedRepository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
-            val usedUri = seedRepository.importImage(sourceUri = Uri.fromFile(usedSource).toString())
-            val unusedUri = seedRepository.importImage(sourceUri = Uri.fromFile(unusedSource).toString())
+            val usedUri = seedRepository.importImage(sourceUri = usedSource.toString())
+            val unusedUri = seedRepository.importImage(sourceUri = unusedSource.toString())
             val repository =
                 SakeImageRepositoryImpl(
                     context = context,
@@ -94,12 +161,57 @@ class SakeImageRepositoryImplTest {
             assertFalse(captureFile.exists())
         }
 
+    private fun createSourceImage(
+        context: Context,
+        name: String,
+        mimeType: String,
+        content: String,
+    ): Uri {
+        val sourceFile = createSourceFile(context = context, name = name, content = content)
+        return TestImageContentProvider.register(file = sourceFile, mimeType = mimeType)
+    }
+
+    private fun createSourceImage(
+        context: Context,
+        name: String,
+        mimeType: String,
+        sizeBytes: Long,
+    ): Uri {
+        val sourceFile = createSourceFile(context = context, name = name, sizeBytes = sizeBytes)
+        return TestImageContentProvider.register(file = sourceFile, mimeType = mimeType)
+    }
+
+    private fun createSourceFile(
+        context: Context,
+        name: String,
+        sizeBytes: Long,
+    ): File =
+        File(context.cacheDir, "source-images/$name").apply {
+            parentFile?.mkdirs()
+            outputStream().use { output ->
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE) { 'x'.code.toByte() }
+                var remainingBytes = sizeBytes
+                while (remainingBytes > 0L) {
+                    val writeBytes = minOf(buffer.size.toLong(), remainingBytes).toInt()
+                    output.write(buffer, 0, writeBytes)
+                    remainingBytes -= writeBytes.toLong()
+                }
+            }
+        }
+
+    private fun clearManagedImages(context: Context) {
+        managedImageFiles(context).forEach { file -> file.delete() }
+    }
+
+    private fun managedImageFiles(context: Context): List<File> =
+        File(context.filesDir, SAKE_MANAGED_IMAGE_DIRECTORY).listFiles().orEmpty().toList()
+
     private fun createSourceFile(
         context: Context,
         name: String,
         content: String,
     ): File =
-        File(context.cacheDir, name).apply {
+        File(context.cacheDir, "source-images/$name").apply {
             parentFile?.mkdirs()
             writeText(content)
         }
