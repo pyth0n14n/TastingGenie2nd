@@ -2,6 +2,7 @@ package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageImportException
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -42,6 +43,7 @@ class SakeEditViewModelTest {
         private const val TEST_KOJI_POLISH = 50
         private const val TEST_KAKE_POLISH = 55
         private const val TEST_ALCOHOL = 16
+        private const val TEST_IMAGE_MAX_BYTES = 10L
         private const val PICKED_IMAGE_URI = "content://picked/image/1"
         private const val EXISTING_IMAGE_URI = "file:///images/sakes/existing.jpg"
         private const val IMPORTED_IMAGE_URI = "file:///images/sakes/imported.jpg"
@@ -262,6 +264,56 @@ class SakeEditViewModelTest {
             assertEquals(listOf(IMPORTED_IMAGE_URI), saved.imageUris)
             assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.importedSources)
             assertTrue(imageRepository.deletedUris.isEmpty())
+        }
+
+    @Test
+    fun save_withUnsupportedImageMimeType_setsImageFormatError() =
+        runTest {
+            val imageRepository =
+                RecordingSakeImageRepository(
+                    importFailure = SakeImageImportException.UnsupportedMimeType("text/plain"),
+                )
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            assertEquals(R.string.error_sake_image_unsupported_type, viewModel.uiState.value.error?.messageResId)
+        }
+
+    @Test
+    fun save_withTooLargeImage_setsImageSizeError() =
+        runTest {
+            val imageRepository =
+                RecordingSakeImageRepository(
+                    importFailure = SakeImageImportException.ImageTooLarge(TEST_IMAGE_MAX_BYTES),
+                )
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = RecordingSakeRepository(),
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.save()
+            advanceUntilIdle()
+
+            assertEquals(R.string.error_sake_image_too_large, viewModel.uiState.value.error?.messageResId)
         }
 
     @Test
@@ -775,6 +827,7 @@ class RecordingSakeRepository(
 class RecordingSakeImageRepository(
     private val importedUri: String = "file:///images/sakes/imported.jpg",
     private val deleteFailures: Set<String> = emptySet(),
+    private val importFailure: Exception? = null,
 ) : SakeImageRepository {
     val importedSources = mutableListOf<String>()
     val deletedUris = mutableListOf<String>()
@@ -782,6 +835,7 @@ class RecordingSakeImageRepository(
 
     override suspend fun importImage(sourceUri: String): String {
         importedSources += sourceUri
+        importFailure?.let { throw it }
         return importedUri
     }
 

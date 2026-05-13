@@ -26,3 +26,15 @@
 - 設定 `自動画像削除` が ON のときだけ、酒削除時と保存時の画像差し替え後に未参照 app-managed 画像 cleanup を自動実行する
 - cleanup 対象は app-managed directory 配下の未参照画像のみとし、外部 URI は削除対象にしない
 - 画像表示は S5（画像ビューア）で行う
+
+---
+
+## 3. 取り込み制約
+
+- `importImage(sourceUri)` は、コピー前に `ContentResolver.getType(sourceUri)` で MIME タイプを確認する。
+- 許可する MIME タイプは `image/jpeg`、`image/png`、`image/webp` とする。
+- 保存ファイルの拡張子は MIME タイプから正規化して決定し、`lastPathSegment` など元 URI の任意拡張子は信頼しない。
+  - `image/jpeg` は `.jpg`、`image/png` は `.png`、`image/webp` は `.webp` として保存する。
+- 最大画像サイズは 10 MiB（10,485,760 bytes）とする。
+- コピー中に読み込み済みバイト数が最大画像サイズを超えた場合、コピーを中断し、作成済みの app-managed ファイルを削除して失敗として扱う。
+- 非許可 MIME タイプ、MIME タイプ不明、サイズ超過の失敗は、酒編集画面でユーザーに表示できるエラーへ変換する。

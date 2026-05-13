@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageImportException
 import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
@@ -240,11 +241,7 @@ class SakeEditViewModel
                     _uiState.update {
                         it.copy(
                             isSaving = false,
-                            error =
-                                UiError(
-                                    messageResId = R.string.error_save_sake,
-                                    causeKey = throwable.message,
-                                ),
+                            error = throwable.toSakeSaveUiError(),
                         )
                     }
                 }
@@ -475,4 +472,15 @@ private fun SakeEditUiState.withLoadedData(
         yeast = existing?.yeast.orEmpty(),
         water = existing?.water.orEmpty(),
         validationErrors = emptyMap(),
+    )
+
+private fun Throwable.toSakeSaveUiError(): UiError =
+    UiError(
+        messageResId =
+            when (this) {
+                is SakeImageImportException.UnsupportedMimeType -> R.string.error_sake_image_unsupported_type
+                is SakeImageImportException.ImageTooLarge -> R.string.error_sake_image_too_large
+                else -> R.string.error_save_sake
+            },
+        causeKey = message,
     )
