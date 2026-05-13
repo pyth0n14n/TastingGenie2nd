@@ -8,6 +8,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - [ ] **Navigation/Settings**: Apply settings reactively in UI; implement all spec-defined routes.
 - [ ] **Data Consistency**: Use transactions for multi-table ops; run I/O on Dispatchers.IO.
 - [ ] **UI Thread**: Never block main thread with I/O; distinguish cancellation from errors.
+- [ ] **Async UI Actions**: Cancel or invalidate in-flight requests when dialogs/actions are dismissed.
 - [ ] **Edit/Reload**: Keep load timing and update timing aligned; reload data after mutations and lock edits on load failures.
 - [ ] **Review-v2 Structure**: Keep `appearance/aroma/taste/other` ownership explicit in type names, DB columns, backup fields, and UI state.
 - [ ] **UI Display**: Map enums to localized labels; parse enums safely.
@@ -47,6 +48,13 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Fail transfer, leave settings, reopen; verify no stale error.
   - Success transfer, leave settings, reopen; verify no stale success message.
+
+### Problem: Dismissed dialogs can reappear after an async pre-confirmation lookup finishes.
+- **Example**: A delete confirmation lookup starts, the user dismisses the dialog before review counts load, and the stale lookup later writes `pendingDeleteSake` back into UI state.
+- **Preventive Measure**: Cancel the in-flight job and/or increment a request generation token on every dismiss or superseding user action. Treat `CancellationException` as control flow and rethrow it instead of converting it to a UI error.
+- **Test Coverage**:
+  - Start a delete confirmation lookup, dismiss before its repository flow emits, then emit the result; verify no pending dialog is restored.
+  - Cancel ViewModel startup or action jobs; verify cancellation is not exposed as a user-visible error.
 
 ## 2. Backup/Import Validation
 

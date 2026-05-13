@@ -40,10 +40,11 @@ class SakeListViewModel
             loadInitial()
         }
 
+        @Suppress("TooGenericExceptionCaught")
         private fun loadInitial() {
             viewModelScope.launch {
                 val labels =
-                    runCatching {
+                    try {
                         masterDataRepository.getMasterData().let { master ->
                             SakeListLabels(
                                 gradeLabels = master.sakeGrades.associate { option -> option.value to option.label },
@@ -55,7 +56,9 @@ class SakeListViewModel
                                     master.overallReviews.associate { option -> option.value to option.label },
                             )
                         }
-                    }.getOrElse { throwable ->
+                    } catch (throwable: CancellationException) {
+                        throw throwable
+                    } catch (throwable: Exception) {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -145,6 +148,8 @@ class SakeListViewModel
         }
 
         fun dismissDeleteSakeDialog() {
+            deleteRequestJob?.cancel()
+            latestDeleteRequestId++
             _uiState.update { it.copy(pendingDeleteSake = null) }
         }
 
