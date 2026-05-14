@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
@@ -84,7 +85,7 @@ class ReviewDetailScreenTest {
                             ReviewDetailUiState(
                                 isLoading = false,
                                 review =
-                                    testReview().copy(
+                                    testReview(tasteInPalateAroma = listOf(Aroma.PEACH)).copy(
                                         bar = "テスト店",
                                         price = 1440,
                                         volume = 720,
@@ -97,6 +98,7 @@ class ReviewDetailScreenTest {
                                     ),
                                 temperatureLabels = mapOf("JOON" to "常温"),
                                 overallReviewLabels = mapOf("GOOD" to "やや良い"),
+                                aromaLabels = mapOf("MELON" to "メロン", "PEACH" to "桃"),
                             ),
                         onEditReview = { _, _, _ -> },
                     ),
@@ -114,10 +116,15 @@ class ReviewDetailScreenTest {
         composeRule.onNodeWithText("すっきりした立ち上がりだが、後半に旨味が伸びる。").assertIsDisplayed()
         composeRule.onNodeWithText("サマリには出さない自由コメント").assertDoesNotExist()
         composeRule.onNodeWithText("爽酒").assertIsDisplayed()
+        composeRule.onNodeWithText("香り・味のサマリ").assertIsDisplayed()
+        composeRule.onNodeWithText("上立ち香").assertIsDisplayed()
+        composeRule.onNodeWithText("含み香").assertIsDisplayed()
+        composeRule.onNodeWithText("メロン").assertIsDisplayed()
+        composeRule.onNodeWithText("桃").assertIsDisplayed()
     }
 
     @Test
-    fun aromaAndTasteSections_areExpandedInitially() {
+    fun aromaAndTasteSections_areCollapsedInitiallyAndExpandable() {
         composeRule.setContent {
             ReviewDetailScreen(
                 onBack = {},
@@ -136,9 +143,15 @@ class ReviewDetailScreenTest {
         }
 
         composeRule.onNodeWithText("香り").assertIsDisplayed()
+        composeRule.onNodeWithText("味").assertIsDisplayed()
+        composeRule.onNodeWithText("強さ").assertDoesNotExist()
+        composeRule.onNodeWithText("甘味").assertDoesNotExist()
+
+        composeRule.onNodeWithContentDescription("香り").performClick()
         composeRule.onNodeWithText("強さ").assertIsDisplayed()
         composeRule.onNodeWithText("やや弱い").assertIsDisplayed()
-        composeRule.onNodeWithText("味").assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription("味").performClick()
         composeRule.onNodeWithText("甘味").assertIsDisplayed()
         composeRule.onNodeWithText("やや強い").assertIsDisplayed()
     }

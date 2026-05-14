@@ -2,6 +2,7 @@
 
 package io.github.pyth0n14n.tastinggenie.feature.review.detail
 
+import android.graphics.Paint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
@@ -56,8 +57,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,7 +85,11 @@ import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipOutline
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 private val ScreenPadding = 16.dp
 private val SectionSpacing = 16.dp
@@ -89,11 +97,14 @@ private val CardShape = RoundedCornerShape(8.dp)
 private val SmallShape = RoundedCornerShape(6.dp)
 private val DetailLabelWidth = 92.dp
 private val DetailScaleWidth = 116.dp
+private val RadarChartHeight = 260.dp
 private val ReviewChipHorizontalPadding = 10.dp
 private val ReviewChipVerticalPadding = 3.dp
 private const val SUMMARY_COMMENT_MAX_LENGTH = 54
 private const val SCALE_STEPS = 5
 private const val SWEET_DRY_STEPS = 4
+private const val RADAR_MAX_VALUE = 5f
+private const val RADAR_START_ANGLE_DEGREES = -90.0
 
 @Composable
 fun ReviewDetailContent(
@@ -295,6 +306,7 @@ private fun SummaryBadge(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun ReviewSummaryHighlights(highlights: SummaryHighlights) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -302,65 +314,188 @@ private fun ReviewSummaryHighlights(highlights: SummaryHighlights) {
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            SummaryHighlight(
-                title = stringResource(R.string.label_review_section_aroma),
-                value = highlights.aroma,
-                icon = Icons.Outlined.Eco,
-                modifier = Modifier.weight(1f),
-            )
-            if (highlights.aroma != null && highlights.taste != null) {
-                Box(
-                    modifier =
-                        Modifier
-                            .height(44.dp)
-                            .width(1.dp)
-                            .background(MaterialTheme.colorScheme.outlineVariant),
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Tune,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp),
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "香り・味のサマリ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
-            SummaryHighlight(
-                title = stringResource(R.string.label_review_section_taste),
-                value = highlights.taste,
-                icon = Icons.Outlined.WaterDrop,
-                modifier = Modifier.weight(1f),
+            if (highlights.hasChartData) {
+                AromaTasteRadarChart(
+                    axes = highlights.axes,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(RadarChartHeight),
+                )
+            }
+            SummaryAromaChipLine(
+                label = stringResource(R.string.label_scent_top),
+                values = highlights.topAromaLabels,
+                isTopAroma = true,
+            )
+            SummaryAromaChipLine(
+                label = stringResource(R.string.label_scent_mouth),
+                values = highlights.inPalateAromaLabels,
+                isTopAroma = false,
             )
         }
     }
 }
 
 @Composable
-private fun SummaryHighlight(
-    title: String,
-    value: String?,
-    icon: ImageVector,
+private fun AromaTasteRadarChart(
+    axes: List<RadarAxis>,
     modifier: Modifier = Modifier,
 ) {
-    if (value == null) {
-        Spacer(modifier = modifier)
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
+    val axisColor = MaterialTheme.colorScheme.outline
+    val valueColor = MaterialTheme.colorScheme.primary
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val labelTextSize = MaterialTheme.typography.labelSmall.fontSize
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val labelSpace = 36.dp.toPx()
+        val radius = (min(size.width, size.height) / 2f - labelSpace).coerceAtLeast(0f)
+        val textPaint =
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = labelColor.toArgb()
+                textAlign = Paint.Align.CENTER
+                textSize = labelTextSize.toPx()
+            }
+
+        repeat(SCALE_STEPS) { levelIndex ->
+            val levelRadius = radius * (levelIndex + 1) / SCALE_STEPS
+            drawRadarPolygon(
+                axes = axes,
+                center = center,
+                radius = levelRadius,
+                color = gridColor,
+                strokeWidth = 1.dp.toPx(),
+            )
+        }
+        axes.forEachIndexed { index, _ ->
+            drawLine(
+                color = axisColor,
+                start = center,
+                end = radarPoint(center = center, radius = radius, index = index, count = axes.size),
+                strokeWidth = 1.dp.toPx(),
+            )
+        }
+
+        val valuePath = Path()
+        val valuePoints =
+            axes.mapIndexed { index, axis ->
+                val scale = (axis.value ?: 0).coerceIn(0, SCALE_STEPS) / RADAR_MAX_VALUE
+                radarPoint(center = center, radius = radius * scale, index = index, count = axes.size)
+            }
+        valuePoints.forEachIndexed { index, point ->
+            if (index == 0) {
+                valuePath.moveTo(point.x, point.y)
+            } else {
+                valuePath.lineTo(point.x, point.y)
+            }
+        }
+        valuePath.close()
+        drawPath(path = valuePath, color = valueColor.copy(alpha = 0.18f))
+        drawPath(path = valuePath, color = valueColor, style = Stroke(width = 2.dp.toPx()))
+        valuePoints.forEachIndexed { index, point ->
+            if ((axes[index].value ?: 0) > 0) {
+                drawCircle(color = valueColor, radius = 3.5.dp.toPx(), center = point)
+            }
+        }
+
+        axes.forEachIndexed { index, axis ->
+            val labelPoint =
+                radarPoint(
+                    center = center,
+                    radius = radius + 22.dp.toPx(),
+                    index = index,
+                    count = axes.size,
+                )
+            drawContext.canvas.nativeCanvas.drawText(
+                axis.label,
+                labelPoint.x,
+                labelPoint.y + textPaint.textSize / 3f,
+                textPaint,
+            )
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRadarPolygon(
+    axes: List<RadarAxis>,
+    center: Offset,
+    radius: Float,
+    color: Color,
+    strokeWidth: Float,
+) {
+    val path = Path()
+    axes.indices.forEach { index ->
+        val point = radarPoint(center = center, radius = radius, index = index, count = axes.size)
+        if (index == 0) {
+            path.moveTo(point.x, point.y)
+        } else {
+            path.lineTo(point.x, point.y)
+        }
+    }
+    path.close()
+    drawPath(path = path, color = color, style = Stroke(width = strokeWidth))
+}
+
+private fun radarPoint(
+    center: Offset,
+    radius: Float,
+    index: Int,
+    count: Int,
+): Offset {
+    val angle = (RADAR_START_ANGLE_DEGREES + 360.0 * index / count) * PI / 180.0
+    return Offset(
+        x = center.x + radius * cos(angle).toFloat(),
+        y = center.y + radius * sin(angle).toFloat(),
+    )
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun SummaryAromaChipLine(
+    label: String,
+    values: List<String>,
+    isTopAroma: Boolean,
+) {
+    if (values.isEmpty()) {
         return
     }
-    Row(
-        modifier = modifier.padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.Top,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp),
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            values.forEach { value ->
+                ReadonlyChip(value = value, isTopAroma = isTopAroma)
+            }
         }
     }
 }
@@ -480,28 +615,38 @@ private fun ReadonlyChipGroup(
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             values.forEach { value ->
-                Surface(
-                    color = if (isTopAroma) TastingTypeChipContainer else TastingSakeChipContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    shape = MaterialTheme.shapes.small,
-                    border =
-                        BorderStroke(
-                            1.dp,
-                            if (isTopAroma) TastingTypeChipOutline else TastingSakeChipOutline,
-                        ),
-                ) {
-                    Text(
-                        text = value,
-                        modifier =
-                            Modifier.padding(
-                                horizontal = ReviewChipHorizontalPadding,
-                                vertical = ReviewChipVerticalPadding,
-                            ),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
+                ReadonlyChip(value = value, isTopAroma = isTopAroma)
             }
         }
+    }
+}
+
+@Composable
+private fun ReadonlyChip(
+    value: String,
+    isTopAroma: Boolean,
+) {
+    Surface(
+        color = if (isTopAroma) TastingTypeChipContainer else TastingSakeChipContainer,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.small,
+        border =
+            BorderStroke(
+                1.dp,
+                if (isTopAroma) TastingTypeChipOutline else TastingSakeChipOutline,
+            ),
+    ) {
+        Text(
+            text = value,
+            modifier =
+                Modifier.padding(
+                    horizontal = ReviewChipHorizontalPadding,
+                    vertical = ReviewChipVerticalPadding,
+                ),
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -655,8 +800,17 @@ private data class SummaryBadge(
 )
 
 private data class SummaryHighlights(
-    val aroma: String?,
-    val taste: String?,
+    val axes: List<RadarAxis>,
+    val topAromaLabels: List<String>,
+    val inPalateAromaLabels: List<String>,
+) {
+    val hasChartData: Boolean = axes.any { it.value != null }
+    val hasLabels: Boolean = topAromaLabels.isNotEmpty() || inPalateAromaLabels.isNotEmpty()
+}
+
+private data class RadarAxis(
+    val label: String,
+    val value: Int?,
 )
 
 private data class DetailSection(
@@ -821,7 +975,7 @@ private fun Review.toSummary(
                 },
                 bar.trimmedOrNull()?.let { SummaryBadge(it, Icons.Outlined.LocalBar) },
                 pricePer100mlText()?.let { SummaryBadge(it, Icons.Outlined.Payments) },
-                tasteSweetDryness?.let { SummaryBadge(it.toLabel(), Icons.Outlined.Tune) },
+                tasteSweetDryness?.let { SummaryBadge(it.toLabel(), Icons.Outlined.WaterDrop) },
                 foodSummaryBadge(),
                 otherSakeTypes.firstOrNull()?.let {
                     SummaryBadge(it.toLabel(), Icons.Outlined.Eco)
@@ -841,15 +995,22 @@ private fun Review.foodSummaryBadge(): SummaryBadge? {
 }
 
 private fun Review.toHighlights(labels: ReviewDetailLabels): SummaryHighlights? {
-    val aroma = aromaExamples.asDisplayText(labels.aroma)
-    val taste =
-        listOfNotNull(
-            tasteSweetDryness?.toLabel(),
-            tasteSourness?.labelFrom(labels.taste),
-            tasteUmami?.labelFrom(labels.taste),
-            tasteAftertaste?.let { aftertasteLabel(it.name) ?: it.labelFrom(labels.taste) },
-        ).joinToString("・").takeIf { it.isNotBlank() }
-    return SummaryHighlights(aroma = aroma, taste = taste).takeIf { it.aroma != null || it.taste != null }
+    val highlights =
+        SummaryHighlights(
+            axes =
+                listOf(
+                    RadarAxis("香りの強さ", aromaIntensity?.scaleValue()),
+                    RadarAxis("アタック", tasteAttack?.scaleValue()),
+                    RadarAxis("甘味", tasteSweetness?.scaleValue()),
+                    RadarAxis("酸味", tasteSourness?.scaleValue()),
+                    RadarAxis("旨味", tasteUmami?.scaleValue()),
+                    RadarAxis("余韻", tasteAftertaste?.scaleValue()),
+                    RadarAxis("味の複雑性", tasteComplexity?.scaleValue()),
+                ),
+            topAromaLabels = aromaExamples.asLabels(labels.aroma).orEmpty(),
+            inPalateAromaLabels = tasteInPalateAroma.asLabels(labels.aroma).orEmpty(),
+        )
+    return highlights.takeIf { it.hasChartData || it.hasLabels }
 }
 
 private fun Review.toAromaSection(
@@ -875,7 +1036,7 @@ private fun Review.toAromaSection(
         key = "aroma",
         title = "香り",
         icon = Icons.Outlined.Eco,
-        initiallyExpanded = true,
+        initiallyExpanded = false,
     )
 }
 
@@ -954,7 +1115,7 @@ private fun Review.toTasteSection(
         key = "taste",
         title = "味",
         icon = Icons.Outlined.WaterDrop,
-        initiallyExpanded = true,
+        initiallyExpanded = false,
     )
 }
 
@@ -1057,6 +1218,8 @@ private fun List<DetailDisplayRow>.toSection(
     }
 
 private fun Enum<*>.labelFrom(labels: Map<String, String>): String = labels[name] ?: name
+
+private fun Enum<*>.scaleValue(): Int = ordinal + 1
 
 private fun io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature.summaryLabel(
     labels: Map<String, String>,
