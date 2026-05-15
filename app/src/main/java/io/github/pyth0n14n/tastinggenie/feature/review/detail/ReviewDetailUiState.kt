@@ -8,6 +8,7 @@ data class ReviewDetailUiState(
     val error: UiError? = null,
     val sakeName: String = "",
     val review: Review? = null,
+    val showReviewSoundness: Boolean = true,
     val temperatureLabels: Map<String, String> = emptyMap(),
     val colorLabels: Map<String, String> = emptyMap(),
     val intensityLabels: Map<String, String> = emptyMap(),

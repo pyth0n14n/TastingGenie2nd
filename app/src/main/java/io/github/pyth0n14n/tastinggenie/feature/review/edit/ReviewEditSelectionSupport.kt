@@ -1,7 +1,5 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
-
 fun ReviewEditUiState.clearSelection(field: ReviewSelectionField): ReviewEditUiState =
     clearSoundnessSelection(field)
         ?: clearChoiceSelection(field)
@@ -13,17 +11,17 @@ private fun ReviewEditUiState.clearSoundnessSelection(field: ReviewSelectionFiel
     when (field) {
         ReviewSelectionField.APPEARANCE_SOUNDNESS ->
             copy(
-                appearanceSoundness = ReviewSoundness.SOUND,
+                appearanceSoundness = null,
                 error = null,
             )
         ReviewSelectionField.AROMA_SOUNDNESS ->
             copy(
-                aromaSoundness = ReviewSoundness.SOUND,
+                aromaSoundness = null,
                 error = null,
             )
         ReviewSelectionField.TASTE_SOUNDNESS ->
             copy(
-                tasteSoundness = ReviewSoundness.SOUND,
+                tasteSoundness = null,
                 error = null,
             )
         else -> null

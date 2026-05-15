@@ -7,7 +7,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 
-@Suppress("LongMethod")
+@Suppress("CyclomaticComplexMethod", "LongMethod")
 fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
     val currentSakeId = sakeId
     val parsedDate = date.toLocalDateOrNull()

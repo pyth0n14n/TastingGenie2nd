@@ -22,7 +22,7 @@ internal fun LazyListScope.addTasteSoundnessField(
             ui =
                 ReviewStepFieldUi(
                     labelRes = R.string.label_soundness,
-                    selectedValue = state.tasteSoundness.name,
+                    selectedValue = state.tasteSoundness?.name,
                     field = ReviewSelectionField.TASTE_SOUNDNESS,
                 ),
             options = reviewSoundnessOptions(),
@@ -391,7 +391,7 @@ internal fun ReviewGroupTextField(
     ui: ReviewTextFieldUi,
 ) {
     val label = reviewTextResource(labelRes)
-    ReviewHelpTextField(
+    ReviewStandaloneHelpTextField(
         ui =
             ReviewHelpTextFieldUi(
                 label = label,

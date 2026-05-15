@@ -14,7 +14,7 @@ private data class ParsedNumber<T>(
 )
 
 private data class ParsedSakeNumbers(
-    val alcohol: Int?,
+    val alcohol: Float?,
     val kojiPolish: Int?,
     val kakePolish: Int?,
     val sakeDegree: Float?,
@@ -59,7 +59,7 @@ fun SakeEditUiState.validationErrorsForSave(): Map<SakeValidationField, FieldVal
     if (grade == null) {
         errors[SakeValidationField.GRADE] = FieldValidationError.REQUIRED_SELECTION
     }
-    if (!alcohol.parseOptionalInt().isValid) {
+    if (!alcohol.parseOptionalFloat().isValid) {
         errors[SakeValidationField.ALCOHOL] = FieldValidationError.INVALID_NUMBER
     }
     if (!kojiPolish.parseOptionalPercentage().isValid) {
@@ -145,7 +145,7 @@ private fun String.parseOptionalFloat(): ParsedNumber<Float> {
 }
 
 private fun SakeEditUiState.parseSakeNumbers(): ParsedSakeNumbers? {
-    val alcohol = alcohol.parseOptionalInt()
+    val alcohol = alcohol.parseOptionalFloat()
     val kojiPolish = kojiPolish.parseOptionalPercentage()
     val kakePolish = kakePolish.parseOptionalPercentage()
     val sakeDegree = sakeDegree.parseOptionalFloat()

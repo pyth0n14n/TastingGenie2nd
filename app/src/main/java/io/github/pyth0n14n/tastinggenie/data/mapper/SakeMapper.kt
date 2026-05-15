@@ -59,5 +59,5 @@ fun SakeInput.toEntity(): SakeEntity =
 fun SakeListSummaryRow.toDomain(): SakeListSummary =
     SakeListSummary(
         sake = sake.toDomain(),
-        latestOverallReview = latestOverallReview,
+        averageOverallReview = averageOverallReview,
     )

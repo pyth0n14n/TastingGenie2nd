@@ -30,6 +30,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
@@ -126,12 +127,14 @@ private fun SakeTypeRow(
         SakeTypeCell(
             selected = selectedType == leftType,
             label = leftType.toSakeTypeLabel(),
+            typeDescription = leftType.toSakeTypeDescription(),
             onClick = { onTypeSelected(leftType) },
             modifier = Modifier.weight(1f),
         )
         SakeTypeCell(
             selected = selectedType == rightType,
             label = rightType.toSakeTypeLabel(),
+            typeDescription = rightType.toSakeTypeDescription(),
             onClick = { onTypeSelected(rightType) },
             modifier = Modifier.weight(1f),
         )
@@ -142,6 +145,7 @@ private fun SakeTypeRow(
 internal fun SakeTypeCell(
     selected: Boolean,
     label: String,
+    typeDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -163,16 +167,30 @@ internal fun SakeTypeCell(
                     role = Role.RadioButton,
                 ).semantics {
                     this.selected = selected
-                    contentDescription = label
+                    contentDescription = "$label $typeDescription"
                 },
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) colorScheme.onPrimaryContainer else colorScheme.onSurface,
-        )
+        Column(
+            modifier = Modifier.padding(horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected) colorScheme.onPrimaryContainer else colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = typeDescription,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Normal,
+                color = if (selected) colorScheme.onPrimaryContainer else colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -218,6 +236,15 @@ private fun FlavorProfileType.toSakeTypeLabel(): String =
         FlavorProfileType.JUKUSHU -> stringResource(R.string.label_flavor_profile_jukushu)
         FlavorProfileType.SOUSHU -> stringResource(R.string.label_flavor_profile_soushu)
         FlavorProfileType.JUNSHU -> stringResource(R.string.label_flavor_profile_junshu)
+    }
+
+@Composable
+private fun FlavorProfileType.toSakeTypeDescription(): String =
+    when (this) {
+        FlavorProfileType.KUNSHU -> stringResource(R.string.label_flavor_profile_kunshu_type)
+        FlavorProfileType.JUKUSHU -> stringResource(R.string.label_flavor_profile_jukushu_type)
+        FlavorProfileType.SOUSHU -> stringResource(R.string.label_flavor_profile_soushu_type)
+        FlavorProfileType.JUNSHU -> stringResource(R.string.label_flavor_profile_junshu_type)
     }
 
 @Preview(showBackground = true)

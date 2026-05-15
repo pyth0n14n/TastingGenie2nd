@@ -164,7 +164,7 @@ private fun SakeAlcoholField(
                     SakeFieldPresentation(
                         validationField = SakeValidationField.ALCOHOL,
                         suffixRes = R.string.suffix_degree,
-                        keyboardType = KeyboardType.Number,
+                        keyboardType = KeyboardType.Decimal,
                     ),
             ),
     )

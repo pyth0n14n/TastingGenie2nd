@@ -27,6 +27,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.time.LocalDate
 
+private const val AVERAGE_BAD_AND_GOOD_REVIEW = 3.0
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -102,7 +104,7 @@ class SakeRepositoryImplTest {
         }
 
     @Test
-    fun observeSakeListSummaries_sortsPinnedFirstAndLoadsLatestOverallReview() =
+    fun observeSakeListSummaries_sortsNewestRegistrationFirstAndLoadsAverageOverallReview() =
         runTest {
             val pinnedId =
                 database.sakeDao().insert(
@@ -137,9 +139,9 @@ class SakeRepositoryImplTest {
 
             val summaries = repository.observeSakeListSummaries().first { it.size == 2 }
 
-            assertEquals(pinnedId, summaries.first().sake.id)
-            assertEquals(normalId, summaries.last().sake.id)
-            assertEquals(OverallReview.GOOD, summaries.last().latestOverallReview)
+            assertEquals(normalId, summaries.first().sake.id)
+            assertEquals(pinnedId, summaries.last().sake.id)
+            assertEquals(AVERAGE_BAD_AND_GOOD_REVIEW, summaries.first().averageOverallReview)
         }
 
     @Test

@@ -122,6 +122,10 @@
     <string name="label_flavor_profile_kunshu">薫酒</string>
     <string name="label_flavor_profile_junshu">醇酒</string>
     <string name="label_flavor_profile_jukushu">熟酒</string>
+    <string name="label_flavor_profile_soushu_type">軽快なめらかな</string>
+    <string name="label_flavor_profile_kunshu_type">香り高い</string>
+    <string name="label_flavor_profile_junshu_type">コクがある</string>
+    <string name="label_flavor_profile_jukushu_type">熟成</string>
     <string name="label_other_sake_types">日本酒4タイプ</string>
     <string name="label_flavor_profile_complexity_complex">味わい 複雑</string>
     <string name="label_flavor_profile_complexity_simple">味わい シンプル</string>
@@ -191,9 +195,11 @@
     <string name="label_none">なし</string>
     <string name="label_date_format_hint">YYYY-MM-DD</string>
     <string name="hint_sake_search">銘柄名・酒造名で検索</string>
-    <string name="sort_sakes_default">標準順</string>
+    <string name="sort_sakes_default">登録順</string>
     <string name="sort_sakes_name">銘柄名順</string>
     <string name="sort_sakes_rating">評価順</string>
+    <string name="section_pinned_sakes">ピン止め</string>
+    <string name="section_other_sakes">酒一覧</string>
     <string name="label_soundness_sound">健全</string>
     <string name="label_soundness_unsound">不健全</string>
     <string name="label_complexity_simple">シンプル</string>
@@ -253,8 +259,8 @@
     <string name="content_delete_sake">酒を削除</string>
     <string name="content_pin_sake">酒を固定</string>
     <string name="content_unpin_sake">酒の固定を解除</string>
-    <string name="content_latest_overall_review">最新評価 %1$s</string>
-    <string name="content_latest_overall_review_none">最新評価なし</string>
+    <string name="content_average_overall_review">平均評価 %1$s</string>
+    <string name="content_average_overall_review_none">平均評価なし</string>
     <string name="content_delete_review">レビューを削除</string>
     <string name="content_star_rating_option">%1$s %2$d</string>
     <string name="content_flavor_profile_cell">香り %1$s、味わい %2$s</string>
@@ -318,7 +324,7 @@
     <string name="review_help_other_cautions_title">留意点</string>
     <string name="review_help_other_cautions_message">個性の中で、サービス/セールス時に留意すべき事項があれば記載する。</string>
     <string name="review_help_other_sake_types_title">日本酒4タイプ</string>
-    <string name="review_help_other_sake_types_message">味の複雑性（濃淡） × 香りの強度 で4つに分類する。</string>
+    <string name="review_help_other_sake_types_message">味の複雑性（濃淡） × 香りの強度 で4つに分類する。\n薫酒（くんしゅ）：果実や花のような華やかでフルーティーな香りと、軽快かつ清涼な味わい\n爽酒（そうしゅ）：香りは控えめで、旨味やコクが少なく、スッキリとしたシンプルな味わい\n醇酒（じゅんしゅ）：米や米麹由来のふくよかな香りと、旨味成分が多く濃醇な味わい\n熟酒（じゅくしゅ）：ドライフルーツやスパイスなどに例えられる複雑で凝縮感のある香りと、とろみのある重厚な味わい</string>
     <string name="review_help_other_free_comment_title">自由コメント</string>
     <string name="review_help_other_free_comment_message">記載項目のない特記事項をメモする。</string>
     <string name="review_help_other_overall_review_title">総合評価</string>
@@ -334,6 +340,8 @@
     <string name="setting_review_mode">レビュー入力モード</string>
     <string name="setting_review_mode_normal">通常</string>
     <string name="setting_review_mode_kikisake_shi">利酒師</string>
+    <string name="setting_review_mode_debug">デバッグ</string>
+    <string name="setting_review_mode_description">通常は選択式が多く、利酒師は記述式が多くなります</string>
     <string name="setting_auto_delete_unused_images">未参照アプリ内画像を自動削除する</string>
     <string name="setting_auto_delete_unused_images_short">未参照アプリ内画像の自動削除</string>
     <string name="setting_auto_delete_unused_images_description">アプリで使用していない酒画像を削除します</string>

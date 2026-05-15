@@ -39,23 +39,24 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.ui.common.OverflowAction
 import io.github.pyth0n14n.tastinggenie.ui.common.OverflowActionsMenu
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipOutline
+import java.util.Locale
 
-private val ThumbnailSize = 56.dp
+private val ThumbnailSize = 72.dp
+private val RatingIconSize = 18.dp
 private val ChipShape = RoundedCornerShape(4.dp)
+private const val RATING_FORMAT = "%.2f"
 
 data class SakeListCardLabels(
     val grade: String,
     val classifications: List<String> = emptyList(),
     val prefecture: String? = null,
-    val latestOverallReview: OverallReview? = null,
-    val latestOverallReviewLabel: String? = null,
+    val averageOverallReview: Double? = null,
 )
 
 @Composable
@@ -117,7 +118,7 @@ private fun SakeListItemBody(
     ) {
         Text(
             text = sake.name,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -238,11 +239,14 @@ private fun SakeListTrailing(
 
 @Composable
 private fun SakeListRating(labels: SakeListCardLabels) {
-    val ratingText = labels.latestOverallReview?.let { review -> "${review.ordinal + 1}.00" }
+    val ratingText =
+        labels.averageOverallReview?.let { average ->
+            String.format(Locale.US, RATING_FORMAT, average)
+        }
     val contentDescription =
-        labels.latestOverallReviewLabel?.let { label ->
-            stringResource(R.string.content_latest_overall_review, label)
-        } ?: stringResource(R.string.content_latest_overall_review_none)
+        ratingText?.let { value ->
+            stringResource(R.string.content_average_overall_review, value)
+        } ?: stringResource(R.string.content_average_overall_review_none)
     Row(
         modifier = Modifier.semantics { this.contentDescription = contentDescription },
         verticalAlignment = Alignment.CenterVertically,
@@ -251,12 +255,12 @@ private fun SakeListRating(labels: SakeListCardLabels) {
         Icon(
             imageVector = Icons.Filled.Star,
             contentDescription = null,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(RatingIconSize),
             tint = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = ratingText ?: "-",
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }

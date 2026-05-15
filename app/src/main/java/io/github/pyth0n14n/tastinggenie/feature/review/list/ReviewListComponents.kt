@@ -5,6 +5,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -79,7 +81,7 @@ internal fun ReviewTimelineItem(
                 state = state,
                 onDeleteRequest = onDeleteRequest,
             )
-            ReviewComment(review = review)
+            ReviewIndividuality(review = review)
             ReviewFeatureChips(review = review, state = state)
         }
     }
@@ -163,7 +165,7 @@ private fun ReviewRating(review: Review) {
             )
             Text(
                 text = "${rating.ordinal + 1}.00",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
@@ -171,11 +173,11 @@ private fun ReviewRating(review: Review) {
 }
 
 @Composable
-private fun ReviewComment(review: Review) {
-    val comment = review.otherFreeComment
-    if (comment != null) {
+private fun ReviewIndividuality(review: Review) {
+    val individuality = review.otherIndividuality
+    if (individuality != null) {
         Text(
-            text = comment,
+            text = individuality,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -184,6 +186,7 @@ private fun ReviewComment(review: Review) {
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun ReviewFeatureChips(
     review: Review,
     state: ReviewListUiState,
@@ -192,7 +195,10 @@ private fun ReviewFeatureChips(
     if (chips.isEmpty()) {
         return
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         chips.forEach { chip ->
             ReviewFeatureChip(
                 chip = chip,

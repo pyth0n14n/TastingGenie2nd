@@ -91,7 +91,14 @@ class SakeImageRepositoryImpl
 
 private fun Uri.requireSupportedImageMimeType(context: Context): SakeImageMimeType {
     val rawMimeType = context.contentResolver.getType(this)
-    return SakeImageMimeType.from(rawMimeType)
+    val supportedMimeType = SakeImageMimeType.from(rawMimeType)
+    if (supportedMimeType != null) {
+        return supportedMimeType
+    }
+    if (rawMimeType != null) {
+        throw SakeImageImportException.UnsupportedMimeType(rawMimeType)
+    }
+    return SakeImageMimeType.fromExtension(path?.substringAfterLast('.', missingDelimiterValue = ""))
         ?: throw SakeImageImportException.UnsupportedMimeType(rawMimeType)
 }
 
@@ -128,6 +135,14 @@ private enum class SakeImageMimeType(
             val normalizedMimeType = mimeType?.substringBefore(';')?.trim()?.lowercase()
             return entries.firstOrNull { it.mimeType == normalizedMimeType }
         }
+
+        fun fromExtension(extension: String?): SakeImageMimeType? =
+            when (extension?.trim()?.lowercase()) {
+                "jpg", "jpeg" -> JPEG
+                "png" -> PNG
+                "webp" -> WEBP
+                else -> null
+            }
     }
 }
 

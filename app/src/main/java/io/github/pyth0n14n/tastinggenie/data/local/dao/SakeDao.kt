@@ -19,14 +19,20 @@ interface SakeDao {
         SELECT
             s.*,
             (
-                SELECT r.otherOverallReview
+                SELECT AVG(
+                    CASE r.otherOverallReview
+                        WHEN 'VERY_BAD' THEN 1.0
+                        WHEN 'BAD' THEN 2.0
+                        WHEN 'NEUTRAL' THEN 3.0
+                        WHEN 'GOOD' THEN 4.0
+                        WHEN 'VERY_GOOD' THEN 5.0
+                    END
+                )
                 FROM reviews r
                 WHERE r.sakeId = s.id AND r.otherOverallReview IS NOT NULL
-                ORDER BY r.dateEpochDay DESC, r.id DESC
-                LIMIT 1
-            ) AS latestOverallReview
+            ) AS averageOverallReview
         FROM sakes s
-        ORDER BY s.isPinned DESC, s.name ASC
+        ORDER BY s.id DESC
         """,
     )
     fun observeListSummaries(): Flow<List<SakeListSummaryRow>>

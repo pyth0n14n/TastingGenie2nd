@@ -2,7 +2,7 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 10
+const val CURRENT_SCHEMA_VERSION = 11
 
 @Serializable
 data class BackupPayload(
@@ -56,7 +56,7 @@ data class SerializableSake(
     val maker: String? = null,
     val prefecture: String? = null,
     val city: String? = null,
-    val alcohol: Int? = null,
+    val alcohol: Float? = null,
     val kojiMai: String? = null,
     val kojiPolish: Int? = null,
     val kakeMai: String? = null,
@@ -79,16 +79,16 @@ data class SerializableReview(
     val temperature: String? = null,
     val dish: String? = null,
     val foodCompatibility: String? = null,
-    val appearanceSoundness: String = "SOUND",
+    val appearanceSoundness: String? = "SOUND",
     val appearanceColor: String? = null,
     val appearanceColorOther: String? = null,
     val appearanceViscosity: Int? = null,
-    val aromaSoundness: String = "SOUND",
+    val aromaSoundness: String? = "SOUND",
     val aromaIntensity: String? = null,
     val aromaExamples: List<String> = emptyList(),
     val aromaMainNote: String? = null,
     val aromaComplexity: String? = null,
-    val tasteSoundness: String = "SOUND",
+    val tasteSoundness: String? = "SOUND",
     val tasteAttack: String? = null,
     val tasteTextureRoundness: String? = null,
     val tasteTextureSmoothness: String? = null,

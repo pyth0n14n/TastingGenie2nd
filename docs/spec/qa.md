@@ -266,12 +266,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Render the edit screen with a load error and empty staged-option lists; verify the error is shown and composition does not crash.
   - Select a star rating and verify both the stored enum and the visible meaning label update together.
 
-### Problem: Hidden soundness fields leak nulls or stale values instead of defaulting to healthy.
-- **Example**: A review saved while `showReviewSoundness` is off stores `null` for one section, or an old `UNSOUND` value remains hidden and surprises the user after re-enabling the setting.
-- **Preventive Measure**: Treat `appearanceSoundness`, `aromaSoundness`, and `tasteSoundness` as non-null review fields with a default of `SOUND`. Hiding the UI changes visibility only; it must not create null state or skip persistence.
+### Problem: Hidden soundness fields leak stale values instead of defaulting to healthy.
+- **Example**: A review with an old `UNSOUND` value is edited while `showReviewSoundness` is off, and the hidden value surprises the user after re-enabling the setting.
+- **Preventive Measure**: Treat `appearanceSoundness`, `aromaSoundness`, and `tasteSoundness` as nullable review fields when visible. When `showReviewSoundness` is off, ReviewEdit must initialize the hidden soundness values to `SOUND` before save.
 - **Test Coverage**:
   - Save a review with soundness hidden and verify all three persisted values are `SOUND`.
-  - Toggle the setting off and on around edit flows; verify the restored values are deterministic and non-null.
+  - Toggle the setting on and clear soundness; verify visible edit flows can persist `null`.
 
 ### Problem: Derived flavor-profile classification gets persisted separately and drifts away from the source axes.
 - **Example**: The 4-type `薫酒/爽酒/熟酒/醇酒` badge still shows the old type after `aromaIntensity` or `tasteComplexity` changed because a stale field was stored independently.

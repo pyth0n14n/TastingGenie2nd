@@ -35,18 +35,14 @@ data class SakeListUiState(
     private fun sortedSakes(source: List<SakeListSummary>): List<SakeListSummary> =
         when (sortMode) {
             SakeListSortMode.DEFAULT ->
-                source
+                source.sortedByDescending { it.sake.id }
 
             SakeListSortMode.NAME_ASC ->
-                source.sortedWith(
-                    compareByDescending<SakeListSummary> { it.sake.isPinned }
-                        .thenBy { it.sake.name },
-                )
+                source.sortedBy { it.sake.name }
 
             SakeListSortMode.RATING_DESC ->
                 source.sortedWith(
-                    compareByDescending<SakeListSummary> { it.sake.isPinned }
-                        .thenByDescending { it.latestOverallReview?.ordinal ?: -1 }
+                    compareByDescending<SakeListSummary> { it.averageOverallReview ?: -1.0 }
                         .thenBy { it.sake.name },
                 )
         }
