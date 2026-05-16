@@ -14,6 +14,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Prefecture
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeClassification
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
@@ -96,16 +97,16 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         temperature = temperature?.name,
         dish = dish,
         foodCompatibility = foodCompatibility?.name,
-        appearanceSoundness = appearanceSoundness.name,
+        appearanceSoundness = appearanceSoundness?.name,
         appearanceColor = appearanceColor?.name,
         appearanceColorOther = appearanceColorOther,
         appearanceViscosity = appearanceViscosity,
-        aromaSoundness = aromaSoundness.name,
+        aromaSoundness = aromaSoundness?.name,
         aromaIntensity = aromaIntensity?.name,
         aromaExamples = aromaExamples.map { aroma -> aroma.name },
         aromaMainNote = aromaMainNote,
         aromaComplexity = aromaComplexity?.name,
-        tasteSoundness = tasteSoundness.name,
+        tasteSoundness = tasteSoundness?.name,
         tasteAttack = tasteAttack?.name,
         tasteTextureRoundness = tasteTextureRoundness?.name,
         tasteTextureSmoothness = tasteTextureSmoothness?.name,
@@ -144,16 +145,16 @@ fun SerializableReview.toRestoredEntity(
         temperature = temperature?.let { value -> enumValueOf<Temperature>(value) },
         dish = dish,
         foodCompatibility = foodCompatibility.toNullableEnum<FoodCompatibility>(),
-        appearanceSoundness = appearanceSoundness.toEnum(),
+        appearanceSoundness = appearanceSoundness.toNullableEnum<ReviewSoundness>(),
         appearanceColor = appearanceColor.toNullableEnum<SakeColor>(),
         appearanceColorOther = appearanceColorOther,
         appearanceViscosity = validateImportedViscosity(appearanceViscosity),
-        aromaSoundness = aromaSoundness.toEnum(),
+        aromaSoundness = aromaSoundness.toNullableEnum<ReviewSoundness>(),
         aromaIntensity = aromaIntensity.toNullableEnum<IntensityLevel>(),
         aromaExamples = aromaExamples.toAromaList(),
         aromaMainNote = aromaMainNote,
         aromaComplexity = aromaComplexity.toNullableEnum<ComplexityLevel>(),
-        tasteSoundness = tasteSoundness.toEnum(),
+        tasteSoundness = tasteSoundness.toNullableEnum<ReviewSoundness>(),
         tasteAttack = tasteAttack.toNullableEnum<AttackLevel>(),
         tasteTextureRoundness = tasteTextureRoundness.toNullableEnum<TextureRoundness>(),
         tasteTextureSmoothness = tasteTextureSmoothness.toNullableEnum<TextureSmoothness>(),
@@ -175,8 +176,6 @@ fun SerializableReview.toRestoredEntity(
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
     )
-
-private inline fun <reified T : Enum<T>> String.toEnum(): T = enumValueOf<T>(this)
 
 private inline fun <reified T : Enum<T>> String?.toNullableEnum(): T? = this?.let { value -> enumValueOf<T>(value) }
 

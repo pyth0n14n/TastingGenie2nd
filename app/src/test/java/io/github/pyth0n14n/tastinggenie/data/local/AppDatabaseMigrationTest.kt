@@ -45,6 +45,8 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
                 AppDatabaseMigrations.MIGRATION_9_10,
+                AppDatabaseMigrations.MIGRATION_10_11,
+                AppDatabaseMigrations.MIGRATION_11_12,
             )
             val database = databaseBuilder.build()
 
@@ -82,6 +84,8 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
                 AppDatabaseMigrations.MIGRATION_9_10,
+                AppDatabaseMigrations.MIGRATION_10_11,
+                AppDatabaseMigrations.MIGRATION_11_12,
             )
             val database = databaseBuilder.build()
 
@@ -124,11 +128,14 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
                 AppDatabaseMigrations.MIGRATION_9_10,
+                AppDatabaseMigrations.MIGRATION_10_11,
+                AppDatabaseMigrations.MIGRATION_11_12,
             )
             val database = databaseBuilder.build()
 
             val migratedReview = requireNotNull(database.reviewDao().getById(MIGRATED_REVIEW_ID))
             val reviewColumns = database.reviewColumnNames()
+            val soundnessNullability = database.reviewSoundnessColumnNotNullValues()
 
             assertEquals("content://bar/1", migratedReview.bar)
             assertNull(migratedReview.otherCautions)
@@ -143,9 +150,12 @@ class AppDatabaseMigrationTest {
             assertNull(migratedReview.tasteSweetness)
             assertNull(migratedReview.tasteAftertaste)
             assertNull(migratedReview.otherOverallReview)
-            assertEquals("SOUND", migratedReview.appearanceSoundness.name)
-            assertEquals("SOUND", migratedReview.aromaSoundness.name)
-            assertEquals("SOUND", migratedReview.tasteSoundness.name)
+            assertEquals("SOUND", migratedReview.appearanceSoundness?.name)
+            assertEquals("SOUND", migratedReview.aromaSoundness?.name)
+            assertEquals("SOUND", migratedReview.tasteSoundness?.name)
+            assertEquals(0, soundnessNullability["appearanceSoundness"])
+            assertEquals(0, soundnessNullability["aromaSoundness"])
+            assertEquals(0, soundnessNullability["tasteSoundness"])
             assertEquals(false, requireNotNull(database.sakeDao().getById(1L)).isPinned)
             assertEquals(false, reviewColumns.contains("color"))
             assertEquals(false, reviewColumns.contains("comment"))
@@ -177,6 +187,8 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_7_8,
                 AppDatabaseMigrations.MIGRATION_8_9,
                 AppDatabaseMigrations.MIGRATION_9_10,
+                AppDatabaseMigrations.MIGRATION_10_11,
+                AppDatabaseMigrations.MIGRATION_11_12,
             )
             val database = databaseBuilder.build()
 
@@ -452,6 +464,22 @@ private fun AppDatabase.reviewColumnNames(): Set<String> {
         }
     }
     return columns
+}
+
+private fun AppDatabase.reviewSoundnessColumnNotNullValues(): Map<String, Int> {
+    val targetColumns = setOf("appearanceSoundness", "aromaSoundness", "tasteSoundness")
+    val values = mutableMapOf<String, Int>()
+    openHelper.writableDatabase.query("PRAGMA table_info(`reviews`)").use { cursor ->
+        val nameIndex = cursor.getColumnIndexOrThrow("name")
+        val notNullIndex = cursor.getColumnIndexOrThrow("notnull")
+        while (cursor.moveToNext()) {
+            val name = cursor.getString(nameIndex)
+            if (name in targetColumns) {
+                values[name] = cursor.getInt(notNullIndex)
+            }
+        }
+    }
+    return values
 }
 
 private fun createVersion3SakesTableSql(): String =

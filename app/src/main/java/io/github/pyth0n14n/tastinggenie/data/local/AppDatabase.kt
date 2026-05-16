@@ -20,7 +20,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
 
 @Database(
     entities = [SakeEntity::class, ReviewEntity::class, ReviewModeEntity::class, ReviewModeItemEntity::class],
-    version = 10,
+    version = 12,
     exportSchema = true,
 )
 @TypeConverters(

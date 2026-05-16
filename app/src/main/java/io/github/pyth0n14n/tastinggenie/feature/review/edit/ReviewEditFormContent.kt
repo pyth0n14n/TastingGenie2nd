@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -132,7 +130,7 @@ private fun LazyListScope.addChoiceFields(
             ui =
                 ReviewStepFieldUi(
                     labelRes = R.string.label_soundness,
-                    selectedValue = state.appearanceSoundness.name,
+                    selectedValue = state.appearanceSoundness?.name,
                     field = ReviewSelectionField.APPEARANCE_SOUNDNESS,
                     helpItemId = ReviewItemId.APPEARANCE_SOUNDNESS,
                 ),
@@ -211,7 +209,7 @@ private fun LazyListScope.addAromaFields(
             ui =
                 ReviewStepFieldUi(
                     labelRes = R.string.label_soundness,
-                    selectedValue = state.aromaSoundness.name,
+                    selectedValue = state.aromaSoundness?.name,
                     field = ReviewSelectionField.AROMA_SOUNDNESS,
                 ),
             options = reviewSoundnessOptions(),
@@ -225,19 +223,6 @@ private fun LazyListScope.addAromaFields(
         isFirstSubheader = !isSoundnessVisible,
         onAction = onAction,
     )
-    if (state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_aroma_main_note,
-            onAction = onAction,
-            ui =
-                ReviewTextFieldUi(
-                    value = state.aromaMainNote,
-                    field = ReviewTextField.AROMA_MAIN_NOTE,
-                    helpItemId = ReviewItemId.AROMA_MAIN_NOTE,
-                ),
-        )
-    }
     if (state.isItemEnabled(ReviewItemId.AROMA_COMPLEXITY)) {
         steppedResourceField(
             ui =
@@ -265,7 +250,8 @@ private fun LazyListScope.addAromaTopFields(
         headingRes = R.string.detail_heading_aroma_top,
         hasAnyField =
             state.isItemEnabled(ReviewItemId.AROMA_INTENSITY) ||
-                state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES),
+                state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES) ||
+                state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE),
         isFirstSubheader = isFirstSubheader,
         showHelpHints = state.showHelpHints,
         helpItemId = ReviewItemId.AROMA_INTENSITY,
@@ -293,6 +279,20 @@ private fun LazyListScope.addAromaTopFields(
                 showHelpHints = state.showHelpHints,
                 onSave = { values ->
                     onAction(ReviewEditAction.AromaSelectionChanged(field = ReviewAromaField.TOP, values = values))
+                },
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE)) {
+            ReviewStandaloneHelpTextField(
+                ui =
+                    ReviewHelpTextFieldUi(
+                        label = reviewTextResource(R.string.label_aroma_main_note),
+                        value = state.aromaMainNote,
+                        showHelpHints = state.showHelpHints,
+                        helpItemId = ReviewItemId.AROMA_MAIN_NOTE,
+                    ),
+                onValueChange = { next ->
+                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.AROMA_MAIN_NOTE, value = next))
                 },
             )
         }
@@ -390,7 +390,7 @@ private fun LazyListScope.addNoteFields(
         item {
             ReviewStandaloneHelpTextField(
                 ui =
-                    ReviewStandaloneHelpTextFieldUi(
+                    ReviewHelpTextFieldUi(
                         label = reviewTextResource(R.string.label_other_individuality),
                         value = state.otherIndividuality,
                         showHelpHints = state.showHelpHints,
@@ -445,7 +445,7 @@ private fun LazyListScope.addFreeCommentFieldIfEnabled(
     item {
         ReviewStandaloneHelpTextField(
             ui =
-                ReviewStandaloneHelpTextFieldUi(
+                ReviewHelpTextFieldUi(
                     label = reviewTextResource(R.string.label_comment),
                     value = state.comment,
                     showHelpHints = state.showHelpHints,
@@ -458,35 +458,6 @@ private fun LazyListScope.addFreeCommentFieldIfEnabled(
         )
     }
 }
-
-@Composable
-private fun ReviewStandaloneHelpTextField(
-    ui: ReviewStandaloneHelpTextFieldUi,
-    onValueChange: (String) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(ReviewEditLabelInputSpacing)) {
-        ReviewHelpLabel(
-            label = ui.label,
-            itemId = ui.helpItemId,
-            showHelpHints = ui.showHelpHints,
-        )
-        OutlinedTextField(
-            value = ui.value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = stringResource(R.string.label_unwritten)) },
-            singleLine = ui.singleLine,
-        )
-    }
-}
-
-private data class ReviewStandaloneHelpTextFieldUi(
-    val label: String,
-    val value: String,
-    val showHelpHints: Boolean,
-    val helpItemId: ReviewItemId,
-    val singleLine: Boolean = true,
-)
 
 private fun LazyListScope.sakeTypeField(
     state: ReviewEditUiState,
@@ -670,36 +641,45 @@ internal fun LazyListScope.textField(
 ) {
     item {
         val label = reviewTextResource(labelRes)
-        ReviewHelpTextField(
-            ui =
-                ReviewHelpTextFieldUi(
-                    label = label,
-                    value = ui.value,
-                    showHelpHints = state.showHelpHints,
-                    helpItemId = ui.helpItemId,
-                    singleLine = ui.singleLine,
-                    fieldState =
-                        FormFieldState(
-                            errorText =
-                                ui.validationField?.let { validationField ->
-                                    state.validationErrors[validationField]?.let { error ->
-                                        val range = reviewValidationRange(validationField)
-                                        validationErrorText(
-                                            label = label,
-                                            error = error,
-                                            minValue = range?.first,
-                                            maxValue = range?.last,
-                                        )
-                                    }
-                                },
-                        ),
-                ),
-            onValueChange = { next ->
-                onAction(ReviewEditAction.TextChanged(field = ui.field, value = next))
-            },
-        )
+        val textFieldUi =
+            ReviewHelpTextFieldUi(
+                label = label,
+                value = ui.value,
+                showHelpHints = state.showHelpHints,
+                helpItemId = ui.helpItemId,
+                singleLine = ui.singleLine,
+                fieldState =
+                    FormFieldState(
+                        errorText =
+                            ui.validationField?.let { validationField ->
+                                state.validationErrors[validationField]?.let { error ->
+                                    val range = reviewValidationRange(validationField)
+                                    validationErrorText(
+                                        label = label,
+                                        error = error,
+                                        minValue = range?.first,
+                                        maxValue = range?.last,
+                                    )
+                                }
+                            },
+                    ),
+            )
+        val onValueChange = { next: String ->
+            onAction(ReviewEditAction.TextChanged(field = ui.field, value = next))
+        }
+        if (ui.helpItemId in StandaloneTextHelpItemIds) {
+            ReviewStandaloneHelpTextField(ui = textFieldUi, onValueChange = onValueChange)
+        } else {
+            ReviewHelpTextField(ui = textFieldUi, onValueChange = onValueChange)
+        }
     }
 }
+
+private val StandaloneTextHelpItemIds =
+    setOf(
+        ReviewItemId.AROMA_MAIN_NOTE,
+        ReviewItemId.OTHER_CAUTIONS,
+    )
 
 private fun LazyListScope.textChoiceField(
     labelRes: Int,

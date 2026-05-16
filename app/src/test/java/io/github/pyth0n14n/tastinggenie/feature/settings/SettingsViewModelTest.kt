@@ -407,10 +407,6 @@ private class FakeSettingsRepository : SettingsRepository {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
     }
 
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
-    }
-
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
     }
@@ -457,10 +453,6 @@ private class FailingUpdateSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
-        error("settings write failed")
-    }
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
         error("settings write failed")
     }
 

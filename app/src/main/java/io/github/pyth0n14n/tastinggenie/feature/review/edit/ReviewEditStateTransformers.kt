@@ -75,15 +75,15 @@ private fun ReviewEditUiState.withSoundnessSelection(
     when (field) {
         ReviewSelectionField.APPEARANCE_SOUNDNESS ->
             copySelection(value, ReviewSoundness.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(appearanceSoundness = selected ?: ReviewSoundness.SOUND)
+                state.copy(appearanceSoundness = selected)
             }
         ReviewSelectionField.AROMA_SOUNDNESS ->
             copySelection(value, ReviewSoundness.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(aromaSoundness = selected ?: ReviewSoundness.SOUND)
+                state.copy(aromaSoundness = selected)
             }
         ReviewSelectionField.TASTE_SOUNDNESS ->
             copySelection(value, ReviewSoundness.entries.firstOrNull { it.name == value }) { state, selected ->
-                state.copy(tasteSoundness = selected ?: ReviewSoundness.SOUND)
+                state.copy(tasteSoundness = selected)
             }
         else -> null
     }

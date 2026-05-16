@@ -86,6 +86,7 @@ fun ReviewDetailScreen(
                             review = content.state.review,
                             sakeName = content.state.sakeName,
                             labels = content.state.toLabels(),
+                            showReviewSoundness = content.state.showReviewSoundness,
                         ),
                     modifier = Modifier.padding(padding),
                 )

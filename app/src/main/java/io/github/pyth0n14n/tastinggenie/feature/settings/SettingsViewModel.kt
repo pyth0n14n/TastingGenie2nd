@@ -9,7 +9,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.InvalidBackupReferenceExcep
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.repository.ImportExportRepository
-import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +30,6 @@ class SettingsViewModel
     constructor(
         private val settingsRepository: SettingsRepository,
         private val importExportRepository: ImportExportRepository,
-        private val sakeImageRepository: SakeImageRepository = NoOpSakeImageRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
         private var isSettingsVisible = false
@@ -76,23 +74,6 @@ class SettingsViewModel
             }
         }
 
-        fun toggleAutoDeleteUnusedImages(enabled: Boolean) {
-            viewModelScope.launch {
-                runCatching { settingsRepository.updateAutoDeleteUnusedImages(enabled) }
-                    .onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_save_settings,
-                                        causeKey = throwable.message,
-                                    ),
-                            )
-                        }
-                    }
-            }
-        }
-
         fun selectReviewMode(modeId: String) {
             viewModelScope.launch {
                 runCatching { settingsRepository.updateReviewMode(modeId) }
@@ -102,31 +83,6 @@ class SettingsViewModel
                                 error =
                                     UiError(
                                         messageResId = R.string.error_save_settings,
-                                        causeKey = throwable.message,
-                                    ),
-                            )
-                        }
-                    }
-            }
-        }
-
-        fun cleanupUnusedImages() {
-            _uiState.update { it.copy(messageResId = null, error = null) }
-            viewModelScope.launch {
-                runCatching { sakeImageRepository.cleanupUnusedImages() }
-                    .onSuccess {
-                        _uiState.update {
-                            it.copy(
-                                messageResId = R.string.message_cleanup_unused_images_success,
-                                error = null,
-                            )
-                        }
-                    }.onFailure { throwable ->
-                        _uiState.update {
-                            it.copy(
-                                error =
-                                    UiError(
-                                        messageResId = R.string.error_cleanup_unused_images,
                                         causeKey = throwable.message,
                                     ),
                             )
@@ -316,11 +272,3 @@ private fun Int.isTransferFeedbackMessage(): Boolean =
         this == R.string.error_import_invalid_backup ||
         this == R.string.error_import_unsupported_version ||
         this == R.string.error_import_invalid_payload
-
-private object NoOpSakeImageRepository : SakeImageRepository {
-    override suspend fun importImage(sourceUri: String): String = sourceUri
-
-    override suspend fun deleteImage(imageUri: String?) = Unit
-
-    override suspend fun cleanupUnusedImages(): Int = 0
-}

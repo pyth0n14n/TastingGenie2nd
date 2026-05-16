@@ -53,6 +53,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -115,9 +117,7 @@ fun SettingsRoute(
             SettingsScreenActions(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleReviewSoundness = viewModel::toggleReviewSoundness,
-                onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
                 onSelectReviewMode = viewModel::selectReviewMode,
-                onCleanupUnusedImages = viewModel::cleanupUnusedImages,
                 onExportBackup = {
                     if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME)
                 },
@@ -259,27 +259,6 @@ private fun SettingsContent(
                     onSelectReviewMode = actions.onSelectReviewMode,
                     enabled = !state.isProcessingTransfer,
                 )
-                SettingsDivider()
-                SettingSwitchRow(
-                    label = stringResource(R.string.setting_auto_delete_unused_images_short),
-                    description = stringResource(R.string.setting_auto_delete_unused_images_description),
-                    checked = state.settings.autoDeleteUnusedImages,
-                    onCheckedChange = actions.onToggleAutoDeleteUnusedImages,
-                    enabled = !state.isProcessingTransfer,
-                )
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Button(
-                    onClick = actions.onCleanupUnusedImages,
-                    enabled = !state.isProcessingTransfer,
-                ) {
-                    Text(stringResource(R.string.action_cleanup_unused_images))
-                }
             }
         }
         item {
@@ -339,9 +318,7 @@ private fun SettingsContent(
 data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
     val onToggleReviewSoundness: (Boolean) -> Unit,
-    val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
     val onSelectReviewMode: (String) -> Unit,
-    val onCleanupUnusedImages: () -> Unit,
     val onExportBackup: () -> Unit,
     val onRestoreBackup: () -> Unit,
     val onOpenGlossary: () -> Unit,
@@ -365,25 +342,57 @@ private fun SettingReviewModeRow(
             text = stringResource(R.string.setting_review_mode),
             style = MaterialTheme.typography.bodyMedium,
         )
+        Text(
+            text = reviewModeDescriptionText(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ReviewMode.entries.forEach { mode ->
                 val selected = selectedModeId == mode.id
-                OutlinedButton(
-                    onClick = { onSelectReviewMode(mode.id) },
-                    enabled = enabled && !selected,
-                ) {
-                    Text(
-                        text =
-                            when (mode) {
-                                ReviewMode.NORMAL -> stringResource(R.string.setting_review_mode_normal)
-                                ReviewMode.KIKISAKE_SHI -> stringResource(R.string.setting_review_mode_kikisake_shi)
-                            },
-                    )
+                val label = mode.toReviewModeLabel()
+                if (selected) {
+                    Button(
+                        onClick = {},
+                        enabled = enabled,
+                    ) {
+                        Text(text = label)
+                    }
+                } else {
+                    OutlinedButton(
+                        onClick = { onSelectReviewMode(mode.id) },
+                        enabled = enabled,
+                    ) {
+                        Text(text = label)
+                    }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun ReviewMode.toReviewModeLabel(): String =
+    when (this) {
+        ReviewMode.NORMAL -> stringResource(R.string.setting_review_mode_normal)
+        ReviewMode.KIKISAKE_SHI -> stringResource(R.string.setting_review_mode_kikisake_shi)
+        ReviewMode.DEBUG -> stringResource(R.string.setting_review_mode_debug)
+    }
+
+@Composable
+private fun reviewModeDescriptionText() =
+    buildAnnotatedString {
+        val normal = stringResource(R.string.setting_review_mode_normal)
+        val kikisakeShi = stringResource(R.string.setting_review_mode_kikisake_shi)
+        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        append(normal)
+        pop()
+        append("は選択式が多く、")
+        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+        append(kikisakeShi)
+        pop()
+        append("は記述式が多くなります")
+    }
 
 @Composable
 private fun RestoreConfirmDialog(

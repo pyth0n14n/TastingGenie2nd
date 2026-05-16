@@ -41,6 +41,7 @@ class SakeListViewModelTest {
         private const val DELETE_SAKE_ID = 5L
         private const val DELETE_REVIEW_COUNT = 2
         private const val SECOND_REVIEW_ID = 2L
+        private const val GOOD_AVERAGE_REVIEW = 4.0
     }
 
     @get:Rule
@@ -118,7 +119,34 @@ class SakeListViewModelTest {
         }
 
     @Test
-    fun selectSortMode_sortsDisplayedSakesByRatingWithinPinnedGroups() =
+    fun defaultSortMode_sortsDisplayedSakesByNewestRegistration() =
+        runTest {
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(
+                        initial =
+                            listOf(
+                                Sake(id = 1L, name = "先に登録", grade = SakeGrade.JUNMAI),
+                                Sake(id = 3L, name = "最後に登録", grade = SakeGrade.GINJO),
+                                Sake(id = 2L, name = "次に登録", grade = SakeGrade.GINJO),
+                            ),
+                    ),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(),
+                )
+            advanceUntilIdle()
+
+            assertEquals(
+                listOf("最後に登録", "次に登録", "先に登録"),
+                viewModel.uiState.value
+                    .displayedSakes
+                    .map { it.sake.name },
+            )
+        }
+
+    @Test
+    fun selectSortMode_sortsDisplayedSakesByRating() =
         runTest {
             val viewModel =
                 SakeListViewModel(
@@ -128,15 +156,15 @@ class SakeListViewModelTest {
                             listOf(
                                 SakeListSummary(
                                     sake = Sake(id = 1L, name = "A酒", grade = SakeGrade.JUNMAI),
-                                    latestOverallReview = OverallReview.NEUTRAL,
+                                    averageOverallReview = 3.0,
                                 ),
                                 SakeListSummary(
                                     sake = Sake(id = 2L, name = "B酒", grade = SakeGrade.GINJO),
-                                    latestOverallReview = OverallReview.GOOD,
+                                    averageOverallReview = 4.0,
                                 ),
                                 SakeListSummary(
                                     sake = Sake(id = 3L, name = "C酒", grade = SakeGrade.GINJO, isPinned = true),
-                                    latestOverallReview = OverallReview.NEUTRAL,
+                                    averageOverallReview = 3.0,
                                 ),
                             ),
                     ),
@@ -150,7 +178,7 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             assertEquals(
-                listOf("C酒", "B酒", "A酒"),
+                listOf("B酒", "A酒", "C酒"),
                 viewModel.uiState.value
                     .displayedSakes
                     .map { it.sake.name },
@@ -196,7 +224,7 @@ class SakeListViewModelTest {
         }
 
     @Test
-    fun uiState_keepsPinnedSakeAtTopAndExposesLatestOverallReview() =
+    fun uiState_keepsPinnedSakeAtTopAndExposesAverageOverallReview() =
         runTest {
             val repository =
                 FakeSakeRepository(
@@ -217,23 +245,12 @@ class SakeListViewModelTest {
                     summaries =
                         listOf(
                             SakeListSummary(
-                                sake =
-                                    Sake(
-                                        id = 2L,
-                                        name = "A酒",
-                                        grade = SakeGrade.GINJO,
-                                        isPinned = true,
-                                    ),
-                                latestOverallReview = null,
+                                sake = Sake(id = 2L, name = "A酒", grade = SakeGrade.GINJO, isPinned = true),
+                                averageOverallReview = null,
                             ),
                             SakeListSummary(
-                                sake =
-                                    Sake(
-                                        id = 1L,
-                                        name = "B酒",
-                                        grade = SakeGrade.JUNMAI,
-                                    ),
-                                latestOverallReview = OverallReview.GOOD,
+                                sake = Sake(id = 1L, name = "B酒", grade = SakeGrade.JUNMAI),
+                                averageOverallReview = GOOD_AVERAGE_REVIEW,
                             ),
                         ),
                 )
@@ -249,7 +266,7 @@ class SakeListViewModelTest {
             val state = viewModel.uiState.value
             val firstSake = state.sakes.first().sake
             assertEquals(2L, firstSake.id)
-            assertEquals(OverallReview.GOOD, state.sakes.last().latestOverallReview)
+            assertEquals(GOOD_AVERAGE_REVIEW, state.sakes.last().averageOverallReview)
             assertEquals("好き", state.overallReviewLabels[OverallReview.GOOD.name])
         }
 
@@ -543,7 +560,7 @@ private class FakeSakeRepository(
                     } else {
                         summary
                     }
-                }.sortedWith(compareByDescending<SakeListSummary> { it.sake.isPinned }.thenBy { it.sake.name })
+                }.sortedByDescending { it.sake.id }
     }
 
     override suspend fun deleteSake(id: SakeId): SakeDeleteResult {
@@ -649,10 +666,6 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
-    }
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 
     override suspend fun updateReviewMode(modeId: String) {

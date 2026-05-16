@@ -136,7 +136,7 @@ fun ReviewEditScreen(
                     if (content.state.sakeName.isBlank()) {
                         stringResource(R.string.screen_review_edit)
                     } else {
-                        "${stringResource(R.string.label_sake)}: ${content.state.sakeName}"
+                        content.state.sakeName
                     },
                 onBack = ::requestBack,
             )
@@ -256,7 +256,7 @@ private fun ReviewEditSectionPage(
         contentPadding = PaddingValues(SCREEN_PADDING.dp),
         verticalArrangement = Arrangement.spacedBy(ITEM_SPACING.dp),
     ) {
-        reviewEditHeaderItems()
+        reviewEditHeaderItems(section)
         reviewEditFormContent(
             state = content.state,
             onAction = content.onAction,
@@ -352,9 +352,11 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         otherSakeTypes,
     )
 
-private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems() {
-    item(key = "required_hint", contentType = "hint") {
-        RequiredFieldHint()
+private fun androidx.compose.foundation.lazy.LazyListScope.reviewEditHeaderItems(section: ReviewSection) {
+    if (section == ReviewSection.BASIC) {
+        item(key = "required_hint", contentType = "hint") {
+            RequiredFieldHint()
+        }
     }
 }
 

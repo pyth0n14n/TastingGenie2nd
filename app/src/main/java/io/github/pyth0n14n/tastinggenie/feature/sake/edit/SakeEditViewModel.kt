@@ -227,13 +227,11 @@ class SakeEditViewModel
             viewModelScope.launch {
                 _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
-                    val settings = settingsRepository.getCurrentSettings()
                     saveSake(
                         snapshot = snapshot,
                         input = input,
                         sakeRepository = sakeRepository,
                         sakeImageRepository = sakeImageRepository,
-                        autoDeleteUnusedImages = settings.autoDeleteUnusedImages,
                     )
                 }.onSuccess {
                     _uiState.update { it.copy(isSaving = false, isSaved = true) }
@@ -428,8 +426,6 @@ private object NoOpSettingsRepository : SettingsRepository {
     override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit
 
     override suspend fun updateReviewMode(modeId: String) = Unit
 

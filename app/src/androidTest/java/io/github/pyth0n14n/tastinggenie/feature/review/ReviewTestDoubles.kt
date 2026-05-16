@@ -19,6 +19,7 @@ internal fun testReview(
     date: LocalDate = LocalDate.parse(TEST_REVIEW_DATE),
     otherOverallReview: OverallReview? = OverallReview.GOOD,
     tasteInPalateAroma: List<Aroma> = emptyList(),
+    otherIndividuality: String? = null,
     otherCautions: String? = null,
     otherFreeComment: String? = null,
 ): Review =
@@ -32,6 +33,7 @@ internal fun testReview(
         aromaExamples = listOf(Aroma.MELON),
         tasteInPalateAroma = tasteInPalateAroma,
         tasteSweetness = TasteLevel.STRONG,
+        otherIndividuality = otherIndividuality,
         otherCautions = otherCautions,
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview,

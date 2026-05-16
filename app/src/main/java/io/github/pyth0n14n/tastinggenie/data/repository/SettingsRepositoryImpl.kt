@@ -37,12 +37,6 @@ class SettingsRepositoryImpl
             }
         }
 
-        override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-            dataStore.edit { preferences ->
-                preferences[autoDeleteUnusedImagesKey] = enabled
-            }
-        }
-
         override suspend fun updateReviewMode(modeId: String) {
             dataStore.edit { preferences ->
                 preferences[reviewModeIdKey] = modeId
@@ -53,7 +47,6 @@ class SettingsRepositoryImpl
             dataStore.edit { preferences ->
                 preferences[showHelpHintsKey] = settings.showHelpHints
                 preferences[showReviewSoundnessKey] = settings.showReviewSoundness
-                preferences[autoDeleteUnusedImagesKey] = settings.autoDeleteUnusedImages
                 preferences[reviewModeIdKey] = settings.reviewModeId
             }
         }
@@ -61,7 +54,6 @@ class SettingsRepositoryImpl
         private companion object {
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
             val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")
-            val autoDeleteUnusedImagesKey = booleanPreferencesKey("auto_delete_unused_images")
             val reviewModeIdKey = stringPreferencesKey("review_mode_id")
         }
 
@@ -69,7 +61,6 @@ class SettingsRepositoryImpl
             AppSettings(
                 showHelpHints = this[showHelpHintsKey] ?: true,
                 showReviewSoundness = this[showReviewSoundnessKey] ?: true,
-                autoDeleteUnusedImages = this[autoDeleteUnusedImagesKey] ?: false,
                 reviewModeId = this[reviewModeIdKey] ?: ReviewMode.NORMAL.id,
             )
     }

@@ -153,7 +153,7 @@ class ReviewListScreenTest {
     }
 
     @Test
-    fun reviewItem_showsFreeCommentOnly() {
+    fun reviewItem_showsIndividualityOnly() {
         composeRule.setContent {
             ReviewListScreen(
                 state =
@@ -163,6 +163,7 @@ class ReviewListScreenTest {
                             listOf(
                                 testReview(
                                     otherCautions = "留意点",
+                                    otherIndividuality = "個性コメント",
                                     otherFreeComment = "自由コメント",
                                 ),
                             ),
@@ -178,7 +179,8 @@ class ReviewListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("自由コメント").assertExists()
+        composeRule.onNodeWithText("個性コメント").assertExists()
+        composeRule.onNodeWithText("自由コメント").assertDoesNotExist()
         composeRule.onNodeWithText("留意点").assertDoesNotExist()
     }
 }

@@ -41,7 +41,7 @@ class SakeEditViewModelTest {
         private const val TEST_ACIDITY = 1.4F
         private const val TEST_KOJI_POLISH = 50
         private const val TEST_KAKE_POLISH = 55
-        private const val TEST_ALCOHOL = 16
+        private const val TEST_ALCOHOL = 16.5F
         private const val EXISTING_IMAGE_URI = "file:///images/sakes/existing.jpg"
     }
 
@@ -171,7 +171,7 @@ class SakeEditViewModelTest {
             viewModel.onTextChanged(SakeTextField.KOJI_POLISH, "50")
             viewModel.onTextChanged(SakeTextField.KAKE_MAI, "五百万石")
             viewModel.onTextChanged(SakeTextField.KAKE_POLISH, "55")
-            viewModel.onTextChanged(SakeTextField.ALCOHOL, "16")
+            viewModel.onTextChanged(SakeTextField.ALCOHOL, "16.5")
             viewModel.onTextChanged(SakeTextField.YEAST, "協会9号")
             viewModel.onTextChanged(SakeTextField.WATER, "伏流水")
             viewModel.save()
@@ -581,7 +581,7 @@ class SakeEditViewModelTest {
             assertEquals("50", state.kojiPolish)
             assertEquals("五百万石", state.kakeMai)
             assertEquals("55", state.kakePolish)
-            assertEquals("16", state.alcohol)
+            assertEquals("16.5", state.alcohol)
             assertEquals("協会9号", state.yeast)
             assertEquals("伏流水", state.water)
         }

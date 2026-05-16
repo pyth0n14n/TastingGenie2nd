@@ -74,7 +74,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ### Problem: Replacing or deleting images mutates persisted files before save, so cancel or save failure loses the old managed set.
 - **Example**: SakeEdit imports a new image immediately and deletes an existing managed file before the form save succeeds.
-- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import during save. On save failure, clean up any newly imported managed images. With the default cleanup policy, save-time replace/delete should only update DB references; unused managed files are removed later by manual cleanup or the auto-cleanup setting.
+- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import during save. On save failure, clean up any newly imported managed images. After a successful save-time replace/delete or sake delete, automatically clean up unreferenced app-managed images.
 - **Test Coverage**:
   - Pick a replacement image and cancel edit; verify the persisted image set is unchanged.
   - Simulate save failure after image import; verify the newly imported managed images are deleted.
@@ -96,7 +96,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Example**: `cleanupUnusedImages()` deletes a still-referenced second image because only the primary image URI is considered, or deletes external URIs selected from outside app storage.
 - **Preventive Measure**: Build the referenced set from every `Sake.imageUris` entry, not only the first preview image. Restrict cleanup to the app-managed image directory and never delete external URIs.
 - **Test Coverage**:
-  - Save a sake with multiple images and run manual cleanup; verify every referenced managed image remains.
+  - Save a sake with multiple images and run cleanup; verify every referenced managed image remains.
   - Keep one image referenced and one unreferenced in the managed directory; verify only the unreferenced file is deleted.
   - Include an external URI in the DB and verify cleanup does not attempt to delete it.
 ### Problem: Review deletion is easy to mis-tap or hides the list when only the delete action failed.
@@ -266,12 +266,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
   - Render the edit screen with a load error and empty staged-option lists; verify the error is shown and composition does not crash.
   - Select a star rating and verify both the stored enum and the visible meaning label update together.
 
-### Problem: Hidden soundness fields leak nulls or stale values instead of defaulting to healthy.
-- **Example**: A review saved while `showReviewSoundness` is off stores `null` for one section, or an old `UNSOUND` value remains hidden and surprises the user after re-enabling the setting.
-- **Preventive Measure**: Treat `appearanceSoundness`, `aromaSoundness`, and `tasteSoundness` as non-null review fields with a default of `SOUND`. Hiding the UI changes visibility only; it must not create null state or skip persistence.
+### Problem: Hidden soundness fields leak stale values instead of defaulting to healthy.
+- **Example**: A review with an old `UNSOUND` value is edited while `showReviewSoundness` is off, and the hidden value surprises the user after re-enabling the setting.
+- **Preventive Measure**: Treat `appearanceSoundness`, `aromaSoundness`, and `tasteSoundness` as nullable review fields when visible. When `showReviewSoundness` is off, ReviewEdit must initialize the hidden soundness values to `SOUND` before save.
 - **Test Coverage**:
   - Save a review with soundness hidden and verify all three persisted values are `SOUND`.
-  - Toggle the setting off and on around edit flows; verify the restored values are deterministic and non-null.
+  - Toggle the setting on and clear soundness; verify visible edit flows can persist `null`.
 
 ### Problem: Derived flavor-profile classification gets persisted separately and drifts away from the source axes.
 - **Example**: The 4-type `薫酒/爽酒/熟酒/醇酒` badge still shows the old type after `aromaIntensity` or `tasteComplexity` changed because a stale field was stored independently.

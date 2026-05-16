@@ -5,6 +5,7 @@ enum class ReviewMode(
 ) {
     NORMAL("normal"),
     KIKISAKE_SHI("kikisake_shi"),
+    DEBUG("debug"),
 }
 
 enum class ReviewItemId {
@@ -62,11 +63,14 @@ val normalReviewItemIds: Set<ReviewItemId> =
         ReviewItemId.BAR,
         ReviewItemId.DISH,
         ReviewItemId.FOOD_COMPATIBILITY,
+        ReviewItemId.APPEARANCE_SOUNDNESS,
         ReviewItemId.APPEARANCE_COLOR,
         ReviewItemId.APPEARANCE_VISCOSITY,
+        ReviewItemId.AROMA_SOUNDNESS,
         ReviewItemId.AROMA_INTENSITY,
         ReviewItemId.AROMA_EXAMPLES,
         ReviewItemId.AROMA_COMPLEXITY,
+        ReviewItemId.TASTE_SOUNDNESS,
         ReviewItemId.TASTE_ATTACK,
         ReviewItemId.TASTE_TEXTURE_ROUNDNESS,
         ReviewItemId.TASTE_TEXTURE_SMOOTHNESS,
@@ -118,6 +122,8 @@ val kikisakeShiReviewItemIds: Set<ReviewItemId> =
         ReviewItemId.OTHER_OVERALL_REVIEW,
     )
 
+val debugReviewItemIds: Set<ReviewItemId> = ReviewItemId.entries.toSet()
+
 val builtInReviewModeDefinitions: List<ReviewModeDefinition> =
     listOf(
         ReviewModeDefinition(
@@ -131,5 +137,11 @@ val builtInReviewModeDefinitions: List<ReviewModeDefinition> =
             label = "利酒師",
             isBuiltIn = true,
             enabledItemIds = kikisakeShiReviewItemIds,
+        ),
+        ReviewModeDefinition(
+            id = ReviewMode.DEBUG.id,
+            label = "デバッグ",
+            isBuiltIn = true,
+            enabledItemIds = debugReviewItemIds,
         ),
     )

@@ -10,6 +10,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
@@ -85,6 +86,64 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.showHelpHints)
             assertFalse(state.showReviewSoundness)
+        }
+
+    @Test
+    fun loadInitial_withVisibleSoundnessKeepsNullSelection() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle =
+                        SavedStateHandle(
+                            mapOf(
+                                AppDestination.ARG_SAKE_ID to TEST_SAKE_ID,
+                                AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
+                            ),
+                        ),
+                    reviewRepository = RecordingReviewRepository(listOf(testReview())),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(null, state.appearanceSoundness)
+            assertEquals(null, state.aromaSoundness)
+            assertEquals(null, state.tasteSoundness)
+        }
+
+    @Test
+    fun save_withHiddenSoundnessDefaultsValuesToSound() =
+        runTest {
+            val repository =
+                RecordingReviewRepository(
+                    listOf(
+                        testReview().copy(
+                            appearanceSoundness = ReviewSoundness.UNSOUND,
+                            aromaSoundness = ReviewSoundness.UNSOUND,
+                            tasteSoundness = ReviewSoundness.UNSOUND,
+                        ),
+                    ),
+                )
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle =
+                        SavedStateHandle(
+                            mapOf(
+                                AppDestination.ARG_SAKE_ID to TEST_SAKE_ID,
+                                AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
+                            ),
+                        ),
+                    reviewRepository = repository,
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = false)),
+                )
+            advanceUntilIdle()
+
+            viewModel.save()
+            advanceUntilIdle()
+
+            val savedInput = repository.savedInputs.single()
+            assertEquals(ReviewSoundness.SOUND, savedInput.appearanceSoundness)
+            assertEquals(ReviewSoundness.SOUND, savedInput.aromaSoundness)
+            assertEquals(ReviewSoundness.SOUND, savedInput.tasteSoundness)
         }
 
     @Test
@@ -190,6 +249,9 @@ class ReviewEditViewModelTest {
             assertEquals(1, repository.savedInputs.size)
             assertEquals(TEST_SAKE_ID, repository.savedInputs.first().sakeId)
             assertEquals(Temperature.JOON, repository.savedInputs.first().temperature)
+            assertEquals(null, repository.savedInputs.first().appearanceSoundness)
+            assertEquals(null, repository.savedInputs.first().aromaSoundness)
+            assertEquals(null, repository.savedInputs.first().tasteSoundness)
         }
 
     @Test
@@ -461,10 +523,6 @@ private class FakeSettingsRepository(
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) {
         stream.value = stream.value.copy(showReviewSoundness = enabled)
-    }
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
     }
 
     override suspend fun updateReviewMode(modeId: String) {

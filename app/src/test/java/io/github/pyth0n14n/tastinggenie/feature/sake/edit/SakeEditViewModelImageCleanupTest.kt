@@ -54,7 +54,7 @@ class SakeEditViewModelImageCleanupTest {
                     sakeRepository = repository,
                     sakeImageRepository = imageRepository,
                     masterDataRepository = FakeMasterDataRepository(),
-                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings()),
                 )
             advanceUntilIdle()
 
@@ -96,7 +96,7 @@ class SakeEditViewModelImageCleanupTest {
                     sakeRepository = repository,
                     sakeImageRepository = imageRepository,
                     masterDataRepository = FakeMasterDataRepository(),
-                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings()),
                 )
             advanceUntilIdle()
 
@@ -135,7 +135,7 @@ class SakeEditViewModelImageCleanupTest {
                     sakeRepository = repository,
                     sakeImageRepository = imageRepository,
                     masterDataRepository = FakeMasterDataRepository(),
-                    settingsRepository = AutoDeleteSettingsRepository(AppSettings(autoDeleteUnusedImages = true)),
+                    settingsRepository = AutoDeleteSettingsRepository(AppSettings()),
                 )
             advanceUntilIdle()
 
@@ -257,10 +257,6 @@ private class AutoDeleteSettingsRepository(
     override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
 
     override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
-    }
 
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)

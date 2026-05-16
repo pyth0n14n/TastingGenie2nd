@@ -19,9 +19,9 @@ class FakeSakeDao : SakeDao {
     override fun observeListSummaries(): Flow<List<SakeListSummaryRow>> =
         stream.map { list ->
             list
-                .sortedWith(compareByDescending<SakeEntity> { it.isPinned }.thenBy { it.name })
+                .sortedByDescending { it.id }
                 .map { entity ->
-                    SakeListSummaryRow(sake = entity, latestOverallReview = null)
+                    SakeListSummaryRow(sake = entity, averageOverallReview = null)
                 }
         }
 

@@ -109,6 +109,22 @@ class SakeImageRepositoryImplTest {
         }
 
     @Test
+    fun importImage_usesFileExtensionWhenMimeTypeIsMissing() =
+        runTest {
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            clearManagedImages(context)
+            val repository = SakeImageRepositoryImpl(context = context, ioDispatcher = Dispatchers.Unconfined)
+            val source = createSourceFile(context, name = "captured.jpg", content = "captured")
+
+            val importedUri = repository.importImage(sourceUri = Uri.fromFile(source).toString())
+            val managedFile = requireNotNull(Uri.parse(importedUri).path).let(::File)
+
+            assertTrue(managedFile.exists())
+            assertEquals("jpg", managedFile.extension)
+            assertEquals("captured", managedFile.readText())
+        }
+
+    @Test
     fun cleanupUnusedImages_deletesOnlyUnreferencedManagedFiles() =
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()

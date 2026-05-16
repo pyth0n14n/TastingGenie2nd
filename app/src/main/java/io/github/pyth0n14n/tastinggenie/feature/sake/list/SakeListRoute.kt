@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
@@ -30,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
-import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
@@ -227,35 +226,39 @@ private fun SakeListItems(
     state: SakeListUiState,
     itemActions: SakeListItemActions,
 ) {
+    var isPinnedSectionExpanded by rememberSaveable { mutableStateOf(true) }
+    var isOtherSectionExpanded by rememberSaveable { mutableStateOf(true) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = LIST_SPACING.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        items(items = state.displayedSakes, key = { item -> item.sake.id }) { item ->
-            SakeListCard(
-                sake = item.sake,
-                labels =
-                    SakeListCardLabels(
-                        grade = state.gradeLabels[item.sake.grade.name] ?: item.sake.grade.name,
-                        classifications =
-                            item.sake.type.map { classification ->
-                                state.classificationLabels[classification.name] ?: classification.name
-                            },
-                        prefecture =
-                            sakePrefectureAndCityLabel(
-                                sake = item.sake,
-                                prefectureLabels = state.prefectureLabels,
-                            ),
-                        latestOverallReview = item.latestOverallReview,
-                        latestOverallReviewLabel =
-                            item.latestOverallReview
-                                ?.name
-                                ?.let { key -> state.overallReviewLabels[key] },
-                    ),
-                itemActions = itemActions,
-            )
-        }
+        val pinnedSakes = state.displayedSakes.filter { item -> item.sake.isPinned }
+        val otherSakes = state.displayedSakes.filterNot { item -> item.sake.isPinned }
+        sakeListSection(
+            section =
+                SakeListSectionState(
+                    keyPrefix = "pinned",
+                    titleRes = R.string.section_pinned_sakes,
+                    items = pinnedSakes,
+                    expanded = isPinnedSectionExpanded,
+                    onToggleExpanded = { isPinnedSectionExpanded = !isPinnedSectionExpanded },
+                ),
+            state = state,
+            itemActions = itemActions,
+        )
+        sakeListSection(
+            section =
+                SakeListSectionState(
+                    keyPrefix = "other",
+                    titleRes = R.string.section_other_sakes,
+                    items = otherSakes,
+                    expanded = isOtherSectionExpanded,
+                    onToggleExpanded = { isOtherSectionExpanded = !isOtherSectionExpanded },
+                ),
+            state = state,
+            itemActions = itemActions,
+        )
     }
 }
 
@@ -347,15 +350,3 @@ private fun SakeListSortMode.labelRes(): Int =
         SakeListSortMode.NAME_ASC -> R.string.sort_sakes_name
         SakeListSortMode.RATING_DESC -> R.string.sort_sakes_rating
     }
-
-private fun sakePrefectureAndCityLabel(
-    sake: Sake,
-    prefectureLabels: Map<String, String>,
-): String? {
-    val prefectureLabel =
-        sake.prefecture?.name?.let { key ->
-            prefectureLabels[key] ?: key
-        }
-    val city = sake.city?.trim().takeIf { value -> !value.isNullOrEmpty() }
-    return listOfNotNull(prefectureLabel, city).takeIf { labels -> labels.isNotEmpty() }?.joinToString(" ")
-}

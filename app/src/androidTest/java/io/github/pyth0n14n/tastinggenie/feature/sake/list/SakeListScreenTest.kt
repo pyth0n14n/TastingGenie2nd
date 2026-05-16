@@ -180,6 +180,55 @@ class SakeListScreenTest {
     }
 
     @Test
+    fun sakeItems_areSeparatedByPinnedSectionsAndCanCollapse() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 1L,
+                                            name = "固定酒",
+                                            grade = SakeGrade.JUNMAI,
+                                            isPinned = true,
+                                        ),
+                                ),
+                                SakeListSummary(
+                                    sake =
+                                        Sake(
+                                            id = 2L,
+                                            name = "通常酒",
+                                            grade = SakeGrade.GINJO,
+                                            isPinned = false,
+                                        ),
+                                ),
+                            ),
+                        gradeLabels =
+                            mapOf(
+                                SakeGrade.JUNMAI.name to "純米",
+                                SakeGrade.GINJO.name to "吟醸",
+                            ),
+                    ),
+                actions = screenActions(),
+            )
+        }
+
+        composeRule.onNodeWithText("ピン止め").assertIsDisplayed()
+        composeRule.onNodeWithText("酒一覧").assertIsDisplayed()
+        composeRule.onNodeWithText("固定酒").assertIsDisplayed()
+        composeRule.onNodeWithText("通常酒").assertIsDisplayed()
+
+        composeRule.onNodeWithText("ピン止め").performClick()
+
+        composeRule.onNodeWithText("固定酒").assertDoesNotExist()
+        composeRule.onNodeWithText("通常酒").assertIsDisplayed()
+    }
+
+    @Test
     fun searchField_filtersVisibleSakes() {
         composeRule.setContent {
             SakeListScreen(
@@ -264,7 +313,7 @@ class SakeListScreenTest {
     }
 
     @Test
-    fun latestReview_usesStableStarRowWithAndWithoutValue() {
+    fun averageReview_usesStableStarRowWithAndWithoutValue() {
         composeRule.setContent {
             SakeListScreen(
                 state =
@@ -274,11 +323,11 @@ class SakeListScreenTest {
                             listOf(
                                 SakeListSummary(
                                     sake = Sake(id = 10L, name = "評価あり", grade = SakeGrade.JUNMAI),
-                                    latestOverallReview = OverallReview.GOOD,
+                                    averageOverallReview = 4.5,
                                 ),
                                 SakeListSummary(
                                     sake = Sake(id = 11L, name = "評価なし", grade = SakeGrade.GINJO),
-                                    latestOverallReview = null,
+                                    averageOverallReview = null,
                                 ),
                             ),
                         gradeLabels =
@@ -292,8 +341,8 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithContentDescription("最新評価 好き").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("最新評価なし").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("平均評価 4.50").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("平均評価なし").assertIsDisplayed()
     }
 
     @Test

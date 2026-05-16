@@ -8,6 +8,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureRoundness
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 
@@ -131,15 +132,15 @@ private fun ReviewEditUiState.toEditableLoadedState(
         scene = review?.foodCompatibility?.name.orEmpty(),
         dish = review?.dish.orEmpty(),
         comment = review?.otherFreeComment.orEmpty(),
-        appearanceSoundness = review?.appearanceSoundness ?: appearanceSoundness,
+        appearanceSoundness = review.soundnessForEdit(loaded.settings.showReviewSoundness) { appearanceSoundness },
         temperature = review?.temperature,
         color = review?.appearanceColor,
         colorOther = review?.appearanceColorOther.orEmpty(),
         viscosity = review?.appearanceViscosity,
-        aromaSoundness = review?.aromaSoundness ?: aromaSoundness,
+        aromaSoundness = review.soundnessForEdit(loaded.settings.showReviewSoundness) { aromaSoundness },
         intensity = review?.aromaIntensity,
         aromaComplexity = review?.aromaComplexity,
-        tasteSoundness = review?.tasteSoundness ?: tasteSoundness,
+        tasteSoundness = review.soundnessForEdit(loaded.settings.showReviewSoundness) { tasteSoundness },
         tasteAttack = review?.tasteAttack,
         tasteTextureRoundness = review?.tasteTextureRoundness.normalizeLegacyTextureRoundness(),
         tasteTextureSmoothness = review?.tasteTextureSmoothness,
@@ -170,4 +171,14 @@ private fun TextureRoundness?.normalizeLegacyTextureRoundness(): TextureRoundnes
     when (this) {
         TextureRoundness.MELLOW -> TextureRoundness.SOFT
         else -> this
+    }
+
+private fun Review?.soundnessForEdit(
+    showReviewSoundness: Boolean,
+    value: Review.() -> ReviewSoundness?,
+): ReviewSoundness? =
+    if (showReviewSoundness) {
+        this?.value()
+    } else {
+        ReviewSoundness.SOUND
     }

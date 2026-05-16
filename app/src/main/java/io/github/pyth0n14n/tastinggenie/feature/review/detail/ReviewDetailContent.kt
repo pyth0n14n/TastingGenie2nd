@@ -162,6 +162,7 @@ data class ReviewDetailContentState(
     val review: Review,
     val sakeName: String,
     val labels: ReviewDetailLabels,
+    val showReviewSoundness: Boolean = true,
 )
 
 @Composable
@@ -864,6 +865,7 @@ private data class ReviewDetailTextLabels(
     val foodCompatibility: String,
     val color: String,
     val viscosity: String,
+    val soundness: String,
     val aromaIntensity: String,
     val aromaComplexity: String,
     val aromaMainNote: String,
@@ -902,6 +904,7 @@ private fun reviewDetailTextLabels(): ReviewDetailTextLabels =
         foodCompatibility = stringResource(R.string.label_scene),
         color = stringResource(R.string.label_color),
         viscosity = stringResource(R.string.detail_label_viscosity),
+        soundness = stringResource(R.string.label_soundness),
         aromaIntensity = stringResource(R.string.detail_label_strength),
         aromaComplexity = stringResource(R.string.detail_label_complexity),
         aromaMainNote = stringResource(R.string.label_aroma_main_note),
@@ -946,10 +949,23 @@ private fun ReviewDetailContentState.toDisplayModel(
     val highlights = review.toHighlights(labels = labels)
     val sections =
         listOfNotNull(
-            review.toAromaSection(labels = labels, textLabels = textLabels),
-            review.toTasteSection(labels = labels, textLabels = textLabels),
+            review.toAromaSection(
+                labels = labels,
+                textLabels = textLabels,
+                showReviewSoundness = showReviewSoundness,
+            ),
+            review.toTasteSection(
+                labels = labels,
+                textLabels = textLabels,
+                showReviewSoundness = showReviewSoundness,
+            ),
             review.toBasicSection(labels = labels, textLabels = textLabels),
-            review.toAppearanceSection(labels = labels, textLabels = textLabels, viscosityLabels = viscosityLabels),
+            review.toAppearanceSection(
+                labels = labels,
+                textLabels = textLabels,
+                viscosityLabels = viscosityLabels,
+                showReviewSoundness = showReviewSoundness,
+            ),
             review.toMemoSection(labels = labels, textLabels = textLabels),
         )
     return ReviewDetailDisplay(summary = summary, highlights = highlights, sections = sections)
@@ -1016,9 +1032,15 @@ private fun Review.toHighlights(labels: ReviewDetailLabels): SummaryHighlights? 
 private fun Review.toAromaSection(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
+    showReviewSoundness: Boolean,
 ): DetailSection? {
     val rows =
         buildList {
+            if (showReviewSoundness) {
+                aromaSoundness?.let { soundness ->
+                    add(DetailDisplayRow.KeyValue(textLabels.soundness, soundness.toLabel()))
+                }
+            }
             aromaIntensity?.let {
                 add(DetailDisplayRow.TasteScale(textLabels.aromaIntensity, it.labelFrom(labels.intensity), it.ordinal))
             }
@@ -1043,9 +1065,15 @@ private fun Review.toAromaSection(
 private fun Review.toTasteSection(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
+    showReviewSoundness: Boolean,
 ): DetailSection? {
     val rows =
         buildList {
+            if (showReviewSoundness) {
+                tasteSoundness?.let { soundness ->
+                    add(DetailDisplayRow.KeyValue(textLabels.soundness, soundness.toLabel()))
+                }
+            }
             tasteAttack?.let {
                 add(DetailDisplayRow.TasteScale(textLabels.tasteAttack, it.toLabel(), it.ordinal))
             }
@@ -1149,9 +1177,15 @@ private fun Review.toAppearanceSection(
     labels: ReviewDetailLabels,
     textLabels: ReviewDetailTextLabels,
     viscosityLabels: Map<Int, String>,
+    showReviewSoundness: Boolean,
 ): DetailSection? {
     val rows =
         buildList {
+            if (showReviewSoundness) {
+                appearanceSoundness?.let { soundness ->
+                    add(DetailDisplayRow.KeyValue(textLabels.soundness, soundness.toLabel()))
+                }
+            }
             appearanceColor.displayColor(labels.color, appearanceColorOther)?.let { color ->
                 add(DetailDisplayRow.ColorValue(textLabels.color, color, appearanceColor.toSwatchColor()))
             }

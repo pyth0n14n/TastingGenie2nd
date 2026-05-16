@@ -27,7 +27,7 @@ images/sakes/*
 
 ```json
 {
-  "schemaVersion": 10,
+  "schemaVersion": 11,
   "sakes": [],
   "reviews": [],
   "reviewModes": [],
@@ -35,14 +35,13 @@ images/sakes/*
   "settings": {
     "showHelpHints": true,
     "showReviewSoundness": true,
-    "autoDeleteUnusedImages": false,
     "reviewModeId": "normal"
   }
 }
 ```
 
 - `schemaVersion` 必須
-- schemaVersion 10 は ZIP フルバックアップ形式を表す
+- schemaVersion 11 は ZIP フルバックアップ形式を表す
 - 未対応バージョンは読み込み失敗として UI に表示する
 - ZIP破損、必須ファイル欠落、JSON破損は読み込み失敗として UI に表示する
 

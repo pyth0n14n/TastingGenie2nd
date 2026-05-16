@@ -23,7 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
@@ -120,8 +123,15 @@ private fun ReviewHelpDialog(
             },
         title = { Text(text = stringResource(help.titleRes)) },
         text = {
+            val message = stringResource(help.messageRes)
+            val helpText =
+                if (help.boldPrefixBeforeColon) {
+                    message.boldPrefixBeforeColon()
+                } else {
+                    buildAnnotatedString { append(message) }
+                }
             Text(
-                text = stringResource(help.messageRes),
+                text = helpText,
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
@@ -138,7 +148,26 @@ private fun ReviewItemId.toReviewHelpMessage(): ReviewHelpMessage? = ReviewHelpM
 private data class ReviewHelpMessage(
     val titleRes: Int,
     val messageRes: Int,
+    val boldPrefixBeforeColon: Boolean = false,
 )
+
+private fun String.boldPrefixBeforeColon() =
+    buildAnnotatedString {
+        lines().forEachIndexed { index, line ->
+            if (index > 0) {
+                append('\n')
+            }
+            val colonIndex = line.indexOf('：')
+            if (colonIndex <= 0) {
+                append(line)
+            } else {
+                pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                append(line.substring(0, colonIndex))
+                pop()
+                append(line.substring(colonIndex))
+            }
+        }
+    }
 
 private val ReviewHelpMessagesByItemId =
     mapOf(
@@ -256,6 +285,7 @@ private val ReviewHelpMessagesByItemId =
             ReviewHelpMessage(
                 R.string.review_help_other_sake_types_title,
                 R.string.review_help_other_sake_types_message,
+                boldPrefixBeforeColon = true,
             ),
         ReviewItemId.OTHER_FREE_COMMENT to
             ReviewHelpMessage(

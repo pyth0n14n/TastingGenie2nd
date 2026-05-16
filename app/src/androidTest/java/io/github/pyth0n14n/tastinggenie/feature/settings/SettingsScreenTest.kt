@@ -26,9 +26,10 @@ class SettingsScreenTest {
         composeRule.onNodeWithText("表示・操作").assertIsDisplayed()
         composeRule.onNodeWithText("ヘルプ表示").assertIsDisplayed()
         composeRule.onNodeWithText("酒リスト・レビュー").assertIsDisplayed()
+        composeRule.onNodeWithText("通常は選択式が多く、利酒師は記述式が多くなります").assertIsDisplayed()
+        composeRule.onNodeWithText("デバッグ").assertIsDisplayed()
         composeRule.onNodeWithText("健全度を表示しない").assertIsDisplayed()
         composeRule.onNodeWithText("見た目・香り・味の健全度はデフォルトで健全とする").assertIsDisplayed()
-        composeRule.onNodeWithText("アプリで使用していない酒画像を削除します").assertIsDisplayed()
         composeRule.onNodeWithText("データ").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップから復元").assertIsDisplayed()
@@ -103,25 +104,7 @@ class SettingsScreenTest {
                 actions = emptySettingsActions(),
             )
         }
-
         composeRule.onNodeWithText("バックアップから復元しました").assertIsDisplayed()
-    }
-
-    @Test
-    fun cleanupSuccessMessage_isShownInSnackbar() {
-        composeRule.setContent {
-            SettingsScreen(
-                state =
-                    SettingsUiState(
-                        isLoading = false,
-                        messageResId = io.github.pyth0n14n.tastinggenie.R.string.message_cleanup_unused_images_success,
-                    ),
-                onBack = {},
-                actions = emptySettingsActions(),
-            )
-        }
-
-        composeRule.onNodeWithText("未参照アプリ内画像を削除しました").assertIsDisplayed()
     }
 }
 
@@ -133,9 +116,7 @@ private fun emptySettingsActions(
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
     onToggleReviewSoundness = {},
-    onToggleAutoDeleteUnusedImages = {},
     onSelectReviewMode = {},
-    onCleanupUnusedImages = {},
     onExportBackup = onExportBackup,
     onRestoreBackup = onRestoreBackup,
     onOpenGlossary = onOpenGlossary,

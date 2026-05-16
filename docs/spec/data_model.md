@@ -8,7 +8,7 @@
 - Review 内の評価項目は `common` / `appearance` / `aroma` / `taste` / `other` の論理グループで扱う
 - Review の永続化は 1 テーブル `reviews` のままとし、列名は `appearanceXxx / aromaXxx / tasteXxx / otherXxx` で所属を明示する
 - レビュー項目の表示有無は `review_modes` / `review_mode_items` で管理し、現在選択中のモードIDは `AppSettings.reviewModeId` に保持する
-- 標準モードは `normal`（通常）と `kikisake_shi`（利酒師）を seed する
+- 標準モードは `normal`（通常）、`kikisake_shi`（利酒師）、`debug`（デバッグ）を seed する
 - 将来のカスタムモードは `review_modes` / `review_mode_items` に追加する。Review 自体には作成時モードを保存しない
 - 画像は URI ベースで `Sake.imageUris` に保持する
 - マスタデータは `docs/spec/master/*.md` を source of truth とし、実装では `assets/master/*.json` に反映する
@@ -30,7 +30,7 @@
 | maker | String | 任意 |
 | prefecture | Enum | 任意 |
 | city | String | 任意 |
-| alcohol | Int | 任意 |
+| alcohol | Float | 任意 |
 | kojiMai | String | 任意 |
 | kojiPolish | Int | 任意 |
 | kakeMai | String | 任意 |
@@ -79,7 +79,7 @@
 
 | 項目 | 型 | 必須 |
 |------|----|------|
-| appearanceSoundness | Enum | 必須（既定値: SOUND） |
+| appearanceSoundness | Enum | 任意 |
 | appearanceColor | Enum | 任意 |
 | appearanceColorOther | String | 任意。appearanceColor が OTHER の場合に使用 |
 | appearanceViscosity | Int(1-5) | 任意 |
@@ -88,7 +88,7 @@
 
 | 項目 | 型 | 必須 |
 |------|----|------|
-| aromaSoundness | Enum | 必須（既定値: SOUND） |
+| aromaSoundness | Enum | 任意 |
 | aromaIntensity | Enum | 任意 |
 | aromaExamples | List<Enum> | 任意 |
 | aromaMainNote | String | 任意 |
@@ -98,7 +98,7 @@
 
 | 項目 | 型 | 必須 |
 |------|----|------|
-| tasteSoundness | Enum | 必須（既定値: SOUND） |
+| tasteSoundness | Enum | 任意 |
 | tasteAttack | Enum | 任意 |
 | tasteTextureRoundness | Enum | 任意 |
 | tasteTextureSmoothness | Enum | 任意 |
@@ -131,7 +131,7 @@
 
 | テーブル | 項目 | 型 | 内容 |
 |------|------|----|------|
-| review_modes | id | String | `normal` / `kikisake_shi` / 将来のカスタムID |
+| review_modes | id | String | `normal` / `kikisake_shi` / `debug` / 将来のカスタムID |
 | review_modes | label | String | 表示名 |
 | review_modes | isBuiltIn | Boolean | 標準モードかどうか |
 | review_mode_items | modeId | String | review_modes.id |
@@ -139,8 +139,10 @@
 | review_mode_items | isEnabled | Boolean | モード内で表示・保存対象にするか |
 
 - 設定画面のモード切替は `AppSettings.reviewModeId` を更新する
+- 設定画面のレビュー入力モードは選択中の項目を Material Design 3 の filled button として表示し、「通常は選択式が多く、利酒師は記述式が多くなります」という説明を表示する
 - ReviewEdit は選択中モードの有効項目のみ表示する
-- 非表示項目は保存時に未入力として扱う。ただし健全度は `SOUND` を保持する
+- `debug` はデバッグ用モードとして全 `ReviewItemId` を表示対象にする
+- 非表示項目は保存時に未入力として扱う。ただし `showReviewSoundness = false` のとき、ReviewEdit は健全度を `SOUND` に初期化して保存対象にする
 
 ---
 
@@ -150,7 +152,6 @@
 |------|----|------|
 | showHelpHints | Boolean | 必須（既定値: true） |
 | showReviewSoundness | Boolean | 必須（既定値: true） |
-| autoDeleteUnusedImages | Boolean | 必須（既定値: false） |
 | reviewModeId | String | 必須（既定値: `normal`） |
 
 ---

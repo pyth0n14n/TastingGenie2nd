@@ -10,8 +10,8 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.TextureSmoothness
 
 fun reviewSoundnessOptions(): List<ReviewResourceOption> =
     listOf(
-        ReviewResourceOption(value = ReviewSoundness.SOUND.name, labelRes = R.string.label_soundness_sound),
         ReviewResourceOption(value = ReviewSoundness.UNSOUND.name, labelRes = R.string.label_soundness_unsound),
+        ReviewResourceOption(value = ReviewSoundness.SOUND.name, labelRes = R.string.label_soundness_sound),
     )
 
 fun complexityOptions(): List<ReviewResourceOption> =
