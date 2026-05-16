@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -225,6 +226,8 @@ private fun SakeListItems(
     state: SakeListUiState,
     itemActions: SakeListItemActions,
 ) {
+    var isPinnedSectionExpanded by rememberSaveable { mutableStateOf(true) }
+    var isOtherSectionExpanded by rememberSaveable { mutableStateOf(true) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = LIST_SPACING.dp),
@@ -232,22 +235,30 @@ private fun SakeListItems(
     ) {
         val pinnedSakes = state.displayedSakes.filter { item -> item.sake.isPinned }
         val otherSakes = state.displayedSakes.filterNot { item -> item.sake.isPinned }
-        item(key = "pinned-section", contentType = "section") {
-            SakeListSection(
-                title = stringResource(R.string.section_pinned_sakes),
-                items = pinnedSakes,
-                state = state,
-                itemActions = itemActions,
-            )
-        }
-        item(key = "other-section", contentType = "section") {
-            SakeListSection(
-                title = stringResource(R.string.section_other_sakes),
-                items = otherSakes,
-                state = state,
-                itemActions = itemActions,
-            )
-        }
+        sakeListSection(
+            section =
+                SakeListSectionState(
+                    keyPrefix = "pinned",
+                    titleRes = R.string.section_pinned_sakes,
+                    items = pinnedSakes,
+                    expanded = isPinnedSectionExpanded,
+                    onToggleExpanded = { isPinnedSectionExpanded = !isPinnedSectionExpanded },
+                ),
+            state = state,
+            itemActions = itemActions,
+        )
+        sakeListSection(
+            section =
+                SakeListSectionState(
+                    keyPrefix = "other",
+                    titleRes = R.string.section_other_sakes,
+                    items = otherSakes,
+                    expanded = isOtherSectionExpanded,
+                    onToggleExpanded = { isOtherSectionExpanded = !isOtherSectionExpanded },
+                ),
+            state = state,
+            itemActions = itemActions,
+        )
     }
 }
 
