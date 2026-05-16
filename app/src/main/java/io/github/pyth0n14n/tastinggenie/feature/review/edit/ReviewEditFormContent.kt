@@ -223,19 +223,6 @@ private fun LazyListScope.addAromaFields(
         isFirstSubheader = !isSoundnessVisible,
         onAction = onAction,
     )
-    if (state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_aroma_main_note,
-            onAction = onAction,
-            ui =
-                ReviewTextFieldUi(
-                    value = state.aromaMainNote,
-                    field = ReviewTextField.AROMA_MAIN_NOTE,
-                    helpItemId = ReviewItemId.AROMA_MAIN_NOTE,
-                ),
-        )
-    }
     if (state.isItemEnabled(ReviewItemId.AROMA_COMPLEXITY)) {
         steppedResourceField(
             ui =
@@ -263,7 +250,8 @@ private fun LazyListScope.addAromaTopFields(
         headingRes = R.string.detail_heading_aroma_top,
         hasAnyField =
             state.isItemEnabled(ReviewItemId.AROMA_INTENSITY) ||
-                state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES),
+                state.isItemEnabled(ReviewItemId.AROMA_EXAMPLES) ||
+                state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE),
         isFirstSubheader = isFirstSubheader,
         showHelpHints = state.showHelpHints,
         helpItemId = ReviewItemId.AROMA_INTENSITY,
@@ -291,6 +279,20 @@ private fun LazyListScope.addAromaTopFields(
                 showHelpHints = state.showHelpHints,
                 onSave = { values ->
                     onAction(ReviewEditAction.AromaSelectionChanged(field = ReviewAromaField.TOP, values = values))
+                },
+            )
+        }
+        if (state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE)) {
+            ReviewStandaloneHelpTextField(
+                ui =
+                    ReviewHelpTextFieldUi(
+                        label = reviewTextResource(R.string.label_aroma_main_note),
+                        value = state.aromaMainNote,
+                        showHelpHints = state.showHelpHints,
+                        helpItemId = ReviewItemId.AROMA_MAIN_NOTE,
+                    ),
+                onValueChange = { next ->
+                    onAction(ReviewEditAction.TextChanged(field = ReviewTextField.AROMA_MAIN_NOTE, value = next))
                 },
             )
         }
