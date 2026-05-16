@@ -81,8 +81,6 @@ class MapperTest {
                 price = null,
                 volume = null,
                 temperature = null,
-                dish = null,
-                foodCompatibility = null,
                 appearanceSoundness = io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness.SOUND,
                 appearanceColor = null,
                 appearanceViscosity = null,

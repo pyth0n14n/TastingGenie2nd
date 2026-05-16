@@ -16,6 +16,7 @@ import io.github.pyth0n14n.tastinggenie.data.local.AppDatabaseMigrations
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewModeDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
+import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeFoodReviewDao
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
@@ -50,6 +51,7 @@ object AppProvidesModule {
                 AppDatabaseMigrations.MIGRATION_9_10,
                 AppDatabaseMigrations.MIGRATION_10_11,
                 AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
             ).build()
 
     @Provides
@@ -66,6 +68,9 @@ object AppProvidesModule {
 
     @Provides
     fun provideReviewDao(database: AppDatabase): ReviewDao = database.reviewDao()
+
+    @Provides
+    fun provideSakeFoodReviewDao(database: AppDatabase): SakeFoodReviewDao = database.sakeFoodReviewDao()
 
     @Provides
     fun provideReviewModeDao(database: AppDatabase): ReviewModeDao = database.reviewModeDao()

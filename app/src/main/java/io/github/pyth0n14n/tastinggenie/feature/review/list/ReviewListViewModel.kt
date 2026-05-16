@@ -9,6 +9,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeFoodReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.CancellationException
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -26,6 +28,7 @@ class ReviewListViewModel
         private val savedStateHandle: SavedStateHandle,
         private val sakeRepository: SakeRepository,
         private val reviewRepository: ReviewRepository,
+        private val foodReviewRepository: SakeFoodReviewRepository,
         private val masterDataRepository: MasterDataRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(ReviewListUiState())
@@ -115,7 +118,9 @@ class ReviewListViewModel
         ) {
             reviewRepository
                 .observeReviews(sakeId)
-                .catch { throwable ->
+                .combine(foodReviewRepository.observeFoodReviews(sakeId)) { reviews, foodReviews ->
+                    reviews to foodReviews
+                }.catch { throwable ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -133,7 +138,7 @@ class ReviewListViewModel
                                 ),
                         )
                     }
-                }.collect { reviews ->
+                }.collect { (reviews, foodReviews) ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -143,6 +148,7 @@ class ReviewListViewModel
                             sakeName = sakeName,
                             hasSakeImage = hasSakeImage,
                             reviews = reviews,
+                            foodReviews = foodReviews,
                             overallReviewLabels = labels.overallReviewLabels,
                             temperatureLabels = labels.temperatureLabels,
                             aromaLabels = labels.aromaLabels,
@@ -178,6 +184,39 @@ class ReviewListViewModel
                             deleteError =
                                 UiError(
                                     messageResId = R.string.error_delete_review,
+                                    causeKey = throwable.message,
+                                ),
+                        )
+                    }
+                }
+            }
+        }
+
+        @Suppress("TooGenericExceptionCaught")
+        fun deleteFoodReview(reviewId: Long) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(deleteError = null) }
+                try {
+                    val deleted = foodReviewRepository.deleteFoodReview(reviewId)
+                    if (!deleted) {
+                        _uiState.update {
+                            it.copy(
+                                deleteError =
+                                    UiError(
+                                        messageResId = R.string.error_delete_food_review,
+                                        causeKey = reviewId.toString(),
+                                    ),
+                            )
+                        }
+                    }
+                } catch (throwable: CancellationException) {
+                    throw throwable
+                } catch (throwable: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            deleteError =
+                                UiError(
+                                    messageResId = R.string.error_delete_food_review,
                                     causeKey = throwable.message,
                                 ),
                         )

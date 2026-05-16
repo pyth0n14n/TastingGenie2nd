@@ -4,8 +4,10 @@ package io.github.pyth0n14n.tastinggenie.data.mapper
 
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeFoodReviewEntity
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableReview
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
+import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSakeFoodReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
@@ -95,8 +97,6 @@ fun ReviewEntity.toSerializable(): SerializableReview =
         price = price,
         volume = volume,
         temperature = temperature?.name,
-        dish = dish,
-        foodCompatibility = foodCompatibility?.name,
         appearanceSoundness = appearanceSoundness?.name,
         appearanceColor = appearanceColor?.name,
         appearanceColorOther = appearanceColorOther,
@@ -143,8 +143,6 @@ fun SerializableReview.toRestoredEntity(
         price = price,
         volume = volume,
         temperature = temperature?.let { value -> enumValueOf<Temperature>(value) },
-        dish = dish,
-        foodCompatibility = foodCompatibility.toNullableEnum<FoodCompatibility>(),
         appearanceSoundness = appearanceSoundness.toNullableEnum<ReviewSoundness>(),
         appearanceColor = appearanceColor.toNullableEnum<SakeColor>(),
         appearanceColorOther = appearanceColorOther,
@@ -175,6 +173,33 @@ fun SerializableReview.toRestoredEntity(
         otherSakeTypes = otherSakeTypes.map { type -> enumValueOf<FlavorProfileType>(type) },
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
+    )
+
+fun SakeFoodReviewEntity.toSerializable(): SerializableSakeFoodReview =
+    SerializableSakeFoodReview(
+        id = id,
+        sakeId = sakeId,
+        date = LocalDate.ofEpochDay(dateEpochDay).toString(),
+        bar = bar,
+        dish = dish,
+        foodCompatibility = foodCompatibility?.name,
+        temperature = temperature?.name,
+        freeComment = freeComment,
+    )
+
+fun SerializableSakeFoodReview.toRestoredEntity(
+    id: Long = this.id,
+    sakeId: Long = this.sakeId,
+): SakeFoodReviewEntity =
+    SakeFoodReviewEntity(
+        id = id,
+        sakeId = sakeId,
+        dateEpochDay = LocalDate.parse(date).toEpochDay(),
+        bar = bar,
+        dish = dish,
+        foodCompatibility = foodCompatibility.toNullableEnum<FoodCompatibility>(),
+        temperature = temperature.toNullableEnum<Temperature>(),
+        freeComment = freeComment,
     )
 
 private inline fun <reified T : Enum<T>> String?.toNullableEnum(): T? = this?.let { value -> enumValueOf<T>(value) }

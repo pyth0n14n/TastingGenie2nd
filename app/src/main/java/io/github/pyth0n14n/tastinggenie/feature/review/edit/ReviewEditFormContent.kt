@@ -70,7 +70,7 @@ private fun LazyListScope.addBasicInfoFields(
 ) {
     addBasicMetadataFields(state = state, uiData = uiData, onAction = onAction)
     addBasicVolumeAndTemperatureFields(state = state, uiData = uiData, onAction = onAction)
-    addBasicDishAndPairingFields(state = state, uiData = uiData, onAction = onAction)
+    addBasicBarField(state = state, onAction = onAction)
 }
 
 private fun LazyListScope.addBasicMetadataFields(
@@ -601,9 +601,8 @@ private data class ReviewNumberFieldUi(
     val suffixRes: Int,
 )
 
-private fun LazyListScope.addBasicDishAndPairingFields(
+private fun LazyListScope.addBasicBarField(
     state: ReviewEditUiState,
-    uiData: ReviewEditFormUiData,
     onAction: (ReviewEditAction) -> Unit,
 ) {
     if (state.isItemEnabled(ReviewItemId.BAR)) {
@@ -612,23 +611,6 @@ private fun LazyListScope.addBasicDishAndPairingFields(
             labelRes = R.string.label_bar,
             onAction = onAction,
             ui = ReviewTextFieldUi(value = state.bar, field = ReviewTextField.BAR),
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.DISH)) {
-        textField(
-            state = state,
-            labelRes = R.string.label_dish,
-            onAction = onAction,
-            ui = ReviewTextFieldUi(value = state.dish, field = ReviewTextField.DISH),
-        )
-    }
-    if (state.isItemEnabled(ReviewItemId.FOOD_COMPATIBILITY)) {
-        textChoiceField(
-            labelRes = R.string.label_scene,
-            selectedValue = state.scene,
-            options = uiData.pairingOptions,
-            field = ReviewTextField.SCENE,
-            onAction = onAction,
         )
     }
 }
@@ -680,29 +662,6 @@ private val StandaloneTextHelpItemIds =
         ReviewItemId.AROMA_MAIN_NOTE,
         ReviewItemId.OTHER_CAUTIONS,
     )
-
-private fun LazyListScope.textChoiceField(
-    labelRes: Int,
-    selectedValue: String,
-    options: List<DropdownOption>,
-    field: ReviewTextField,
-    onAction: (ReviewEditAction) -> Unit,
-) {
-    item {
-        ReviewEditChoiceField(
-            ui =
-                ReviewEditChoiceFieldUi(
-                    label = reviewTextResource(labelRes),
-                    options = options,
-                    selectedValue = selectedValue.takeIf { it.isNotBlank() },
-                    showHelpHints = false,
-                ),
-            onValueChanged = { next ->
-                onAction(ReviewEditAction.TextChanged(field = field, value = next.orEmpty()))
-            },
-        )
-    }
-}
 
 data class AromaUiData(
     val categories: List<AromaCategoryMaster>,

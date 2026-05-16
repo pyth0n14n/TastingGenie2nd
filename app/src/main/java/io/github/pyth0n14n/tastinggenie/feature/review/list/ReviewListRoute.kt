@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
@@ -35,16 +38,26 @@ private val ScreenHorizontalPadding = 22.dp
 
 data class ReviewListActionHandlers(
     val onOpenReview: (Long) -> Unit,
+    val onOpenFoodReview: (Long, Long) -> Unit = { _, _ -> },
     val onOpenSakeImage: (Long) -> Unit,
     val onDeleteReview: (Long) -> Unit,
+    val onDeleteFoodReview: (Long) -> Unit = {},
 )
+
+private enum class ReviewListTab {
+    SAKE_REVIEW,
+    FOOD_REVIEW,
+}
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList")
 fun ReviewListRoute(
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
+    onAddFoodReview: (Long) -> Unit,
     onOpenReview: (Long) -> Unit,
+    onOpenFoodReview: (Long, Long) -> Unit,
     onOpenSakeImage: (Long) -> Unit,
     viewModel: ReviewListViewModel = hiltViewModel(),
 ) {
@@ -53,24 +66,31 @@ fun ReviewListRoute(
         state = state,
         onBack = onBack,
         onAddReview = onAddReview,
+        onAddFoodReview = onAddFoodReview,
         actions =
             ReviewListActionHandlers(
                 onOpenReview = onOpenReview,
+                onOpenFoodReview = onOpenFoodReview,
                 onOpenSakeImage = onOpenSakeImage,
                 onDeleteReview = viewModel::deleteReview,
+                onDeleteFoodReview = viewModel::deleteFoodReview,
             ),
     )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongMethod")
 fun ReviewListScreen(
     state: ReviewListUiState,
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
+    onAddFoodReview: (Long) -> Unit = {},
     actions: ReviewListActionHandlers,
 ) {
     var pendingDeleteReview by remember(state.reviews) { mutableStateOf<Review?>(null) }
+    var pendingDeleteFoodReview by remember(state.foodReviews) { mutableStateOf<SakeFoodReview?>(null) }
+    var selectedTab by remember { mutableStateOf(ReviewListTab.SAKE_REVIEW) }
 
     pendingDeleteReview?.let { review ->
         ConfirmationDialog(
@@ -81,6 +101,17 @@ fun ReviewListScreen(
                 pendingDeleteReview = null
             },
             onDismiss = { pendingDeleteReview = null },
+        )
+    }
+    pendingDeleteFoodReview?.let { review ->
+        ConfirmationDialog(
+            title = stringResource(R.string.title_delete_food_review),
+            message = stringResource(R.string.message_confirm_delete_food_review),
+            onConfirm = {
+                actions.onDeleteFoodReview(review.id)
+                pendingDeleteFoodReview = null
+            },
+            onDismiss = { pendingDeleteFoodReview = null },
         )
     }
 
@@ -101,7 +132,14 @@ fun ReviewListScreen(
             TastingMediumFab(
                 icon = Icons.Filled.Add,
                 contentDescription = addActionLabel,
-                onClick = { state.sakeId?.let(onAddReview) },
+                onClick = {
+                    state.sakeId?.let { sakeId ->
+                        when (selectedTab) {
+                            ReviewListTab.SAKE_REVIEW -> onAddReview(sakeId)
+                            ReviewListTab.FOOD_REVIEW -> onAddFoodReview(sakeId)
+                        }
+                    }
+                },
             )
         },
     ) { padding ->
@@ -111,8 +149,11 @@ fun ReviewListScreen(
             else ->
                 ReviewListContent(
                     state = state,
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it },
                     actions = actions,
                     onDeleteRequest = { review -> pendingDeleteReview = review },
+                    onDeleteFoodReviewRequest = { review -> pendingDeleteFoodReview = review },
                     modifier = Modifier.padding(padding),
                 )
         }
@@ -120,10 +161,14 @@ fun ReviewListScreen(
 }
 
 @Composable
+@Suppress("LongParameterList", "LongMethod")
 private fun ReviewListContent(
     state: ReviewListUiState,
+    selectedTab: ReviewListTab,
+    onTabSelected: (ReviewListTab) -> Unit,
     actions: ReviewListActionHandlers,
     onDeleteRequest: (Review) -> Unit,
+    onDeleteFoodReviewRequest: (SakeFoodReview) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -144,21 +189,58 @@ private fun ReviewListContent(
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
-        if (state.reviews.isEmpty()) {
-            MessageContent(text = stringResource(R.string.message_no_reviews))
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = 6.dp, bottom = 88.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                items(items = state.reviews, key = { review -> review.id }) { review ->
-                    ReviewTimelineItem(
-                        review = review,
-                        state = state,
-                        actions = actions,
-                        onDeleteRequest = { onDeleteRequest(review) },
-                    )
+        TabRow(selectedTabIndex = selectedTab.ordinal) {
+            Tab(
+                selected = selectedTab == ReviewListTab.SAKE_REVIEW,
+                onClick = { onTabSelected(ReviewListTab.SAKE_REVIEW) },
+                text = { Text(text = stringResource(R.string.tab_sake_reviews)) },
+            )
+            Tab(
+                selected = selectedTab == ReviewListTab.FOOD_REVIEW,
+                onClick = { onTabSelected(ReviewListTab.FOOD_REVIEW) },
+                text = { Text(text = stringResource(R.string.tab_food_reviews)) },
+            )
+        }
+        when (selectedTab) {
+            ReviewListTab.SAKE_REVIEW -> {
+                if (state.reviews.isEmpty()) {
+                    MessageContent(text = stringResource(R.string.message_no_reviews))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = 6.dp, bottom = 88.dp),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                    ) {
+                        items(items = state.reviews, key = { review -> review.id }) { review ->
+                            ReviewTimelineItem(
+                                review = review,
+                                state = state,
+                                actions = actions,
+                                onDeleteRequest = { onDeleteRequest(review) },
+                            )
+                        }
+                    }
+                }
+            }
+
+            ReviewListTab.FOOD_REVIEW -> {
+                if (state.foodReviews.isEmpty()) {
+                    MessageContent(text = stringResource(R.string.message_no_food_reviews))
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(top = 6.dp, bottom = 88.dp),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                    ) {
+                        items(items = state.foodReviews, key = { review -> review.id }) { review ->
+                            FoodReviewTimelineItem(
+                                review = review,
+                                state = state,
+                                actions = actions,
+                                onDeleteRequest = { onDeleteFoodReviewRequest(review) },
+                            )
+                        }
+                    }
                 }
             }
         }

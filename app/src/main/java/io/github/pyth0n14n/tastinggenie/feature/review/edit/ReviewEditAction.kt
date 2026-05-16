@@ -52,8 +52,6 @@ enum class ReviewTextField {
     TASTE_AFTERTASTE_NOTE,
     OTHER_INDIVIDUALITY,
     OTHER_CAUTIONS,
-    SCENE,
-    DISH,
     COMMENT,
 }
 

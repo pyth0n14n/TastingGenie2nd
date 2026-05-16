@@ -8,7 +8,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.AttackLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ComplexityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
@@ -41,8 +40,6 @@ data class ReviewEntity(
     val price: Int?,
     val volume: Int?,
     val temperature: Temperature?,
-    val dish: String?,
-    val foodCompatibility: FoodCompatibility? = null,
     val appearanceSoundness: ReviewSoundness?,
     val appearanceColor: SakeColor?,
     val appearanceColorOther: String? = null,

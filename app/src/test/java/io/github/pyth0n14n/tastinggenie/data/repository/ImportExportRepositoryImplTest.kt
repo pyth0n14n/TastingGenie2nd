@@ -502,8 +502,6 @@ class ImportExportRepositoryImplTest {
             price = null,
             volume = null,
             temperature = Temperature.JOON,
-            dish = null,
-            foodCompatibility = null,
             appearanceSoundness = ReviewSoundness.SOUND,
             appearanceColor = SakeColor.OTHER,
             appearanceColorOther = "桃色",

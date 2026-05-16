@@ -104,9 +104,11 @@ class ImportExportRepositoryImpl
                             val restoredReviewModeItems = restoredPayload.reviewModeItems.map { it.toEntity() }
                             val restoredSakes = restoredPayload.sakes.map { it.toRestoredEntity() }
                             val restoredReviews = restoredPayload.reviews.map { it.toRestoredEntity() }
+                            val restoredFoodReviews = restoredPayload.foodReviews.map { it.toRestoredEntity() }
                             val restoredSettings = restoredPayload.settings.toAppSettings()
                             settingsRepository.replaceSettings(restoredSettings)
                             database.withTransaction {
+                                database.sakeFoodReviewDao().deleteAll()
                                 database.reviewDao().deleteAll()
                                 database.sakeDao().deleteAll()
                                 database.reviewModeDao().deleteAllModeItems()
@@ -115,6 +117,7 @@ class ImportExportRepositoryImpl
                                 database.reviewModeDao().upsertModeItems(restoredReviewModeItems)
                                 database.sakeDao().insertAll(restoredSakes)
                                 database.reviewDao().insertAll(restoredReviews)
+                                database.sakeFoodReviewDao().insertAll(restoredFoodReviews)
                             }
                         }.onFailure {
                             runCatching { settingsRepository.replaceSettings(previousSettings) }
@@ -129,6 +132,7 @@ class ImportExportRepositoryImpl
             database.withTransaction {
                 val sakes = database.sakeDao().getAllOnce()
                 val reviews = database.reviewDao().getAllOnce()
+                val foodReviews = database.sakeFoodReviewDao().getAllOnce()
                 val reviewModes = database.reviewModeDao().getAllModesOnce()
                 val reviewModeItems = database.reviewModeDao().getAllModeItemsOnce()
                 val imageEntries =
@@ -146,6 +150,7 @@ class ImportExportRepositoryImpl
                                 )
                             },
                         reviews = reviews.map { it.toSerializable() },
+                        foodReviews = foodReviews.map { it.toSerializable() },
                         reviewModes = reviewModes.map { it.toSerializable() },
                         reviewModeItems = reviewModeItems.map { it.toSerializable() },
                         settings = settingsRepository.getCurrentSettings().toSerializable(),
@@ -207,8 +212,15 @@ class ImportExportRepositoryImpl
             payload.reviews.firstOrNull { it.sakeId !in allowedSakeIds }?.let { review ->
                 throw InvalidBackupReferenceException(sakeId = review.sakeId)
             }
+            payload.foodReviews.firstOrNull { it.sakeId !in allowedSakeIds }?.let { review ->
+                throw InvalidBackupReferenceException(sakeId = review.sakeId)
+            }
             val reviewIds = payload.reviews.map { it.id }
             require(reviewIds.size == reviewIds.toSet().size) { "Backup contains duplicate review ids" }
+            val foodReviewIds = payload.foodReviews.map { it.id }
+            require(foodReviewIds.size == foodReviewIds.toSet().size) {
+                "Backup contains duplicate food review ids"
+            }
         }
 
         private fun validateReviewModes(payload: BackupPayload) {

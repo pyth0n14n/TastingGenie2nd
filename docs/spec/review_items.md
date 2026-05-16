@@ -17,8 +17,6 @@
 | 情報 | 容量 [ml] | VOLUME | volume | 〇 | 〇 | 〇 | Int |
 | 情報 | 温度 | TEMPERATURE | temperature | 〇 | 〇 | 〇 | temperature master |
 | 情報 | 店名 | BAR | bar | 〇 | 〇 | 〇 | String |
-| 情報 | 料理 | DISH | dish | 〇 | 〇 | 〇 | String |
-| 情報 | 料理との相性 | FOOD_COMPATIBILITY | foodCompatibility | 〇 | 〇 | 〇 | BAD, SLIGHTLY_BAD, MEDIUM, SLIGHTLY_GOOD, GOOD |
 | 見た目 | 健全度 | APPEARANCE_SOUNDNESS | appearanceSoundness | 〇 | 〇 | 〇 | SOUND, UNSOUND |
 | 見た目 | 色合い | APPEARANCE_COLOR | appearanceColor | 〇 | 〇 | 〇 | color master |
 | 見た目 | 粘性 | APPEARANCE_VISCOSITY | appearanceViscosity | 〇 | 〇 | 〇 | 1..5 |
@@ -51,6 +49,9 @@
 
 ## レビュー入力・詳細表示
 
+- 料理と料理との相性は酒レビュー項目ではなく、`SakeFoodReview` の項目として扱う。
+- 酒レビュー入力画面には料理と料理との相性を表示しない。
+- 酒レビュー一覧では「酒レビュー」「料理相性」のタブを分け、選択中タブに応じて追加 FAB の遷移先を切り替える。
 - 見た目の粘度は `1..5` を「低い」「やや低い」「中程度」「やや高い」「高い」として表示する。
 - レビュー入力で区分けする場合は、`titleSmall` の subheader と余白で緩く区分けし、下位グループに Card / Divider / 背景色ブロックを使わない。
 - subheader グループに属する項目の配置完了後は、後続の通常項目との間を特に大きく空け、次グループとも大きい余白で区切る。直前が subheader グループの場合、次 subheader の上余白は置かない。
@@ -70,7 +71,7 @@
 ## レビュー詳細 S4
 
 - レビュー詳細は編集画面の read-only 再掲ではなく、閲覧専用レイアウトにする。
-- S4 はタブを使わず、画面上部に日付、総合評価、温度、価格/容量から算出するコスパ、料理との相性、短いコメント、日本酒4タイプをまとめた summary を表示する。容量のみを summary に単独表示する必要はない。
+- S4 はタブを使わず、画面上部に日付、総合評価、温度、価格/容量から算出するコスパ、短いコメント、日本酒4タイプをまとめた summary を表示する。容量のみを summary に単独表示する必要はない。
 - S4 は香り・味セクションの前に「香り・味のサマリ」を表示する。このサマリは Canvas 実装の7軸レーダーチャート（香りの強さ、アタック、甘味、酸味、旨味、余韻、味の複雑性）と、上立ち香・含み香の代表ラベル一覧で構成する。
 - 詳細は accordion とし、香り、味、基本情報、見た目、メモ・評価は初期折り畳みにする。
 - 含み香は保存フィールドに合わせて味セクションに表示する。

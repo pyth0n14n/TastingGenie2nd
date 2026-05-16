@@ -3,6 +3,7 @@ package io.github.pyth0n14n.tastinggenie.navigation
 object AppDestination {
     const val ARG_SAKE_ID = "sakeId"
     const val ARG_REVIEW_ID = "reviewId"
+    const val ARG_FOOD_REVIEW_ID = "foodReviewId"
     const val ARG_REVIEW_SECTION = "section"
     const val RESULT_REVIEW_REFRESH = "reviewRefresh"
     const val NO_ID = -1L
@@ -12,6 +13,8 @@ object AppDestination {
     const val REVIEW_LIST = "review/list/{$ARG_SAKE_ID}"
     const val REVIEW_EDIT_CREATE = "review/edit/{$ARG_SAKE_ID}?$ARG_REVIEW_SECTION={$ARG_REVIEW_SECTION}"
     const val REVIEW_EDIT = "review/edit/{$ARG_SAKE_ID}/{$ARG_REVIEW_ID}?$ARG_REVIEW_SECTION={$ARG_REVIEW_SECTION}"
+    const val FOOD_REVIEW_EDIT_CREATE = "review/food/edit/{$ARG_SAKE_ID}"
+    const val FOOD_REVIEW_EDIT = "review/food/edit/{$ARG_SAKE_ID}/{$ARG_FOOD_REVIEW_ID}"
     const val REVIEW_DETAIL = "review/detail/{$ARG_REVIEW_ID}"
     const val REVIEW_IMAGE = "review/image/{$ARG_REVIEW_ID}"
     const val SAKE_IMAGE = "sake/image/{$ARG_SAKE_ID}"
@@ -37,6 +40,16 @@ object AppDestination {
         }
 
     fun reviewDetailRoute(reviewId: Long): String = "review/detail/$reviewId"
+
+    fun foodReviewEditRoute(
+        sakeId: Long,
+        foodReviewId: Long?,
+    ): String =
+        if (foodReviewId == null) {
+            "review/food/edit/$sakeId"
+        } else {
+            "review/food/edit/$sakeId/$foodReviewId"
+        }
 
     fun reviewImageRoute(reviewId: Long): String = "review/image/$reviewId"
 

@@ -2,13 +2,14 @@ package io.github.pyth0n14n.tastinggenie.domain.model
 
 import kotlinx.serialization.Serializable
 
-const val CURRENT_SCHEMA_VERSION = 11
+const val CURRENT_SCHEMA_VERSION = 12
 
 @Serializable
 data class BackupPayload(
     val schemaVersion: Int,
     val sakes: List<SerializableSake>,
     val reviews: List<SerializableReview>,
+    val foodReviews: List<SerializableSakeFoodReview> = emptyList(),
     val reviewModes: List<SerializableReviewMode> = emptyList(),
     val reviewModeItems: List<SerializableReviewModeItem> = emptyList(),
     val settings: SerializableAppSettings = SerializableAppSettings(),
@@ -76,8 +77,6 @@ data class SerializableReview(
     val price: Int? = null,
     val volume: Int? = null,
     val temperature: String? = null,
-    val dish: String? = null,
-    val foodCompatibility: String? = null,
     val appearanceSoundness: String? = "SOUND",
     val appearanceColor: String? = null,
     val appearanceColorOther: String? = null,
@@ -108,6 +107,18 @@ data class SerializableReview(
     val otherSakeTypes: List<String> = emptyList(),
     val otherFreeComment: String? = null,
     val otherOverallReview: String? = null,
+)
+
+@Serializable
+data class SerializableSakeFoodReview(
+    val id: Long,
+    val sakeId: Long,
+    val date: String,
+    val bar: String? = null,
+    val dish: String? = null,
+    val foodCompatibility: String? = null,
+    val temperature: String? = null,
+    val freeComment: String? = null,
 )
 
 class UnsupportedSchemaVersionException(

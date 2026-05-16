@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
+import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeFoodReviewDao
 import io.github.pyth0n14n.tastinggenie.data.mapper.toDomain
 import io.github.pyth0n14n.tastinggenie.data.mapper.toEntity
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
@@ -27,6 +28,7 @@ class SakeRepositoryImpl
         private val database: AppDatabase,
         private val sakeDao: SakeDao,
         private val reviewDao: ReviewDao,
+        private val foodReviewDao: SakeFoodReviewDao,
         private val sakeImageRepository: SakeImageRepository,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : SakeRepository {
@@ -67,6 +69,7 @@ class SakeRepositoryImpl
                 val existing = sakeDao.getById(id) ?: return@withContext SakeDeleteResult(isDeleted = false)
                 val deleted =
                     database.withTransaction {
+                        foodReviewDao.deleteBySakeId(id)
                         reviewDao.deleteBySakeId(id)
                         sakeDao.deleteById(id) > 0
                     }

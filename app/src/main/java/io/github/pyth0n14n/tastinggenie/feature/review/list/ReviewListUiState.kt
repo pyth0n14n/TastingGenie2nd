@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import java.util.Locale
@@ -13,6 +14,7 @@ data class ReviewListUiState(
     val sakeName: String = "",
     val hasSakeImage: Boolean = false,
     val reviews: List<Review> = emptyList(),
+    val foodReviews: List<SakeFoodReview> = emptyList(),
     val overallReviewLabels: Map<String, String> = emptyMap(),
     val temperatureLabels: Map<String, String> = emptyMap(),
     val aromaLabels: Map<String, String> = emptyMap(),
