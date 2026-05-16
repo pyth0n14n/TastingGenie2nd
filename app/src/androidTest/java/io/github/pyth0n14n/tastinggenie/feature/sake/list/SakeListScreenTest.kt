@@ -217,12 +217,12 @@ class SakeListScreenTest {
             )
         }
 
-        composeRule.onNodeWithText("固定").assertIsDisplayed()
-        composeRule.onNodeWithText("その他").assertIsDisplayed()
+        composeRule.onNodeWithText("ピン止め").assertIsDisplayed()
+        composeRule.onNodeWithText("酒一覧").assertIsDisplayed()
         composeRule.onNodeWithText("固定酒").assertIsDisplayed()
         composeRule.onNodeWithText("通常酒").assertIsDisplayed()
 
-        composeRule.onNodeWithText("固定").performClick()
+        composeRule.onNodeWithText("ピン止め").performClick()
 
         composeRule.onNodeWithText("固定酒").assertDoesNotExist()
         composeRule.onNodeWithText("通常酒").assertIsDisplayed()

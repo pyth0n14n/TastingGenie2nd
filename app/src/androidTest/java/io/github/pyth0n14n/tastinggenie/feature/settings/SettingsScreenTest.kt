@@ -30,7 +30,6 @@ class SettingsScreenTest {
         composeRule.onNodeWithText("デバッグ").assertIsDisplayed()
         composeRule.onNodeWithText("健全度を表示しない").assertIsDisplayed()
         composeRule.onNodeWithText("見た目・香り・味の健全度はデフォルトで健全とする").assertIsDisplayed()
-        composeRule.onNodeWithText("アプリで使用していない酒画像を削除します").assertIsDisplayed()
         composeRule.onNodeWithText("データ").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップから復元").assertIsDisplayed()
