@@ -150,10 +150,6 @@ private class FakeSettingsRepository(
         stream.value = stream.value.copy(showReviewSoundness = enabled)
     }
 
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
-    }
-
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
     }

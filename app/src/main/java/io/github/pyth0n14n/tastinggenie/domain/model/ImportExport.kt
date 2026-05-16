@@ -25,7 +25,6 @@ data class BackupManifest(
 data class SerializableAppSettings(
     val showHelpHints: Boolean = true,
     val showReviewSoundness: Boolean = true,
-    val autoDeleteUnusedImages: Boolean = false,
     val reviewModeId: String = ReviewMode.NORMAL.id,
 )
 

@@ -117,9 +117,7 @@ fun SettingsRoute(
             SettingsScreenActions(
                 onToggleHelpHints = viewModel::toggleHelpHints,
                 onToggleReviewSoundness = viewModel::toggleReviewSoundness,
-                onToggleAutoDeleteUnusedImages = viewModel::toggleAutoDeleteUnusedImages,
                 onSelectReviewMode = viewModel::selectReviewMode,
-                onCleanupUnusedImages = viewModel::cleanupUnusedImages,
                 onExportBackup = {
                     if (!state.isProcessingTransfer) exportLauncher.launch(EXPORT_FILE_NAME)
                 },
@@ -261,27 +259,6 @@ private fun SettingsContent(
                     onSelectReviewMode = actions.onSelectReviewMode,
                     enabled = !state.isProcessingTransfer,
                 )
-                SettingsDivider()
-                SettingSwitchRow(
-                    label = stringResource(R.string.setting_auto_delete_unused_images_short),
-                    description = stringResource(R.string.setting_auto_delete_unused_images_description),
-                    checked = state.settings.autoDeleteUnusedImages,
-                    onCheckedChange = actions.onToggleAutoDeleteUnusedImages,
-                    enabled = !state.isProcessingTransfer,
-                )
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                Button(
-                    onClick = actions.onCleanupUnusedImages,
-                    enabled = !state.isProcessingTransfer,
-                ) {
-                    Text(stringResource(R.string.action_cleanup_unused_images))
-                }
             }
         }
         item {
@@ -341,9 +318,7 @@ private fun SettingsContent(
 data class SettingsScreenActions(
     val onToggleHelpHints: (Boolean) -> Unit,
     val onToggleReviewSoundness: (Boolean) -> Unit,
-    val onToggleAutoDeleteUnusedImages: (Boolean) -> Unit,
     val onSelectReviewMode: (String) -> Unit,
-    val onCleanupUnusedImages: () -> Unit,
     val onExportBackup: () -> Unit,
     val onRestoreBackup: () -> Unit,
     val onOpenGlossary: () -> Unit,

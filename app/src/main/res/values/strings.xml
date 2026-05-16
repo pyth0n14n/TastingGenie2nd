@@ -252,7 +252,6 @@
     <string name="message_processing_transfer">読み書き中...</string>
     <string name="message_export_success">バックアップを書き出しました</string>
     <string name="message_import_success">バックアップから復元しました</string>
-    <string name="message_cleanup_unused_images_success">参照されていない画像を削除しました</string>
     <string name="content_review_image">レビュー画像</string>
     <string name="content_sake_image">酒画像</string>
     <string name="content_edit_sake">酒を編集</string>
@@ -275,7 +274,6 @@
     <string name="action_delete_sake_image">画像を削除</string>
     <string name="action_delete_sake_image_short">削除</string>
     <string name="message_tap_to_select_image">（タップして選択）</string>
-    <string name="action_cleanup_unused_images">未参照アプリ内画像を削除</string>
     <string name="help_intro">用語の意味を確認しながら記録できるよう、主要な観点をまとめています。</string>
     <string name="help_color">色: 透明感や黄みの強さなど、見た目の印象です。</string>
     <string name="help_aroma">香り: 上立香と含み香を、味わい・香気成分・カテゴリ・具体例で整理します。</string>
@@ -342,9 +340,6 @@
     <string name="setting_review_mode_kikisake_shi">利酒師</string>
     <string name="setting_review_mode_debug">デバッグ</string>
     <string name="setting_review_mode_description">通常は選択式が多く、利酒師は記述式が多くなります</string>
-    <string name="setting_auto_delete_unused_images">未参照アプリ内画像を自動削除する</string>
-    <string name="setting_auto_delete_unused_images_short">未参照アプリ内画像の自動削除</string>
-    <string name="setting_auto_delete_unused_images_description">アプリで使用していない酒画像を削除します</string>
     <string name="settings_section_display_operation">表示・操作</string>
     <string name="settings_section_sake_review">酒リスト・レビュー</string>
     <string name="settings_section_data">データ</string>
@@ -373,7 +368,6 @@
     <string name="error_delete_sake_image_cleanup">酒は削除しましたが画像の削除に失敗しました</string>
     <string name="error_delete_review">レビューの削除に失敗しました</string>
     <string name="error_save_settings">設定の保存に失敗しました</string>
-    <string name="error_cleanup_unused_images">未参照画像の削除に失敗しました</string>
     <string name="error_export_failed">バックアップの書き出しに失敗しました</string>
     <string name="error_import_failed">バックアップの読み込みに失敗しました</string>
     <string name="error_import_invalid_backup">バックアップファイルが大きすぎるか不正です</string>

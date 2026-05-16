@@ -35,7 +35,6 @@ images/sakes/*
   "settings": {
     "showHelpHints": true,
     "showReviewSoundness": true,
-    "autoDeleteUnusedImages": false,
     "reviewModeId": "normal"
   }
 }

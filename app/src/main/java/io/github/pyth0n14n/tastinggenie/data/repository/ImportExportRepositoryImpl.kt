@@ -447,7 +447,6 @@ private fun AppSettings.toSerializable(): SerializableAppSettings =
     SerializableAppSettings(
         showHelpHints = showHelpHints,
         showReviewSoundness = showReviewSoundness,
-        autoDeleteUnusedImages = autoDeleteUnusedImages,
         reviewModeId = reviewModeId,
     )
 
@@ -455,7 +454,6 @@ private fun SerializableAppSettings.toAppSettings(): AppSettings =
     AppSettings(
         showHelpHints = showHelpHints,
         showReviewSoundness = showReviewSoundness,
-        autoDeleteUnusedImages = autoDeleteUnusedImages,
         reviewModeId = reviewModeId,
     )
 

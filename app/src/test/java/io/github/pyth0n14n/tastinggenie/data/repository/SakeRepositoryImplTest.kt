@@ -6,14 +6,11 @@ import androidx.test.core.app.ApplicationProvider
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
-import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeGrade
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -35,7 +32,6 @@ private const val AVERAGE_BAD_AND_GOOD_REVIEW = 3.0
 class SakeRepositoryImplTest {
     private lateinit var database: AppDatabase
     private lateinit var imageRepository: RecordingImageRepository
-    private lateinit var settingsRepository: FakeSettingsRepository
     private lateinit var repository: SakeRepositoryImpl
 
     @Before
@@ -43,14 +39,12 @@ class SakeRepositoryImplTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         imageRepository = RecordingImageRepository()
-        settingsRepository = FakeSettingsRepository()
         repository =
             SakeRepositoryImpl(
                 database = database,
                 sakeDao = database.sakeDao(),
                 reviewDao = database.reviewDao(),
                 sakeImageRepository = imageRepository,
-                settingsRepository = settingsRepository,
                 ioDispatcher = UnconfinedTestDispatcher(),
             )
     }
@@ -162,7 +156,7 @@ class SakeRepositoryImplTest {
         }
 
     @Test
-    fun deleteSake_removesReviewsAndLeavesImageCleanupToManualByDefault() =
+    fun deleteSake_removesReviewsAndRunsImageCleanupWhenDeletedSakeHadImages() =
         runTest {
             val sakeId =
                 database.sakeDao().insert(
@@ -179,13 +173,12 @@ class SakeRepositoryImplTest {
             assertEquals(true, result.isDeleted)
             assertEquals(emptyList<Long>(), database.sakeDao().getAllOnce().map { it.id })
             assertEquals(emptyList<Long>(), database.reviewDao().getAllOnce().map { it.id })
-            assertEquals(0, imageRepository.cleanupCalls)
+            assertEquals(1, imageRepository.cleanupCalls)
         }
 
     @Test
-    fun deleteSake_runsUnusedCleanupWhenAutoDeleteEnabled() =
+    fun deleteSake_runsUnusedCleanupWhenDeletedSakeHadImages() =
         runTest {
-            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
             val sakeId =
                 database.sakeDao().insert(
                     createSake(
@@ -204,7 +197,6 @@ class SakeRepositoryImplTest {
     @Test
     fun deleteSake_surfacesImageCleanupFailureWithoutRollingBackDbDelete() =
         runTest {
-            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
             val imageUri = "file:///images/sakes/fail.jpg"
             val sakeId =
                 database.sakeDao().insert(
@@ -226,7 +218,6 @@ class SakeRepositoryImplTest {
     @Test
     fun deleteSake_marksCleanupFailureEvenWhenExceptionMessageIsNull() =
         runTest {
-            settingsRepository.updateAutoDeleteUnusedImages(enabled = true)
             val imageUri = "file:///images/sakes/fail-null-message.jpg"
             val sakeId =
                 database.sakeDao().insert(
@@ -332,29 +323,5 @@ private class RecordingImageRepository : io.github.pyth0n14n.tastinggenie.domain
         cleanupCalls += 1
         cleanupFailure?.let { throw it }
         return cleanupCalls
-    }
-}
-
-private class FakeSettingsRepository : io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository {
-    private val stream = MutableStateFlow(AppSettings())
-
-    override fun observeSettings(): Flow<AppSettings> = stream
-
-    override suspend fun getCurrentSettings(): AppSettings = stream.value
-
-    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
-
-    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) {
-        stream.value = stream.value.copy(autoDeleteUnusedImages = enabled)
-    }
-
-    override suspend fun updateReviewMode(modeId: String) {
-        stream.value = stream.value.copy(reviewModeId = modeId)
-    }
-
-    override suspend fun replaceSettings(settings: AppSettings) {
-        stream.value = settings
     }
 }

@@ -7,7 +7,6 @@ import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
 import io.github.pyth0n14n.tastinggenie.data.mapper.toDomain
 import io.github.pyth0n14n.tastinggenie.data.mapper.toEntity
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
-import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
@@ -15,7 +14,6 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeImageRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
-import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +28,6 @@ class SakeRepositoryImpl
         private val sakeDao: SakeDao,
         private val reviewDao: ReviewDao,
         private val sakeImageRepository: SakeImageRepository,
-        private val settingsRepository: SettingsRepository = NoOpSettingsRepository,
         @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     ) : SakeRepository {
         override fun observeSakes(): Flow<List<Sake>> = sakeDao.observeAll().map { list -> list.map { it.toDomain() } }
@@ -76,10 +73,9 @@ class SakeRepositoryImpl
                 if (!deleted) {
                     return@withContext SakeDeleteResult(isDeleted = false)
                 }
-                val autoDeleteUnusedImages = settingsRepository.getCurrentSettings().autoDeleteUnusedImages
                 val cleanupFailure =
                     try {
-                        if (autoDeleteUnusedImages && existing.imageUris.isNotEmpty()) {
+                        if (existing.imageUris.isNotEmpty()) {
                             sakeImageRepository.cleanupUnusedImages()
                         }
                         null
@@ -95,19 +91,3 @@ class SakeRepositoryImpl
                 )
             }
     }
-
-private object NoOpSettingsRepository : SettingsRepository {
-    override fun observeSettings(): Flow<AppSettings> = kotlinx.coroutines.flow.flowOf(AppSettings())
-
-    override suspend fun getCurrentSettings(): AppSettings = AppSettings()
-
-    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
-
-    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
-
-    override suspend fun updateAutoDeleteUnusedImages(enabled: Boolean) = Unit
-
-    override suspend fun updateReviewMode(modeId: String) = Unit
-
-    override suspend fun replaceSettings(settings: AppSettings) = Unit
-}

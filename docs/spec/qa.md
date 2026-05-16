@@ -74,7 +74,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 
 ### Problem: Replacing or deleting images mutates persisted files before save, so cancel or save failure loses the old managed set.
 - **Example**: SakeEdit imports a new image immediately and deletes an existing managed file before the form save succeeds.
-- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import during save. On save failure, clean up any newly imported managed images. With the default cleanup policy, save-time replace/delete should only update DB references; unused managed files are removed later by manual cleanup or the auto-cleanup setting.
+- **Preventive Measure**: Treat image picks as edit-session state first, and only finalize import during save. On save failure, clean up any newly imported managed images. After a successful save-time replace/delete or sake delete, automatically clean up unreferenced app-managed images.
 - **Test Coverage**:
   - Pick a replacement image and cancel edit; verify the persisted image set is unchanged.
   - Simulate save failure after image import; verify the newly imported managed images are deleted.
@@ -96,7 +96,7 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Example**: `cleanupUnusedImages()` deletes a still-referenced second image because only the primary image URI is considered, or deletes external URIs selected from outside app storage.
 - **Preventive Measure**: Build the referenced set from every `Sake.imageUris` entry, not only the first preview image. Restrict cleanup to the app-managed image directory and never delete external URIs.
 - **Test Coverage**:
-  - Save a sake with multiple images and run manual cleanup; verify every referenced managed image remains.
+  - Save a sake with multiple images and run cleanup; verify every referenced managed image remains.
   - Keep one image referenced and one unreferenced in the managed directory; verify only the unreferenced file is deleted.
   - Include an external URI in the DB and verify cleanup does not attempt to delete it.
 ### Problem: Review deletion is easy to mis-tap or hides the list when only the delete action failed.

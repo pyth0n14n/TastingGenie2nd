@@ -105,25 +105,7 @@ class SettingsScreenTest {
                 actions = emptySettingsActions(),
             )
         }
-
         composeRule.onNodeWithText("バックアップから復元しました").assertIsDisplayed()
-    }
-
-    @Test
-    fun cleanupSuccessMessage_isShownInSnackbar() {
-        composeRule.setContent {
-            SettingsScreen(
-                state =
-                    SettingsUiState(
-                        isLoading = false,
-                        messageResId = io.github.pyth0n14n.tastinggenie.R.string.message_cleanup_unused_images_success,
-                    ),
-                onBack = {},
-                actions = emptySettingsActions(),
-            )
-        }
-
-        composeRule.onNodeWithText("未参照アプリ内画像を削除しました").assertIsDisplayed()
     }
 }
 
@@ -135,9 +117,7 @@ private fun emptySettingsActions(
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
     onToggleReviewSoundness = {},
-    onToggleAutoDeleteUnusedImages = {},
     onSelectReviewMode = {},
-    onCleanupUnusedImages = {},
     onExportBackup = onExportBackup,
     onRestoreBackup = onRestoreBackup,
     onOpenGlossary = onOpenGlossary,
