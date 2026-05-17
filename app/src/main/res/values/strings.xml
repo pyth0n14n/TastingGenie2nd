@@ -119,7 +119,8 @@
     <string name="label_unwritten">未記載</string>
     <string name="label_overall_review">総合評価</string>
     <string name="label_average_review">平均評価</string>
-    <string name="label_review_count">レビュー数</string>
+    <string name="label_review_count">酒レビュー</string>
+    <string name="label_food_review_count">料理相性</string>
     <string name="tab_sake_reviews">酒レビュー</string>
     <string name="tab_food_reviews">料理相性</string>
     <string name="label_dish_not_entered">料理未入力</string>

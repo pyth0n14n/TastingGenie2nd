@@ -107,6 +107,19 @@ class ReviewListScreenTest {
                                 testReview(otherOverallReview = OverallReview.GOOD),
                                 testReview(id = 12L, otherOverallReview = OverallReview.VERY_GOOD),
                             ),
+                        foodReviews =
+                            listOf(
+                                io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview(
+                                    id = 21L,
+                                    sakeId = testReview().sakeId,
+                                    date = java.time.LocalDate.of(2026, 5, 17),
+                                    bar = null,
+                                    dish = "焼き鳥",
+                                    foodCompatibility = null,
+                                    temperature = null,
+                                    freeComment = null,
+                                ),
+                            ),
                     ),
                 onBack = {},
                 onAddReview = {},
@@ -123,6 +136,8 @@ class ReviewListScreenTest {
         composeRule.onNodeWithText("4.50").assertExists()
         composeRule.onNodeWithText("レビュー数").assertExists()
         composeRule.onNodeWithText("2").assertExists()
+        composeRule.onNodeWithText("料理レビュー数").assertExists()
+        composeRule.onNodeWithText("1").assertExists()
     }
 
     @Test

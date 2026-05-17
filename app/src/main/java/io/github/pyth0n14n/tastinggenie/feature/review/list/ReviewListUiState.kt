@@ -24,6 +24,9 @@ data class ReviewListUiState(
     val reviewCount: Int
         get() = reviews.size
 
+    val foodReviewCount: Int
+        get() = foodReviews.size
+
     val averageOverallReviewText: String
         get() {
             val ratings = reviews.mapNotNull { review -> review.overallReviewScore }

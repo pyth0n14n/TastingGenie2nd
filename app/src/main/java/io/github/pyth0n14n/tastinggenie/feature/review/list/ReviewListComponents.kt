@@ -21,7 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.LocalBar
 import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
@@ -120,13 +123,7 @@ internal fun FoodReviewTimelineItem(
                 state = state,
                 onDeleteRequest = onDeleteRequest,
             )
-            Text(
-                text = review.dish?.takeIf { it.isNotBlank() } ?: stringResource(R.string.label_dish_not_entered),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            FoodReviewMeta(review = review, state = state)
+            FoodReviewContext(review = review)
             review.freeComment?.takeIf { it.isNotBlank() }?.let { comment ->
                 Text(
                     text = comment,
@@ -162,7 +159,7 @@ private fun FoodReviewHeader(
                 modifier = Modifier.height(ReviewTemperatureIconHeight),
             )
             Text(
-                text = state.temperatureLabels[temperature.name] ?: temperature.name,
+                text = temperature.reviewListLabel(state),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 4.dp),
@@ -171,7 +168,7 @@ private fun FoodReviewHeader(
         Spacer(modifier = Modifier.weight(1f))
         review.foodCompatibility?.let { compatibility ->
             Icon(
-                imageVector = Icons.Outlined.Restaurant,
+                imageVector = Icons.Outlined.ThumbUp,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.height(ReviewRatingIconHeight),
@@ -188,20 +185,61 @@ private fun FoodReviewHeader(
 }
 
 @Composable
-private fun FoodReviewMeta(
-    review: SakeFoodReview,
-    state: ReviewListUiState,
-) {
-    val meta =
-        listOfNotNull(
-            review.temperature?.let { state.temperatureLabels[it.name] ?: it.name },
-            review.bar?.takeIf { it.isNotBlank() },
+private fun FoodReviewContext(review: SakeFoodReview) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        review.bar?.takeIf { it.isNotBlank() }?.let { bar ->
+            FoodReviewContextLabel(
+                text = bar,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.LocalBar,
+                        contentDescription = null,
+                        modifier = Modifier.height(ReviewRatingIconHeight),
+                    )
+                },
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        FoodReviewContextLabel(
+            text = review.dish?.takeIf { it.isNotBlank() } ?: stringResource(R.string.label_dish_not_entered),
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Restaurant,
+                    contentDescription = null,
+                    modifier = Modifier.height(ReviewRatingIconHeight),
+                )
+            },
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
         )
-    if (meta.isNotEmpty()) {
+    }
+}
+
+@Composable
+private fun FoodReviewContextLabel(
+    text: String,
+    icon: @Composable () -> Unit,
+    fontWeight: FontWeight,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        icon()
         Text(
-            text = meta.joinToString(" / "),
+            text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = fontWeight,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 4.dp),
         )
     }
 }
