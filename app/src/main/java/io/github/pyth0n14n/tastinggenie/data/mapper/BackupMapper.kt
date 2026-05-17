@@ -175,6 +175,23 @@ fun SerializableReview.toRestoredEntity(
         otherOverallReview = otherOverallReview.toNullableEnum<OverallReview>(),
     )
 
+fun SerializableReview.toLegacyFoodReviewEntityOrNull(
+    id: Long = this.id,
+    sakeId: Long = this.sakeId,
+): SakeFoodReviewEntity? {
+    if (dish.isNullOrBlank() && foodCompatibility == null) return null
+    return SakeFoodReviewEntity(
+        id = id,
+        sakeId = sakeId,
+        dateEpochDay = LocalDate.parse(date).toEpochDay(),
+        bar = bar,
+        dish = dish,
+        foodCompatibility = foodCompatibility.toNullableEnum<FoodCompatibility>(),
+        temperature = temperature.toNullableEnum<Temperature>(),
+        freeComment = null,
+    )
+}
+
 fun SakeFoodReviewEntity.toSerializable(): SerializableSakeFoodReview =
     SerializableSakeFoodReview(
         id = id,

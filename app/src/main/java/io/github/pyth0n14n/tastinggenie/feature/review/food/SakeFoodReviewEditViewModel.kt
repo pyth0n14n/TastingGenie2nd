@@ -154,12 +154,7 @@ class SakeFoodReviewEditViewModel
             val sakeId = snapshot.sakeId
             val date = snapshot.date.toLocalDateOrNull()
             val dish = snapshot.dish.trimmedOrNull()
-            val foodCompatibility = snapshot.foodCompatibility
             if (sakeId == null || date == null) {
-                _uiState.update { it.copy(error = UiError(R.string.error_invalid_food_review_input)) }
-                return
-            }
-            if (dish == null || foodCompatibility == null) {
                 _uiState.update { it.copy(error = UiError(R.string.error_invalid_food_review_input)) }
                 return
             }
@@ -173,7 +168,7 @@ class SakeFoodReviewEditViewModel
                             date = date,
                             bar = snapshot.bar.trimmedOrNull(),
                             dish = dish,
-                            foodCompatibility = foodCompatibility,
+                            foodCompatibility = snapshot.foodCompatibility,
                             temperature = snapshot.temperature,
                             freeComment = snapshot.freeComment.trimmedOrNull(),
                         ),

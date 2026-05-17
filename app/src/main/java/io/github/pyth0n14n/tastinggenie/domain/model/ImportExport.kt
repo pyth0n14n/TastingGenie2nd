@@ -77,6 +77,8 @@ data class SerializableReview(
     val price: Int? = null,
     val volume: Int? = null,
     val temperature: String? = null,
+    val dish: String? = null,
+    val foodCompatibility: String? = null,
     val appearanceSoundness: String? = "SOUND",
     val appearanceColor: String? = null,
     val appearanceColorOther: String? = null,

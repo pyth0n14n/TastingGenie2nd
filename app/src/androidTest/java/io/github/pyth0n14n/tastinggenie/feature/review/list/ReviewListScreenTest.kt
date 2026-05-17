@@ -134,9 +134,9 @@ class ReviewListScreenTest {
 
         composeRule.onNodeWithText("平均評価").assertExists()
         composeRule.onNodeWithText("4.50").assertExists()
-        composeRule.onNodeWithText("レビュー数").assertExists()
+        composeRule.onNodeWithText("酒レビュー").assertExists()
         composeRule.onNodeWithText("2").assertExists()
-        composeRule.onNodeWithText("料理レビュー数").assertExists()
+        composeRule.onNodeWithText("料理相性").assertExists()
         composeRule.onNodeWithText("1").assertExists()
     }
 

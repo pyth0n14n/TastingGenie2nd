@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.pyth0n14n.tastinggenie.data.local.AppDatabase
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewModeEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewModeItemEntity
+import io.github.pyth0n14n.tastinggenie.data.mapper.toLegacyFoodReviewEntityOrNull
 import io.github.pyth0n14n.tastinggenie.data.mapper.toRestoredEntity
 import io.github.pyth0n14n.tastinggenie.data.mapper.toSerializable
 import io.github.pyth0n14n.tastinggenie.di.IoDispatcher
@@ -49,6 +50,8 @@ private const val MAX_IMAGE_BYTES = 10L * 1024L * 1024L
 private const val MAX_TOTAL_EXPANDED_BYTES = 128L * 1024L * 1024L
 private const val MAX_IMAGE_ENTRY_COUNT = 500
 private const val ZIP_BUFFER_BYTES = 8 * 1024
+private const val LEGACY_ZIP_SCHEMA_VERSION = 11
+private val supportedBackupSchemaVersions = setOf(LEGACY_ZIP_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION)
 
 @Suppress("TooManyFunctions")
 class ImportExportRepositoryImpl
@@ -181,19 +184,20 @@ class ImportExportRepositoryImpl
                     BackupManifest.serializer(),
                     String(manifestBytes, StandardCharsets.UTF_8),
                 )
-            if (manifest.schemaVersion != CURRENT_SCHEMA_VERSION) {
-                throw UnsupportedSchemaVersionException(version = manifest.schemaVersion)
-            }
             val payload =
                 backupJson.decodeFromString(
                     BackupPayload.serializer(),
                     String(dataBytes, StandardCharsets.UTF_8),
                 )
-            if (payload.schemaVersion != CURRENT_SCHEMA_VERSION) {
+            if (manifest.schemaVersion != payload.schemaVersion) {
+                throw UnsupportedSchemaVersionException(version = manifest.schemaVersion)
+            }
+            if (payload.schemaVersion !in supportedBackupSchemaVersions) {
                 throw UnsupportedSchemaVersionException(version = payload.schemaVersion)
             }
-            validatePayload(payload, entries)
-            return payload
+            val normalizedPayload = payload.toCurrentSchemaPayload()
+            validatePayload(normalizedPayload, entries)
+            return normalizedPayload
         }
 
         private fun validatePayload(
@@ -232,6 +236,18 @@ class ImportExportRepositoryImpl
             payload.reviewModeItems.firstOrNull { it.modeId !in allowedModeIds }?.let { item ->
                 throw IllegalArgumentException("Review mode item references unknown modeId: ${item.modeId}")
             }
+        }
+
+        private fun BackupPayload.toCurrentSchemaPayload(): BackupPayload {
+            if (schemaVersion != LEGACY_ZIP_SCHEMA_VERSION) return this
+            val legacyFoodReviews =
+                reviews.mapNotNull { review ->
+                    review.toLegacyFoodReviewEntityOrNull()?.toSerializable()
+                }
+            return copy(
+                schemaVersion = CURRENT_SCHEMA_VERSION,
+                foodReviews = foodReviews + legacyFoodReviews,
+            )
         }
 
         private fun validateReferencedImages(
