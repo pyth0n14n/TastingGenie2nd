@@ -168,10 +168,11 @@ private fun SakeFoodReviewEditForm(
             )
         }
         item {
-            LabeledTextField(
-                label = stringResource(R.string.label_bar),
-                value = state.bar,
-                onValueChange = onBarChanged,
+            TemperaturePickerField(
+                label = stringResource(R.string.label_sake_temperature),
+                options = state.temperatureOptions.toOptions(),
+                selectedValue = state.temperature?.name,
+                onValueChanged = onTemperatureChanged,
             )
         }
         item {
@@ -179,13 +180,14 @@ private fun SakeFoodReviewEditForm(
                 label = stringResource(R.string.label_dish),
                 value = state.dish,
                 onValueChange = onDishChanged,
+                fieldState = FormFieldState(required = true),
             )
         }
         item {
             ReviewEditChoiceField(
                 ui =
                     ReviewEditChoiceFieldUi(
-                        label = stringResource(R.string.label_scene),
+                        label = stringResource(R.string.label_scene_required),
                         options = foodCompatibilityOptions(),
                         selectedValue = state.foodCompatibility?.name,
                         showHelpHints = false,
@@ -194,11 +196,10 @@ private fun SakeFoodReviewEditForm(
             )
         }
         item {
-            TemperaturePickerField(
-                label = stringResource(R.string.label_temperature),
-                options = state.temperatureOptions.toOptions(),
-                selectedValue = state.temperature?.name,
-                onValueChanged = onTemperatureChanged,
+            LabeledTextField(
+                label = stringResource(R.string.label_bar),
+                value = state.bar,
+                onValueChange = onBarChanged,
             )
         }
         item {

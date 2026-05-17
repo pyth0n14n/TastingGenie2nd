@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,6 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
+import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
@@ -53,6 +55,7 @@ private enum class ReviewListTab {
 @OptIn(ExperimentalMaterial3Api::class)
 @Suppress("LongParameterList")
 fun ReviewListRoute(
+    initialTabName: String = AppDestination.REVIEW_LIST_TAB_SAKE,
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onAddFoodReview: (Long) -> Unit,
@@ -64,6 +67,7 @@ fun ReviewListRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ReviewListScreen(
         state = state,
+        initialTabName = initialTabName,
         onBack = onBack,
         onAddReview = onAddReview,
         onAddFoodReview = onAddFoodReview,
@@ -80,9 +84,10 @@ fun ReviewListRoute(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("LongMethod")
+@Suppress("LongMethod", "LongParameterList")
 fun ReviewListScreen(
     state: ReviewListUiState,
+    initialTabName: String = AppDestination.REVIEW_LIST_TAB_SAKE,
     onBack: () -> Unit,
     onAddReview: (Long) -> Unit,
     onAddFoodReview: (Long) -> Unit = {},
@@ -90,7 +95,7 @@ fun ReviewListScreen(
 ) {
     var pendingDeleteReview by remember(state.reviews) { mutableStateOf<Review?>(null) }
     var pendingDeleteFoodReview by remember(state.foodReviews) { mutableStateOf<SakeFoodReview?>(null) }
-    var selectedTab by remember { mutableStateOf(ReviewListTab.SAKE_REVIEW) }
+    var selectedTab by rememberSaveable(initialTabName) { mutableStateOf(reviewListTabFromName(initialTabName)) }
 
     pendingDeleteReview?.let { review ->
         ConfirmationDialog(
@@ -159,6 +164,12 @@ fun ReviewListScreen(
         }
     }
 }
+
+private fun reviewListTabFromName(name: String): ReviewListTab =
+    when (name) {
+        AppDestination.REVIEW_LIST_TAB_FOOD -> ReviewListTab.FOOD_REVIEW
+        else -> ReviewListTab.SAKE_REVIEW
+    }
 
 @Composable
 @Suppress("LongParameterList", "LongMethod")

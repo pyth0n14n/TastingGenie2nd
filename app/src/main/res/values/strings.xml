@@ -34,6 +34,7 @@
     <string name="label_price">価格</string>
     <string name="label_volume">量</string>
     <string name="label_temperature">温度</string>
+    <string name="label_sake_temperature">日本酒の温度</string>
     <string name="title_temperature_picker">提供温度を選択</string>
     <string name="message_temperature_picker">日本酒の提供温度を選んでください</string>
     <string name="title_color_picker">色を選択</string>
@@ -111,6 +112,7 @@
     <string name="label_umami">旨味</string>
     <string name="label_sharp">余韻</string>
     <string name="label_scene">料理との相性</string>
+    <string name="label_scene_required">料理との相性 *</string>
     <string name="label_dish">料理</string>
     <string name="label_cautions">留意点</string>
     <string name="label_comment">自由コメント</string>
@@ -388,6 +390,7 @@
     <string name="error_invalid_sake_input">銘柄名・種別・数値項目を確認してください</string>
     <string name="error_invalid_review_selection">レビュー項目の選択値が不正です</string>
     <string name="error_invalid_review_input">日付と数値項目を確認してください</string>
+    <string name="error_invalid_food_review_input">日付・料理・料理との相性を確認してください</string>
     <string name="error_required_field">%1$sを入力してください</string>
     <string name="error_required_selection_field">%1$sを選択してください</string>
     <string name="error_invalid_number_field">%1$sは数値で入力してください</string>

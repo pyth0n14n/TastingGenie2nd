@@ -6,6 +6,9 @@ object AppDestination {
     const val ARG_FOOD_REVIEW_ID = "foodReviewId"
     const val ARG_REVIEW_SECTION = "section"
     const val RESULT_REVIEW_REFRESH = "reviewRefresh"
+    const val RESULT_REVIEW_LIST_TAB = "reviewListTab"
+    const val REVIEW_LIST_TAB_SAKE = "SAKE_REVIEW"
+    const val REVIEW_LIST_TAB_FOOD = "FOOD_REVIEW"
     const val NO_ID = -1L
 
     const val SAKE_LIST = "sake/list"
