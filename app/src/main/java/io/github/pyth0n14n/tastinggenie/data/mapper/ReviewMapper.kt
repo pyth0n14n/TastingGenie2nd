@@ -1,8 +1,11 @@
 package io.github.pyth0n14n.tastinggenie.data.mapper
 
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
+import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeFoodReviewEntity
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReviewInput
 import java.time.LocalDate
 
 fun ReviewEntity.toDomain(): Review =
@@ -14,8 +17,6 @@ fun ReviewEntity.toDomain(): Review =
         price = price,
         volume = volume,
         temperature = temperature,
-        dish = dish,
-        foodCompatibility = foodCompatibility,
         appearanceSoundness = appearanceSoundness,
         appearanceColor = appearanceColor,
         appearanceColorOther = appearanceColorOther,
@@ -57,8 +58,6 @@ fun ReviewInput.toEntity(): ReviewEntity =
         price = price,
         volume = volume,
         temperature = temperature,
-        dish = dish,
-        foodCompatibility = foodCompatibility,
         appearanceSoundness = appearanceSoundness,
         appearanceColor = appearanceColor,
         appearanceColorOther = appearanceColorOther,
@@ -89,4 +88,28 @@ fun ReviewInput.toEntity(): ReviewEntity =
         otherSakeTypes = otherSakeTypes,
         otherFreeComment = otherFreeComment,
         otherOverallReview = otherOverallReview,
+    )
+
+fun SakeFoodReviewEntity.toDomain(): SakeFoodReview =
+    SakeFoodReview(
+        id = id,
+        sakeId = sakeId,
+        date = LocalDate.ofEpochDay(dateEpochDay),
+        bar = bar,
+        dish = dish,
+        foodCompatibility = foodCompatibility,
+        temperature = temperature,
+        freeComment = freeComment,
+    )
+
+fun SakeFoodReviewInput.toEntity(): SakeFoodReviewEntity =
+    SakeFoodReviewEntity(
+        id = id ?: 0L,
+        sakeId = sakeId,
+        dateEpochDay = date.toEpochDay(),
+        bar = bar,
+        dish = dish,
+        foodCompatibility = foodCompatibility,
+        temperature = temperature,
+        freeComment = freeComment,
     )

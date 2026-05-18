@@ -201,8 +201,6 @@ class AppDatabaseDaoTest {
             price = null,
             volume = null,
             temperature = null,
-            dish = null,
-            foodCompatibility = null,
             appearanceSoundness = ReviewSoundness.SOUND,
             appearanceColor = null,
             appearanceViscosity = null,

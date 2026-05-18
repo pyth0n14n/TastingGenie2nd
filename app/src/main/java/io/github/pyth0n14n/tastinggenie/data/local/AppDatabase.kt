@@ -13,14 +13,22 @@ import io.github.pyth0n14n.tastinggenie.data.local.converter.SakeConverters
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.ReviewModeDao
 import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeDao
+import io.github.pyth0n14n.tastinggenie.data.local.dao.SakeFoodReviewDao
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewModeEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.ReviewModeItemEntity
 import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeEntity
+import io.github.pyth0n14n.tastinggenie.data.local.entity.SakeFoodReviewEntity
 
 @Database(
-    entities = [SakeEntity::class, ReviewEntity::class, ReviewModeEntity::class, ReviewModeItemEntity::class],
-    version = 12,
+    entities = [
+        SakeEntity::class,
+        ReviewEntity::class,
+        SakeFoodReviewEntity::class,
+        ReviewModeEntity::class,
+        ReviewModeItemEntity::class,
+    ],
+    version = 13,
     exportSchema = true,
 )
 @TypeConverters(
@@ -36,6 +44,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun sakeDao(): SakeDao
 
     abstract fun reviewDao(): ReviewDao
+
+    abstract fun sakeFoodReviewDao(): SakeFoodReviewDao
 
     abstract fun reviewModeDao(): ReviewModeDao
 }

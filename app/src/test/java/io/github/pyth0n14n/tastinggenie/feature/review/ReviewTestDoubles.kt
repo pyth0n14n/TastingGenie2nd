@@ -8,6 +8,9 @@ import io.github.pyth0n14n.tastinggenie.domain.model.ReviewId
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeDeleteResult
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReviewId
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeId
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeInput
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
@@ -21,6 +24,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SakeFoodReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,8 +113,6 @@ internal class RecordingReviewRepository(
                 price = input.price,
                 volume = input.volume,
                 temperature = input.temperature,
-                dish = input.dish,
-                foodCompatibility = input.foodCompatibility,
                 appearanceSoundness = input.appearanceSoundness,
                 appearanceColor = input.appearanceColor,
                 appearanceColorOther = input.appearanceColorOther,
@@ -151,6 +153,49 @@ internal class RecordingReviewRepository(
             stream.value = stream.value.filterNot { review -> review.id == id }
         }
         return removed
+    }
+}
+
+internal class RecordingSakeFoodReviewRepository(
+    initial: List<SakeFoodReview> = emptyList(),
+) : SakeFoodReviewRepository {
+    private val stream = MutableStateFlow(initial)
+    val savedInputs = mutableListOf<SakeFoodReviewInput>()
+    val deletedReviewIds = mutableListOf<SakeFoodReviewId>()
+    var deleteFailure: Throwable? = null
+
+    override fun observeFoodReviews(sakeId: SakeId): Flow<List<SakeFoodReview>> =
+        stream.map { reviews -> reviews.filter { it.sakeId == sakeId } }
+
+    override suspend fun getFoodReview(id: SakeFoodReviewId): SakeFoodReview? = stream.value.firstOrNull { it.id == id }
+
+    override suspend fun upsertFoodReview(input: SakeFoodReviewInput): SakeFoodReviewId {
+        savedInputs.add(input)
+        val id = input.id ?: ((stream.value.maxOfOrNull { it.id } ?: 0L) + 1L)
+        val mapped =
+            SakeFoodReview(
+                id = id,
+                sakeId = input.sakeId,
+                date = input.date,
+                bar = input.bar,
+                dish = input.dish,
+                foodCompatibility = input.foodCompatibility,
+                temperature = input.temperature,
+                freeComment = input.freeComment,
+            )
+        stream.value = stream.value.filterNot { it.id == id } + mapped
+        return id
+    }
+
+    override suspend fun deleteFoodReview(id: SakeFoodReviewId): Boolean {
+        deleteFailure?.let { throw it }
+        val before = stream.value.size
+        stream.value = stream.value.filterNot { it.id == id }
+        val deleted = stream.value.size < before
+        if (deleted) {
+            deletedReviewIds.add(id)
+        }
+        return deleted
     }
 }
 

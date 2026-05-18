@@ -21,6 +21,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.SerializableReviewModeItem
 import io.github.pyth0n14n.tastinggenie.domain.model.SerializableSake
 import io.github.pyth0n14n.tastinggenie.domain.model.UnsupportedSchemaVersionException
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
@@ -59,6 +60,7 @@ import java.util.zip.ZipOutputStream
 
 private const val SAMPLE_SAKE_ID = 101L
 private const val SAMPLE_REVIEW_ID = 202L
+private const val LEGACY_BACKUP_VERSION = 11
 private const val UNSUPPORTED_BACKUP_VERSION = 99
 private const val EXISTING_SAKE_ID = 1L
 private const val ZIP_ENTRY_LIMIT = 1_000
@@ -163,6 +165,32 @@ class ImportExportRepositoryImplTest {
             assertNotEquals("images/sakes/source.jpg", restoredUri)
             assertEquals("new image", File(checkNotNull(Uri.parse(restoredUri).path)).readText())
             assertFalse(existingImage.exists())
+        }
+
+    @Test
+    fun restoreBackup_schemaVersion11MigratesReviewFoodFields() =
+        runTest {
+            val repository = createRepository()
+            val payload =
+                samplePayload(
+                    schemaVersion = LEGACY_BACKUP_VERSION,
+                    reviews =
+                        listOf(
+                            sampleSerializableReview().copy(
+                                dish = "刺身",
+                                foodCompatibility = FoodCompatibility.GOOD.name,
+                            ),
+                        ),
+                )
+            val backupBytes = createBackupZip(payload, manifestVersion = LEGACY_BACKUP_VERSION)
+
+            repository.restoreBackup(ByteArrayInputStream(backupBytes)).getOrThrow()
+
+            val storedFoodReview = database.sakeFoodReviewDao().getAllOnce().single()
+            assertEquals(SAMPLE_REVIEW_ID, storedFoodReview.id)
+            assertEquals(SAMPLE_SAKE_ID, storedFoodReview.sakeId)
+            assertEquals("刺身", storedFoodReview.dish)
+            assertEquals(FoodCompatibility.GOOD, storedFoodReview.foodCompatibility)
         }
 
     @Test
@@ -421,6 +449,7 @@ class ImportExportRepositoryImplTest {
     }
 
     private fun samplePayload(
+        schemaVersion: Int = CURRENT_SCHEMA_VERSION,
         settings: SerializableAppSettings = SerializableAppSettings(reviewModeId = "normal"),
         sakes: List<SerializableSake> = listOf(sampleSerializableSake()),
         reviews: List<SerializableReview> = listOf(sampleSerializableReview()),
@@ -428,7 +457,7 @@ class ImportExportRepositoryImplTest {
             listOf(SerializableReviewModeItem("normal", "APPEARANCE_COLOR", true)),
     ): BackupPayload =
         BackupPayload(
-            schemaVersion = CURRENT_SCHEMA_VERSION,
+            schemaVersion = schemaVersion,
             sakes = sakes,
             reviews = reviews,
             reviewModes = listOf(SerializableReviewMode("normal", "通常", true)),
@@ -502,8 +531,6 @@ class ImportExportRepositoryImplTest {
             price = null,
             volume = null,
             temperature = Temperature.JOON,
-            dish = null,
-            foodCompatibility = null,
             appearanceSoundness = ReviewSoundness.SOUND,
             appearanceColor = SakeColor.OTHER,
             appearanceColorOther = "桃色",

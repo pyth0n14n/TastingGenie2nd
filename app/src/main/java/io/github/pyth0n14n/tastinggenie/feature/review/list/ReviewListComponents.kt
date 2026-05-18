@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.compose.foundation.BorderStroke
@@ -19,6 +21,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.LocalBar
+import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,9 +36,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipContainer
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingSakeChipOutline
 import io.github.pyth0n14n.tastinggenie.ui.theme.TastingTypeChipContainer
@@ -84,6 +92,155 @@ internal fun ReviewTimelineItem(
             ReviewIndividuality(review = review)
             ReviewFeatureChips(review = review, state = state)
         }
+    }
+}
+
+@Composable
+internal fun FoodReviewTimelineItem(
+    review: SakeFoodReview,
+    state: ReviewListUiState,
+    actions: ReviewListActionHandlers,
+    onDeleteRequest: () -> Unit,
+) {
+    val timelineColor = MaterialTheme.colorScheme.onSurface
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+                .clickable { actions.onOpenFoodReview(review.sakeId, review.id) },
+    ) {
+        ReviewTimelineMarker(color = timelineColor)
+        Column(
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(start = 6.dp, top = ReviewRowVerticalPadding, bottom = ReviewRowVerticalPadding),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FoodReviewHeader(
+                review = review,
+                state = state,
+                onDeleteRequest = onDeleteRequest,
+            )
+            FoodReviewContext(review = review)
+            review.freeComment?.takeIf { it.isNotBlank() }?.let { comment ->
+                Text(
+                    text = comment,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FoodReviewHeader(
+    review: SakeFoodReview,
+    state: ReviewListUiState,
+    onDeleteRequest: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = review.date.toString().replace("-", "/"),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.width(ReviewHeaderTemperatureSpacing))
+        review.temperature?.let { temperature ->
+            Icon(
+                imageVector = Icons.Filled.Thermostat,
+                contentDescription = null,
+                modifier = Modifier.height(ReviewTemperatureIconHeight),
+            )
+            Text(
+                text = temperature.reviewListLabel(state),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 4.dp),
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        review.foodCompatibility?.let { compatibility ->
+            Icon(
+                imageVector = Icons.Outlined.ThumbUp,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.height(ReviewRatingIconHeight),
+            )
+            Text(
+                text = compatibility.toLabel(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 4.dp, end = ReviewOverflowEndPadding),
+            )
+        }
+        ReviewListItemActions(onDeleteRequest = onDeleteRequest)
+    }
+}
+
+@Composable
+private fun FoodReviewContext(review: SakeFoodReview) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        review.bar?.takeIf { it.isNotBlank() }?.let { bar ->
+            FoodReviewContextLabel(
+                text = bar,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.LocalBar,
+                        contentDescription = null,
+                        modifier = Modifier.height(ReviewRatingIconHeight),
+                    )
+                },
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        FoodReviewContextLabel(
+            text = review.dish?.takeIf { it.isNotBlank() } ?: stringResource(R.string.label_dish_not_entered),
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Restaurant,
+                    contentDescription = null,
+                    modifier = Modifier.height(ReviewRatingIconHeight),
+                )
+            },
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun FoodReviewContextLabel(
+    text: String,
+    icon: @Composable () -> Unit,
+    fontWeight: FontWeight,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        icon()
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = fontWeight,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 4.dp),
+        )
     }
 }
 
@@ -241,6 +398,15 @@ private data class ReviewChipUi(
     val label: String,
     val isTopAroma: Boolean,
 )
+
+internal fun FoodCompatibility.toLabel(): String =
+    when (this) {
+        FoodCompatibility.BAD -> "悪い"
+        FoodCompatibility.SLIGHTLY_BAD -> "やや悪い"
+        FoodCompatibility.MEDIUM -> "普通"
+        FoodCompatibility.SLIGHTLY_GOOD -> "やや良い"
+        FoodCompatibility.GOOD -> "良い"
+    }
 
 @Composable
 private fun ReviewListItemActions(onDeleteRequest: () -> Unit) {

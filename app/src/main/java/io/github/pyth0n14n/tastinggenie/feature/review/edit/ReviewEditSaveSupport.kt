@@ -4,7 +4,6 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewInput
 import io.github.pyth0n14n.tastinggenie.domain.model.ReviewItemId
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 
 @Suppress("CyclomaticComplexMethod", "LongMethod")
@@ -33,12 +32,6 @@ fun ReviewEditUiState.toValidatedInput(): ReviewInput? {
             volume = parsedVolume.takeIf { isItemEnabled(ReviewItemId.VOLUME) },
             temperature = temperature.takeIf { isItemEnabled(ReviewItemId.TEMPERATURE) },
             appearanceSoundness = appearanceSoundness,
-            dish = dish.trimmedOrNull().takeIf { isItemEnabled(ReviewItemId.DISH) },
-            foodCompatibility =
-                scene
-                    .trimmedOrNull()
-                    ?.let { value -> enumValueOf<FoodCompatibility>(value) }
-                    .takeIf { isItemEnabled(ReviewItemId.FOOD_COMPATIBILITY) },
             appearanceColor = color.takeIf { isItemEnabled(ReviewItemId.APPEARANCE_COLOR) },
             appearanceColorOther =
                 colorOther.trimmedOrNull().takeIf {

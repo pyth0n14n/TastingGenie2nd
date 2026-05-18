@@ -27,9 +27,10 @@ images/sakes/*
 
 ```json
 {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "sakes": [],
   "reviews": [],
+  "foodReviews": [],
   "reviewModes": [],
   "reviewModeItems": [],
   "settings": {
@@ -41,7 +42,8 @@ images/sakes/*
 ```
 
 - `schemaVersion` 必須
-- schemaVersion 11 は ZIP フルバックアップ形式を表す
+- schemaVersion 12 は ZIP フルバックアップ形式を表し、料理相性レビューを `foodReviews` として保持する
+- schemaVersion 11 の ZIP フルバックアップは読み込み時に schemaVersion 12 へ変換し、旧 `reviews.dish` / `reviews.foodCompatibility` を `foodReviews` へ移す
 - 未対応バージョンは読み込み失敗として UI に表示する
 - ZIP破損、必須ファイル欠落、JSON破損は読み込み失敗として UI に表示する
 
@@ -51,8 +53,9 @@ images/sakes/*
 
 - リストアは既存データへマージしない
 - バックアップ検証後、現在の DB データ、設定、画像参照をバックアップ内容で上書きする
-- `sakes` / `reviews` の `id` はバックアップ内の値をそのまま復元する
+- `sakes` / `reviews` / `foodReviews` の `id` はバックアップ内の値をそのまま復元する
 - `reviews.sakeId` は同じ payload 内の `sakes.id` を参照している必要がある
+- `foodReviews.sakeId` は同じ payload 内の `sakes.id` を参照している必要がある
 - `reviewModeItems.modeId` は同じ payload 内の `reviewModes.id` を参照している必要がある
 - payload 内で主キーが重複している場合は失敗扱い
 - 復元失敗時は既存 DB を削除しない

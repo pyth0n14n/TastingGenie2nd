@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
+import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeFoodReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewFakeMasterDataRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
@@ -40,6 +41,7 @@ class ReviewListViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -74,6 +76,7 @@ class ReviewListViewModelTest {
                                     testReview(id = 3L, otherOverallReview = null),
                                 ),
                         ),
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -94,6 +97,7 @@ class ReviewListViewModelTest {
                             initial = listOf(testSake(imageUri = "file:///images/sakes/1.jpg")),
                         ),
                     reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -111,6 +115,7 @@ class ReviewListViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     sakeRepository = RecordingSakeRepository(),
                     reviewRepository = RecordingReviewRepository(),
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -130,6 +135,7 @@ class ReviewListViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = reviewRepository,
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -155,6 +161,7 @@ class ReviewListViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = reviewRepository,
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()
@@ -180,6 +187,7 @@ class ReviewListViewModelTest {
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
                     reviewRepository = reviewRepository,
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
                     masterDataRepository = ReviewFakeMasterDataRepository(),
                 )
             advanceUntilIdle()

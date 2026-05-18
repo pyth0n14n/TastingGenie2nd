@@ -35,7 +35,6 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocalBar
 import androidx.compose.material.icons.outlined.Payments
-import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material.icons.outlined.Tune
@@ -72,7 +71,6 @@ import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
@@ -861,8 +859,6 @@ private data class ReviewDetailTextLabels(
     val volume: String,
     val temperature: String,
     val bar: String,
-    val dish: String,
-    val foodCompatibility: String,
     val color: String,
     val viscosity: String,
     val soundness: String,
@@ -900,8 +896,6 @@ private fun reviewDetailTextLabels(): ReviewDetailTextLabels =
         volume = stringResource(R.string.label_volume),
         temperature = stringResource(R.string.label_temperature),
         bar = stringResource(R.string.label_bar),
-        dish = stringResource(R.string.label_dish),
-        foodCompatibility = stringResource(R.string.label_scene),
         color = stringResource(R.string.label_color),
         viscosity = stringResource(R.string.detail_label_viscosity),
         soundness = stringResource(R.string.label_soundness),
@@ -992,23 +986,12 @@ private fun Review.toSummary(
                 bar.trimmedOrNull()?.let { SummaryBadge(it, Icons.Outlined.LocalBar) },
                 pricePer100mlText()?.let { SummaryBadge(it, Icons.Outlined.Payments) },
                 tasteSweetDryness?.let { SummaryBadge(it.toLabel(), Icons.Outlined.WaterDrop) },
-                foodSummaryBadge(),
                 otherSakeTypes.firstOrNull()?.let {
                     SummaryBadge(it.toLabel(), Icons.Outlined.Eco)
                 },
             ),
         commentPreview = otherIndividuality.trimmedOrNull()?.summaryPreview(),
     )
-
-private fun Review.foodSummaryBadge(): SummaryBadge? {
-    val dishText = dish.trimmedOrNull()
-    val compatibilityText = foodCompatibility?.let { "相性: ${it.toLabel()}" }
-    return when {
-        dishText != null -> SummaryBadge(dishText, Icons.Outlined.Restaurant, compatibilityText)
-        compatibilityText != null -> SummaryBadge(compatibilityText, Icons.Outlined.Restaurant)
-        else -> null
-    }
-}
 
 private fun Review.toHighlights(labels: ReviewDetailLabels): SummaryHighlights? {
     val highlights =
@@ -1160,10 +1143,6 @@ private fun Review.toBasicSection(
                 add(DetailDisplayRow.KeyValue(textLabels.temperature, it.labelFrom(labels.temperature)))
             }
             bar.trimmedOrNull()?.let { add(DetailDisplayRow.KeyValue(textLabels.bar, it)) }
-            dish.trimmedOrNull()?.let { add(DetailDisplayRow.KeyValue(textLabels.dish, it)) }
-            foodCompatibility?.let {
-                add(DetailDisplayRow.TasteScale(textLabels.foodCompatibility, it.toLabel(), it.ordinal))
-            }
         }
     return rows.toSection(
         key = "basic",
@@ -1317,15 +1296,6 @@ private fun String.summaryPreview(): String =
         take(SUMMARY_COMMENT_MAX_LENGTH) + "..."
     }
 
-private fun FoodCompatibility.toLabel(): String =
-    when (this) {
-        FoodCompatibility.BAD -> "悪い"
-        FoodCompatibility.SLIGHTLY_BAD -> "やや悪い"
-        FoodCompatibility.MEDIUM -> "普通"
-        FoodCompatibility.SLIGHTLY_GOOD -> "やや良い"
-        FoodCompatibility.GOOD -> "良い"
-    }
-
 private fun SweetDryness.toLabel(): String =
     when (this) {
         SweetDryness.SWEET -> "甘口"
@@ -1372,7 +1342,6 @@ private fun ReviewDetailContentPreview() {
                             volume = 720,
                             otherOverallReview = OverallReview.GOOD,
                             otherFreeComment = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
-                            foodCompatibility = FoodCompatibility.SLIGHTLY_GOOD,
                             temperature = io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature.HANABIE,
                             aromaIntensity = IntensityLevel.STRONG,
                             aromaExamples = listOf(Aroma.CRESS, Aroma.MITSUBA),

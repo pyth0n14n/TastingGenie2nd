@@ -48,6 +48,7 @@ class RepositoryFailureTest {
                     database = database,
                     sakeDao = FailingSakeDao(),
                     reviewDao = database.reviewDao(),
+                    foodReviewDao = database.sakeFoodReviewDao(),
                     sakeImageRepository = NoOpSakeImageRepository(),
                     ioDispatcher = StandardTestDispatcher(testScheduler),
                 )

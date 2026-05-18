@@ -17,6 +17,7 @@ import io.github.pyth0n14n.tastinggenie.feature.help.HelpRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
+import io.github.pyth0n14n.tastinggenie.feature.review.food.SakeFoodReviewEditRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.image.ReviewImageRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.list.ReviewListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.edit.SakeEditRoute
@@ -89,14 +90,27 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
                     type = NavType.LongType
                 },
             ),
-    ) {
+    ) { backStackEntry ->
+        val requestedTabName by
+            backStackEntry.savedStateHandle
+                .getStateFlow(AppDestination.RESULT_REVIEW_LIST_TAB, AppDestination.REVIEW_LIST_TAB_SAKE)
+                .collectAsStateWithLifecycle()
         ReviewListRoute(
+            initialTabName = requestedTabName,
             onBack = { navController.popBackStack() },
             onAddReview = { sakeId ->
                 navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = null))
             },
+            onAddFoodReview = { sakeId ->
+                navController.navigate(AppDestination.foodReviewEditRoute(sakeId = sakeId, foodReviewId = null))
+            },
             onOpenReview = { reviewId ->
                 navController.navigate(AppDestination.reviewDetailRoute(reviewId = reviewId))
+            },
+            onOpenFoodReview = { sakeId, foodReviewId ->
+                navController.navigate(
+                    AppDestination.foodReviewEditRoute(sakeId = sakeId, foodReviewId = foodReviewId),
+                )
             },
             onOpenSakeImage = { sakeId ->
                 navController.navigate(AppDestination.sakeImageRoute(sakeId = sakeId))
@@ -104,6 +118,7 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
         )
     }
     addReviewEditDestinations(navController)
+    addFoodReviewEditDestinations(navController)
     addReviewDetailDestination(navController)
     addReviewImageDestination(navController)
 }
@@ -162,6 +177,58 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
             initialSection = initialSection,
         )
     }
+}
+
+private fun NavGraphBuilder.addFoodReviewEditDestinations(navController: NavHostController) {
+    composable(
+        route = AppDestination.FOOD_REVIEW_EDIT_CREATE,
+        arguments =
+            listOf(
+                navArgument(AppDestination.ARG_SAKE_ID) {
+                    type = NavType.LongType
+                },
+            ),
+    ) {
+        SakeFoodReviewEditRoute(
+            onBack = {
+                navController.selectFoodReviewListTab()
+                navController.popBackStack()
+            },
+            onSaved = {
+                navController.selectFoodReviewListTab()
+                navController.popBackStack()
+            },
+        )
+    }
+    composable(
+        route = AppDestination.FOOD_REVIEW_EDIT,
+        arguments =
+            listOf(
+                navArgument(AppDestination.ARG_SAKE_ID) {
+                    type = NavType.LongType
+                },
+                navArgument(AppDestination.ARG_FOOD_REVIEW_ID) {
+                    type = NavType.LongType
+                },
+            ),
+    ) {
+        SakeFoodReviewEditRoute(
+            onBack = {
+                navController.selectFoodReviewListTab()
+                navController.popBackStack()
+            },
+            onSaved = {
+                navController.selectFoodReviewListTab()
+                navController.popBackStack()
+            },
+        )
+    }
+}
+
+private fun NavHostController.selectFoodReviewListTab() {
+    previousBackStackEntry
+        ?.savedStateHandle
+        ?.set(AppDestination.RESULT_REVIEW_LIST_TAB, AppDestination.REVIEW_LIST_TAB_FOOD)
 }
 
 private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostController) {

@@ -46,8 +46,6 @@ data class ReviewEditUiState(
     val tasteAftertasteNote: String = "",
     val otherIndividuality: String = "",
     val otherCautions: String = "",
-    val scene: String = "",
-    val dish: String = "",
     val comment: String = "",
     val appearanceSoundness: ReviewSoundness? = null,
     val temperature: Temperature? = null,

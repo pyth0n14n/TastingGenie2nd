@@ -129,8 +129,6 @@ private fun ReviewEditUiState.toEditableLoadedState(
         tasteAftertasteNote = review?.tasteAftertasteNote.orEmpty(),
         otherIndividuality = review?.otherIndividuality.orEmpty(),
         otherCautions = review?.otherCautions.orEmpty(),
-        scene = review?.foodCompatibility?.name.orEmpty(),
-        dish = review?.dish.orEmpty(),
         comment = review?.otherFreeComment.orEmpty(),
         appearanceSoundness = review.soundnessForEdit(loaded.settings.showReviewSoundness) { appearanceSoundness },
         temperature = review?.temperature,

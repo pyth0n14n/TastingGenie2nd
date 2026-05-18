@@ -47,6 +47,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_9_10,
                 AppDatabaseMigrations.MIGRATION_10_11,
                 AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
             )
             val database = databaseBuilder.build()
 
@@ -86,6 +87,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_9_10,
                 AppDatabaseMigrations.MIGRATION_10_11,
                 AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
             )
             val database = databaseBuilder.build()
 
@@ -111,6 +113,7 @@ class AppDatabaseMigrationTest {
     }
 
     @Test
+    @Suppress("LongMethod")
     fun migration_3_10_renamesReviewColumnsAndResetsLegacyReviewValues() {
         runTest {
             val context = ApplicationProvider.getApplicationContext<Context>()
@@ -130,6 +133,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_9_10,
                 AppDatabaseMigrations.MIGRATION_10_11,
                 AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
             )
             val database = databaseBuilder.build()
 
@@ -141,7 +145,14 @@ class AppDatabaseMigrationTest {
             assertNull(migratedReview.otherCautions)
             assertNull(migratedReview.otherFreeComment)
             assertNull(migratedReview.appearanceColorOther)
-            assertEquals("刺身", migratedReview.dish)
+            assertEquals(
+                "刺身",
+                database
+                    .sakeFoodReviewDao()
+                    .getAllOnce()
+                    .single()
+                    .dish,
+            )
             assertNull(migratedReview.appearanceColor)
             assertNull(migratedReview.appearanceViscosity)
             assertNull(migratedReview.aromaIntensity)
@@ -189,6 +200,7 @@ class AppDatabaseMigrationTest {
                 AppDatabaseMigrations.MIGRATION_9_10,
                 AppDatabaseMigrations.MIGRATION_10_11,
                 AppDatabaseMigrations.MIGRATION_11_12,
+                AppDatabaseMigrations.MIGRATION_12_13,
             )
             val database = databaseBuilder.build()
 

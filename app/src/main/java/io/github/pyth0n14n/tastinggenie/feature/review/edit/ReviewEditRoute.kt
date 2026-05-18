@@ -248,7 +248,7 @@ private fun ReviewEditSectionPage(
                     categories = content.state.aromaCategories,
                 ),
             volumeShortcutOptions = content.volumeShortcutOptions,
-            pairingOptions = foodCompatibilityOptions(),
+            pairingOptions = emptyList(),
         )
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -323,8 +323,6 @@ private fun ReviewEditUiState.toDraftSnapshot(): List<Any?> =
         tasteAftertasteNote,
         otherIndividuality,
         otherCautions,
-        scene,
-        dish,
         comment,
         appearanceSoundness,
         temperature,

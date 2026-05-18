@@ -4,7 +4,8 @@
 
 - static（酒情報）と dynamic（レビュー）を分離する
 - 1銘柄に複数レビューを紐付け可能とする
-- Review は 1 レコード = 1 件のテイスティングノートとして保持する
+- Review は 1 レコード = 1 件の酒そのもののテイスティングノートとして保持する
+- SakeFoodReview は 1 レコード = 1 件の料理相性レビューとして保持し、Review とは親子関係にしない
 - Review 内の評価項目は `common` / `appearance` / `aroma` / `taste` / `other` の論理グループで扱う
 - Review の永続化は 1 テーブル `reviews` のままとし、列名は `appearanceXxx / aromaXxx / tasteXxx / otherXxx` で所属を明示する
 - レビュー項目の表示有無は `review_modes` / `review_mode_items` で管理し、現在選択中のモードIDは `AppSettings.reviewModeId` に保持する
@@ -72,8 +73,6 @@
 | volume | Int(mL, 1..25,000) | 任意 |
 | temperature | Enum | 任意 |
 | bar | String | 任意 |
-| dish | String | 任意 |
-| foodCompatibility | Enum | 任意 |
 
 ### 3.2 Appearance
 
@@ -127,7 +126,25 @@
 
 ---
 
-## 4. ReviewMode
+## 4. SakeFoodReview（料理相性レビュー）
+
+料理相性レビューは `Sake` に直接紐づく、酒レビューと並列のレビューである。
+酒単体レビューのコメントとは意味が異なるため、migration や import/export で `Review.otherFreeComment` を自動コピーしない。
+
+| 項目 | 型 | 必須 |
+|------|----|------|
+| id | Long | PK |
+| sakeId | Long | FK |
+| date | LocalDate | 必須 |
+| bar | String | 任意 |
+| dish | String | 任意 |
+| foodCompatibility | Enum | 任意 |
+| temperature | Enum | 任意 |
+| freeComment | String | 任意 |
+
+---
+
+## 5. ReviewMode
 
 | テーブル | 項目 | 型 | 内容 |
 |------|------|----|------|
@@ -140,13 +157,13 @@
 
 - 設定画面のモード切替は `AppSettings.reviewModeId` を更新する
 - 設定画面のレビュー入力モードは選択中の項目を Material Design 3 の filled button として表示し、「通常は選択式が多く、利酒師は記述式が多くなります」という説明を表示する
-- ReviewEdit は選択中モードの有効項目のみ表示する
+- ReviewEdit は選択中モードの有効項目のみ表示する。料理と料理相性は ReviewEdit では扱わず、SakeFoodReviewEdit で扱う
 - `debug` はデバッグ用モードとして全 `ReviewItemId` を表示対象にする
 - 非表示項目は保存時に未入力として扱う。ただし `showReviewSoundness = false` のとき、ReviewEdit は健全度を `SOUND` に初期化して保存対象にする
 
 ---
 
-## 5. AppSettings
+## 6. AppSettings
 
 | 項目 | 型 | 必須 |
 |------|----|------|
@@ -156,7 +173,7 @@
 
 ---
 
-## 6. Enum / Scale 定義
+## 7. Enum / Scale 定義
 
 - `temperature`: `docs/spec/master/temperature.md`
 - `appearanceSoundness`, `aromaSoundness`, `tasteSoundness`: `docs/spec/master/soundness.md`
@@ -168,18 +185,20 @@
 - `tasteAttack`: `docs/spec/master/attack.md`
 - `tasteTextureRoundness`, `tasteTextureSmoothness`: `docs/spec/master/texture.md`
 - `tasteSweetness`, `tasteSourness`, `tasteBitterness`, `tasteUmami`, `tasteAftertaste`: `docs/spec/master/taste_scale.md`
-- `foodCompatibility`: `docs/spec/review_items.md`
+- `foodCompatibility`: `SakeFoodReview` の料理相性評価
 - `tasteSweetDryness`: `docs/spec/review_items.md`
 - `otherSakeTypes`: `docs/spec/master/flavor_profile.md`
 - `otherOverallReview`: `docs/spec/master/overall_review.md`
 
 ---
 
-## 7. 保持形式
+## 8. 保持形式
 
 - `LocalDate` は日付として保存する
 - `List<Enum>` は JSON 文字列で永続化する
 - `imageUris: List<String>` も JSON 文字列で永続化する
 - `Review` は画像を直接保持しない
+- `SakeFoodReview` は画像を直接保持しない
 - 旧 `scene` / `tasteMainNote` は新DB構成では保持しない
 - DB v9 から v10 への migration では基本情報だけ保持し、旧レビュー評価項目は初期化する
+- DB v12 から v13 への migration では `reviews.dish` / `reviews.foodCompatibility` を `sake_food_reviews` に移し、`reviews` から料理関連列を削除する

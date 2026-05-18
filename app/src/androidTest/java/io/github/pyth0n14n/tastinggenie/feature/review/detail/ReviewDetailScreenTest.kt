@@ -10,7 +10,6 @@ import androidx.compose.ui.test.performClick
 import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.FlavorProfileType
-import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
@@ -89,8 +88,6 @@ class ReviewDetailScreenTest {
                                         bar = "テスト店",
                                         price = 1440,
                                         volume = 720,
-                                        dish = "刺身",
-                                        foodCompatibility = FoodCompatibility.SLIGHTLY_GOOD,
                                         tasteSweetDryness = SweetDryness.MEDIUM_DRY,
                                         otherIndividuality = "すっきりした立ち上がりだが、後半に旨味が伸びる。",
                                         otherFreeComment = "サマリには出さない自由コメント",

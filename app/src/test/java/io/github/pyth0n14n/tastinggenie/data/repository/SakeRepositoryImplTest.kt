@@ -44,6 +44,7 @@ class SakeRepositoryImplTest {
                 database = database,
                 sakeDao = database.sakeDao(),
                 reviewDao = database.reviewDao(),
+                foodReviewDao = database.sakeFoodReviewDao(),
                 sakeImageRepository = imageRepository,
                 ioDispatcher = UnconfinedTestDispatcher(),
             )
@@ -276,8 +277,6 @@ class SakeRepositoryImplTest {
             price = null,
             volume = null,
             temperature = null,
-            dish = null,
-            foodCompatibility = null,
             appearanceSoundness = ReviewSoundness.SOUND,
             appearanceColor = null,
             appearanceViscosity = null,

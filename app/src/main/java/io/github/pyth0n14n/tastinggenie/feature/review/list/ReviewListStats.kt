@@ -66,6 +66,13 @@ internal fun ReviewStatsPanel(
                 suffix = stringResource(R.string.suffix_review_count),
                 modifier = Modifier.weight(1f),
             )
+            StatsDivider()
+            ReviewStatCell(
+                label = stringResource(R.string.label_food_review_count),
+                value = state.foodReviewCount.toString(),
+                suffix = stringResource(R.string.suffix_review_count),
+                modifier = Modifier.weight(1f),
+            )
             Spacer(modifier = Modifier.weight(STATS_IMAGE_SPACER_WEIGHT))
             if (state.hasSakeImage && state.sakeId != null) {
                 IconButton(onClick = { onOpenImage(state.sakeId) }) {
