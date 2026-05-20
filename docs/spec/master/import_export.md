@@ -2,6 +2,8 @@
 
 ## 1. 形式
 
+- Android Auto Backup は使用しない
+- バックアップ/リストアはアプリ内の手動 ZIP バックアップのみを対象とする
 - バックアップ形式は ZIP のみ
 - 拡張子: `.zip`
 - MIME: `application/zip`
