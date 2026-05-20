@@ -92,6 +92,23 @@ class SettingsScreenTest {
     }
 
     @Test
+    fun aboutApp_showsUnderageDrinkingNotice() {
+        composeRule.setContent {
+            SettingsScreen(
+                state = SettingsUiState(isLoading = false),
+                onBack = {},
+                actions = emptySettingsActions(),
+            )
+        }
+
+        composeRule.onNodeWithText("このアプリについて").performClick()
+
+        composeRule
+            .onNodeWithText("ききさけ帖は、20歳以上の方が日本酒の記録を残すためのアプリです。20歳未満の飲酒は法律で禁止されています。")
+            .assertIsDisplayed()
+    }
+
+    @Test
     fun successMessage_canBeDismissed() {
         composeRule.setContent {
             SettingsScreen(

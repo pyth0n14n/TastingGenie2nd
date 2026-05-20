@@ -228,6 +228,7 @@ private fun SettingsContent(
 ) {
     val versionText = currentAppVersionText()
     var isRestoreConfirmOpen by remember { mutableStateOf(false) }
+    var isAboutAppOpen by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(SECTION_SPACING.dp),
@@ -286,7 +287,7 @@ private fun SettingsContent(
                 SettingNavigationRow(
                     label = stringResource(R.string.setting_about_app),
                     value = stringResource(R.string.setting_about_app_version, versionText),
-                    showArrow = false,
+                    onClick = { isAboutAppOpen = true },
                 )
             }
         }
@@ -311,6 +312,12 @@ private fun SettingsContent(
                 isRestoreConfirmOpen = false
                 actions.onRestoreBackup()
             },
+        )
+    }
+    if (isAboutAppOpen) {
+        AboutAppDialog(
+            versionText = versionText,
+            onDismiss = { isAboutAppOpen = false },
         )
     }
 }
@@ -411,6 +418,28 @@ private fun RestoreConfirmDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun AboutAppDialog(
+    versionText: String,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.title_about_app)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.setting_about_app_version, versionText))
+                Text(stringResource(R.string.message_about_app))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_ok))
             }
         },
     )
