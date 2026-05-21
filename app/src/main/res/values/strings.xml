@@ -365,6 +365,8 @@
     <string name="setting_glossary">用語集（日本酒のきほん）</string>
     <string name="setting_about_app">このアプリについて</string>
     <string name="setting_about_app_version">ききさけ帖 %1$s</string>
+    <string name="title_about_app">このアプリについて</string>
+    <string name="message_about_app">ききさけ帖は、20歳以上の方が日本酒の記録を残すためのアプリです。20歳未満の飲酒は法律で禁止されています。</string>
     <string name="error_load_sakes">酒一覧の読み込みに失敗しました</string>
     <string name="error_load_sake">酒情報の読み込みに失敗しました</string>
     <string name="error_load_reviews">レビュー一覧の読み込みに失敗しました</string>
