@@ -85,13 +85,13 @@
 |---|---|---|---|
 | ☑ | 空状態文言 | 酒なし、レビューなし、料理相性なし、検索該当なしの文言が自然 | androidTest ◎ / UnitTest △。画像なし/一部空状態は既存テストあり。全空状態文言は追加余地あり。 |
 | ☑ | 長文入力 | 銘柄名、酒造、コメント、香り/味の自由記述が長くてもレイアウトが崩れない | androidTest ◎ / UnitTest △。既存 androidTest で酒一覧タイトル高さの安定を確認済み。長文全般は手動確認を残す。 |
-| ☐ | 日本語IME | 入力中の変換、改行、フォーカス移動が不自然でない | androidTest △ / UnitTest ×。自動化困難。基本は手動。 |
+| ☑ | 日本語IME | 入力中の変換、改行、フォーカス移動が不自然でない | androidTest △ / UnitTest ×。`SakeEditScreenTest` で日本語テキスト入力と画面反映を確認済み。ただしIME変換中の挙動、改行、フォーカス移動は自動化困難のため手動確認を残す。 |
 | ☐ | 小画面端末 | 画面下部の保存ボタン、FAB、ナビゲーションバーが重ならない | androidTest △ / UnitTest ×。保存ボタン表示の一部テストはあるが、小画面構成での確認は不足。手動を残す。 |
-| ☐ | ダーク/ライト | 現在想定テーマで文字が読め、カードやボタンが破綻しない | androidTest △ / UnitTest ×。screenshot test 化は可能だが、現状は不足。視認性は手動を残す。 |
+| ☑ | ダーク/ライト | 現在想定テーマで文字が読め、カードやボタンが破綻しない | androidTest △ / UnitTest ×。`SettingsScreenTest` でライト/ダークテーマ双方で主要設定画面が描画できることを確認済み。読みにくさの最終判断は手動確認を残す。 |
 | ☐ | Android権限 | カメラ・写真選択の権限許可/拒否後にクラッシュしない | androidTest △ / UnitTest ×。UiAutomation等で可能だが脆い。実機手動を残す。 |
 | ☐ | バックアップ保存キャンセル | ファイル保存先選択をキャンセルしてもエラー扱いにならない | androidTest △ / UnitTest ○。ActivityResult cancel stub で確認可能。現状は専用テスト不足。 |
 | ☐ | 復元ファイル選択キャンセル | ファイル選択キャンセルで状態が変わらない | androidTest △ / UnitTest ○。ActivityResult cancel stub で確認可能。現状は専用テスト不足。 |
 | ☑ | 復元エラー後の再操作 | 一度復元失敗したあと、正常ZIPで再復元できる | UnitTest ◎ / androidTest ○。既存 UnitTest でエラー/フィードバックのクリアと再表示制御を確認済み。連続UI操作は追加候補。 |
 | ☐ | アプリ再起動 | 保存済みの酒、レビュー、画像、設定が再起動後も残る | androidTest ◎ / UnitTest ○。Repository/DataStore の永続化テストはあるが、アプリ再起動E2Eは不足。 |
-| ☐ | 戻る連打/保存連打 | 連打しても二重保存・クラッシュしない | androidTest ◎ / UnitTest ○。保存中ボタン無効化の表示は一部あるが、連打耐性としては不足。 |
+| ☑ | 戻る連打/保存連打 | 連打しても二重保存・クラッシュしない | androidTest ◎ / UnitTest ○。`SakeEditViewModelTest`、`ReviewEditViewModelTest`、`SakeFoodReviewEditViewModelTest` で保存開始直後の連続 `save()` が二重保存にならないことを確認済み。戻る操作はP0の下書き破棄テストでDialog経由の戻りを確認済み。 |
 | ☑ | アクセシビリティ | 主要ボタン、画像、削除、ピン留め、星評価の読み上げラベルが最低限成立する | androidTest ○ / UnitTest △。既存 androidTest で contentDescription / semantics の一部を確認済み。全主要操作は追加余地あり。 |

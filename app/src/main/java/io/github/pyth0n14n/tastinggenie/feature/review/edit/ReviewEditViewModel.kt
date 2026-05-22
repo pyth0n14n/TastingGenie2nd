@@ -58,7 +58,7 @@ class ReviewEditViewModel
 
         fun save() {
             val snapshot = uiState.value
-            if (snapshot.isInputLocked) {
+            if (snapshot.isInputLocked || snapshot.isSaving) {
                 return
             }
 
@@ -68,8 +68,8 @@ class ReviewEditViewModel
                 return
             }
 
+            _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
                     reviewRepository.upsertReview(input)
                 }.onSuccess {

@@ -204,7 +204,7 @@ class SakeEditViewModel
 
         fun save() {
             val snapshot = uiState.value
-            if (snapshot.isEditTargetMissing) {
+            if (snapshot.isEditTargetMissing || snapshot.isSaving) {
                 return
             }
             val input = snapshot.toValidatedInput()
@@ -224,8 +224,8 @@ class SakeEditViewModel
                 }
                 return
             }
+            _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
                     saveSake(
                         snapshot = snapshot,

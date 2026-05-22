@@ -75,6 +75,23 @@ class SakeFoodReviewEditViewModelTest {
         }
 
     @Test
+    fun save_calledTwiceBeforeFirstSaveFinishes_persistsOnlyOnce() =
+        runTest {
+            val repository = RecordingSakeFoodReviewRepository()
+            val viewModel = foodReviewEditViewModel(foodReviewRepository = repository)
+            advanceUntilIdle()
+            viewModel.onDishChanged("刺身")
+            viewModel.onCompatibilityChanged(FoodCompatibility.GOOD.name)
+
+            viewModel.save()
+            viewModel.save()
+            advanceUntilIdle()
+
+            assertEquals(1, repository.savedInputs.size)
+            assertTrue(viewModel.uiState.value.isSaved)
+        }
+
+    @Test
     fun save_withoutDish_setsValidationErrorAndDoesNotPersist() =
         runTest {
             val repository = RecordingSakeFoodReviewRepository()

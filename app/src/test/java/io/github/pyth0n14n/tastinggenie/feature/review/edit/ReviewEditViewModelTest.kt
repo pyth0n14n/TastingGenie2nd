@@ -166,6 +166,25 @@ class ReviewEditViewModelTest {
         }
 
     @Test
+    fun save_calledTwiceBeforeFirstSaveFinishes_persistsOnlyOnce() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    reviewRepository = repository,
+                )
+            advanceUntilIdle()
+
+            viewModel.save()
+            viewModel.save()
+            advanceUntilIdle()
+
+            assertEquals(1, repository.savedInputs.size)
+            assertTrue(viewModel.uiState.value.isSaved)
+        }
+
+    @Test
     fun save_withInvalidDate_setsValidationError() =
         runTest {
             val repository = RecordingReviewRepository()

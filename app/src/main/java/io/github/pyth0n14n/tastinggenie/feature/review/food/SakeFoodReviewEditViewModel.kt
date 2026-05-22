@@ -152,6 +152,9 @@ class SakeFoodReviewEditViewModel
         @Suppress("TooGenericExceptionCaught")
         fun save() {
             val snapshot = _uiState.value
+            if (snapshot.isInputLocked || snapshot.isSaving) {
+                return
+            }
             val sakeId = snapshot.sakeId
             val date = snapshot.date.toLocalDateOrNull()
             val dish = snapshot.dish.trimmedOrNull()
@@ -163,8 +166,8 @@ class SakeFoodReviewEditViewModel
             val requiredDate = checkNotNull(date)
             val requiredDish = checkNotNull(dish)
             val requiredFoodCompatibility = checkNotNull(snapshot.foodCompatibility)
+            _uiState.update { it.copy(isSaving = true, error = null) }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null) }
                 try {
                     foodReviewRepository.upsertFoodReview(
                         SakeFoodReviewInput(

@@ -119,6 +119,29 @@ class SakeEditViewModelTest {
         }
 
     @Test
+    fun save_calledTwiceBeforeFirstSaveFinishes_persistsOnlyOnce() =
+        runTest {
+            val repository = RecordingSakeRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(),
+                    sakeRepository = repository,
+                    sakeImageRepository = RecordingSakeImageRepository(),
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+            viewModel.onTextChanged(SakeTextField.NAME, "保存テスト")
+            viewModel.onGradeSelected(SakeGrade.JUNMAI.name)
+
+            viewModel.save()
+            viewModel.save()
+            advanceUntilIdle()
+
+            assertEquals(1, repository.savedInputs.size)
+            assertTrue(viewModel.uiState.value.isSaved)
+        }
+
+    @Test
     fun save_withExtendedInput_persistsClassificationMakerPrefectureAndCity() =
         runTest {
             val repository = RecordingSakeRepository()

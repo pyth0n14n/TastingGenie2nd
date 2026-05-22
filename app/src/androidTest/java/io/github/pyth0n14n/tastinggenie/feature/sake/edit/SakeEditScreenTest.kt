@@ -79,6 +79,35 @@ class SakeEditScreenTest {
     }
 
     @Test
+    fun nameField_acceptsJapaneseTextInput() {
+        composeRule.setContent {
+            var state by mutableStateOf(
+                SakeEditUiState(
+                    isLoading = false,
+                    gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                ),
+            )
+            SakeEditScreen(
+                state = state,
+                callbacks =
+                    defaultCallbacks(
+                        onTextChanged = { field, value ->
+                            if (field == SakeTextField.NAME) {
+                                state = state.copy(name = value)
+                            }
+                        },
+                    ),
+                onSave = {},
+                onBack = {},
+            )
+        }
+
+        composeRule.onNode(hasText("銘柄名 *") and hasSetTextAction()).performTextInput("獺祭 純米大吟醸")
+
+        composeRule.onNodeWithText("獺祭 純米大吟醸").assertIsDisplayed()
+    }
+
+    @Test
     fun backWithUnsavedChanges_showsDiscardDialogAndConfirmsBeforeLeaving() {
         var backCalled = false
         composeRule.setContent {
