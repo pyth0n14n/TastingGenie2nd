@@ -2,6 +2,8 @@ package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.lifecycle.SavedStateHandle
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingReviewRepository
 import io.github.pyth0n14n.tastinggenie.feature.review.RecordingSakeFoodReviewRepository
@@ -23,11 +25,16 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ReviewListViewModelTest {
     private companion object {
         const val RATED_AND_UNRATED_REVIEW_COUNT = 3
+        const val TEST_FOOD_REVIEW_ID = 21L
+        const val TEST_FOOD_REVIEW_YEAR = 2026
+        const val TEST_FOOD_REVIEW_MONTH = 5
+        const val TEST_FOOD_REVIEW_DAY = 17
     }
 
     @get:Rule
@@ -199,4 +206,62 @@ class ReviewListViewModelTest {
             assertEquals(null, state.deleteError)
             assertEquals(1, state.reviews.size)
         }
+
+    @Test
+    fun deleteFoodReview_removesFoodReviewAndClearsDeleteError() =
+        runTest {
+            val foodReviewRepository = RecordingSakeFoodReviewRepository(initial = listOf(testFoodReview()))
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(),
+                    foodReviewRepository = foodReviewRepository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.deleteFoodReview(TEST_FOOD_REVIEW_ID)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(listOf(TEST_FOOD_REVIEW_ID), foodReviewRepository.deletedReviewIds)
+            assertTrue(state.foodReviews.isEmpty())
+            assertEquals(null, state.deleteError)
+        }
+
+    @Test
+    fun deleteFoodReview_setsDeleteErrorWhenRepositoryFails() =
+        runTest {
+            val foodReviewRepository =
+                RecordingSakeFoodReviewRepository(initial = listOf(testFoodReview())).apply {
+                    deleteFailure = IllegalStateException("delete failed")
+                }
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(),
+                    foodReviewRepository = foodReviewRepository,
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.deleteFoodReview(TEST_FOOD_REVIEW_ID)
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertNotNull(state.deleteError)
+            assertEquals(R.string.error_delete_food_review, state.deleteError?.messageResId)
+            assertEquals(1, state.foodReviews.size)
+        }
+
+    private fun testFoodReview(): SakeFoodReview =
+        SakeFoodReview(
+            id = TEST_FOOD_REVIEW_ID,
+            sakeId = TEST_SAKE_ID,
+            date = LocalDate.of(TEST_FOOD_REVIEW_YEAR, TEST_FOOD_REVIEW_MONTH, TEST_FOOD_REVIEW_DAY),
+            dish = "焼き鳥",
+            foodCompatibility = FoodCompatibility.GOOD,
+        )
 }

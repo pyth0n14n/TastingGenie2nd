@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -154,21 +155,25 @@ class SakeFoodReviewEditViewModel
             val sakeId = snapshot.sakeId
             val date = snapshot.date.toLocalDateOrNull()
             val dish = snapshot.dish.trimmedOrNull()
-            if (sakeId == null || date == null) {
+            if (snapshot.hasInvalidRequiredInput(sakeId = sakeId, date = date, dish = dish)) {
                 _uiState.update { it.copy(error = UiError(R.string.error_invalid_food_review_input)) }
                 return
             }
+            val requiredSakeId = checkNotNull(sakeId)
+            val requiredDate = checkNotNull(date)
+            val requiredDish = checkNotNull(dish)
+            val requiredFoodCompatibility = checkNotNull(snapshot.foodCompatibility)
             viewModelScope.launch {
                 _uiState.update { it.copy(isSaving = true, error = null) }
                 try {
                     foodReviewRepository.upsertFoodReview(
                         SakeFoodReviewInput(
                             id = snapshot.reviewId,
-                            sakeId = sakeId,
-                            date = date,
+                            sakeId = requiredSakeId,
+                            date = requiredDate,
                             bar = snapshot.bar.trimmedOrNull(),
-                            dish = dish,
-                            foodCompatibility = snapshot.foodCompatibility,
+                            dish = requiredDish,
+                            foodCompatibility = requiredFoodCompatibility,
                             temperature = snapshot.temperature,
                             freeComment = snapshot.freeComment.trimmedOrNull(),
                         ),
@@ -213,5 +218,17 @@ data class SakeFoodReviewEditUiState(
     val isInputLocked: Boolean
         get() = isSakeMissing || isEditTargetMissing
 }
+
+private fun SakeFoodReviewEditUiState.hasInvalidRequiredInput(
+    sakeId: Long?,
+    date: LocalDate?,
+    dish: String?,
+): Boolean =
+    listOf(
+        sakeId == null,
+        date == null,
+        dish == null,
+        foodCompatibility == null,
+    ).any { it }
 
 private fun String.trimmedOrNull(): String? = trim().takeIf { it.isNotEmpty() }

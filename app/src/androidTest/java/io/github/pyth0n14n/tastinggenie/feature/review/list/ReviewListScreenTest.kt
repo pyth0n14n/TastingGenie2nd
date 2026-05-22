@@ -5,15 +5,23 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Aroma
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.FoodCompatibility
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.feature.review.TEST_REVIEW_ID
 import io.github.pyth0n14n.tastinggenie.feature.review.testReview
+import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
 
 class ReviewListScreenTest {
+    private companion object {
+        const val TEST_FOOD_REVIEW_ID = 21L
+    }
+
     @get:Rule
     val composeRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -93,6 +101,62 @@ class ReviewListScreenTest {
         composeRule.onNodeWithText("このレビューを削除しますか？")
         composeRule.onNodeWithText("確定").performClick()
         composeRule.runOnIdle { assertEquals(TEST_REVIEW_ID, deletedReviewId) }
+    }
+
+    @Test
+    fun foodReviewDeleteAction_confirmsBeforeDeleting() {
+        var deletedReviewId: Long? = null
+        composeRule.setContent {
+            ReviewListScreen(
+                state =
+                    ReviewListUiState(
+                        isLoading = false,
+                        foodReviews = listOf(testFoodReview()),
+                    ),
+                initialTabName = AppDestination.REVIEW_LIST_TAB_FOOD,
+                onBack = {},
+                onAddReview = {},
+                actions =
+                    ReviewListActionHandlers(
+                        onOpenReview = {},
+                        onOpenSakeImage = {},
+                        onDeleteReview = {},
+                        onDeleteFoodReview = { reviewId -> deletedReviewId = reviewId },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("削除").performClick()
+        composeRule.onNodeWithText("この料理相性レビューを削除しますか？")
+        composeRule.onNodeWithText("確定").performClick()
+        composeRule.runOnIdle { assertEquals(TEST_FOOD_REVIEW_ID, deletedReviewId) }
+    }
+
+    @Test
+    fun foodReviewTab_addButtonCallsFoodReviewAction() {
+        var addedFoodReviewSakeId: Long? = null
+        composeRule.setContent {
+            ReviewListScreen(
+                state =
+                    ReviewListUiState(
+                        isLoading = false,
+                        sakeId = testReview().sakeId,
+                    ),
+                initialTabName = AppDestination.REVIEW_LIST_TAB_FOOD,
+                onBack = {},
+                onAddReview = {},
+                onAddFoodReview = { sakeId -> addedFoodReviewSakeId = sakeId },
+                actions =
+                    ReviewListActionHandlers(
+                        onOpenReview = {},
+                        onOpenSakeImage = {},
+                        onDeleteReview = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("追加").performClick()
+        composeRule.runOnIdle { assertEquals(testReview().sakeId, addedFoodReviewSakeId) }
     }
 
     @Test
@@ -198,4 +262,13 @@ class ReviewListScreenTest {
         composeRule.onNodeWithText("自由コメント").assertDoesNotExist()
         composeRule.onNodeWithText("留意点").assertDoesNotExist()
     }
+
+    private fun testFoodReview(): SakeFoodReview =
+        SakeFoodReview(
+            id = TEST_FOOD_REVIEW_ID,
+            sakeId = testReview().sakeId,
+            date = LocalDate.of(2026, 5, 17),
+            dish = "焼き鳥",
+            foodCompatibility = FoodCompatibility.GOOD,
+        )
 }

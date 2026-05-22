@@ -137,8 +137,8 @@
 | sakeId | Long | FK |
 | date | LocalDate | 必須 |
 | bar | String | 任意 |
-| dish | String | 任意 |
-| foodCompatibility | Enum | 任意 |
+| dish | String | UI保存時必須（既存データ・復元互換では null 可） |
+| foodCompatibility | Enum | UI保存時必須（既存データ・復元互換では null 可） |
 | temperature | Enum | 任意 |
 | freeComment | String | 任意 |
 
