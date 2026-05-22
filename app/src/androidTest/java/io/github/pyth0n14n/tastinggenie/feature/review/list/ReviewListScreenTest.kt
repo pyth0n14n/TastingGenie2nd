@@ -1,6 +1,8 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -157,6 +159,43 @@ class ReviewListScreenTest {
 
         composeRule.onNodeWithContentDescription("追加").performClick()
         composeRule.runOnIdle { assertEquals(testReview().sakeId, addedFoodReviewSakeId) }
+    }
+
+    @Test
+    fun switchingTabs_changesAddButtonTarget() {
+        var addedReviewSakeId: Long? = null
+        var addedFoodReviewSakeId: Long? = null
+        composeRule.setContent {
+            ReviewListScreen(
+                state =
+                    ReviewListUiState(
+                        isLoading = false,
+                        sakeId = testReview().sakeId,
+                    ),
+                onBack = {},
+                onAddReview = { sakeId -> addedReviewSakeId = sakeId },
+                onAddFoodReview = { sakeId -> addedFoodReviewSakeId = sakeId },
+                actions =
+                    ReviewListActionHandlers(
+                        onOpenReview = {},
+                        onOpenSakeImage = {},
+                        onDeleteReview = {},
+                    ),
+            )
+        }
+
+        composeRule.onNode(hasText("料理相性") and hasClickAction()).performClick()
+        composeRule.onNodeWithText("料理相性レビューはまだありません\n料理と合わせた印象を記録できます")
+        composeRule.onNodeWithContentDescription("追加").performClick()
+        composeRule.runOnIdle {
+            assertEquals(null, addedReviewSakeId)
+            assertEquals(testReview().sakeId, addedFoodReviewSakeId)
+        }
+
+        composeRule.onNode(hasText("酒レビュー") and hasClickAction()).performClick()
+        composeRule.onNodeWithText("登録されたレビューがありません")
+        composeRule.onNodeWithContentDescription("追加").performClick()
+        composeRule.runOnIdle { assertEquals(testReview().sakeId, addedReviewSakeId) }
     }
 
     @Test

@@ -14,6 +14,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
+import io.github.pyth0n14n.tastinggenie.domain.model.kikisakeShiReviewItemIds
 import io.github.pyth0n14n.tastinggenie.domain.model.normalReviewItemIds
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewModeRepository
@@ -86,6 +87,24 @@ class ReviewEditViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.showHelpHints)
             assertFalse(state.showReviewSoundness)
+        }
+
+    @Test
+    fun loadInitial_appliesKikisakeShiReviewModeItems() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    settingsRepository = FakeSettingsRepository(AppSettings(reviewModeId = ReviewMode.KIKISAKE_SHI.id)),
+                    reviewModeRepository = FakeReviewModeRepository(enabledItemIds = kikisakeShiReviewItemIds),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(kikisakeShiReviewItemIds, state.enabledItemIds)
+            assertTrue(state.isItemEnabled(ReviewItemId.AROMA_MAIN_NOTE))
+            assertTrue(state.isItemEnabled(ReviewItemId.TASTE_DESCRIPTION))
+            assertFalse(state.isItemEnabled(ReviewItemId.AROMA_COMPLEXITY))
         }
 
     @Test
@@ -534,7 +553,9 @@ private class FakeSettingsRepository(
     }
 }
 
-private class FakeReviewModeRepository : ReviewModeRepository {
+private class FakeReviewModeRepository(
+    private val enabledItemIds: Set<ReviewItemId> = normalReviewItemIds,
+) : ReviewModeRepository {
     override fun observeModes(): Flow<List<ReviewModeDefinition>> =
         flowOf(
             listOf(
@@ -542,12 +563,12 @@ private class FakeReviewModeRepository : ReviewModeRepository {
                     id = ReviewMode.NORMAL.id,
                     label = "通常",
                     isBuiltIn = true,
-                    enabledItemIds = normalReviewItemIds,
+                    enabledItemIds = enabledItemIds,
                 ),
             ),
         )
 
-    override fun observeEnabledItemIds(modeId: String): Flow<Set<ReviewItemId>> = flowOf(normalReviewItemIds)
+    override fun observeEnabledItemIds(modeId: String): Flow<Set<ReviewItemId>> = flowOf(enabledItemIds)
 
     override suspend fun ensureBuiltInModes() = Unit
 }

@@ -66,15 +66,15 @@
 | ☑ | 画像未登録 | 画像なし酒で placeholder と「画像が登録されていません」が自然に出る | androidTest ◎ / UnitTest △。既存 androidTest で酒一覧 placeholder と画像ビューア空状態を確認済み。 |
 | ☑ | 非対応画像 | GIF/PDFなどを選んだ場合に対応外エラーが出る | UnitTest ◎ / androidTest △。既存 UnitTest で MIME rejection と ViewModel エラー変換を確認済み。Picker stub UIは追加候補。 |
 | ☑ | 10MB超画像 | サイズ超過画像でエラーが出る | UnitTest ◎ / androidTest △。既存 UnitTest でサイズ超過と部分ファイル削除、ViewModel エラー変換を確認済み。 |
-| ☐ | 画像編集キャンセル | 画像追加・削除後に保存せず戻った場合、既存データが変わらない | androidTest ◎ / UnitTest ○。差分管理は一部UnitTest可能だが、現状は専用のキャンセル確認が不足。 |
+| ☑ | 画像編集キャンセル | 画像追加・削除後に保存せず戻った場合、既存データが変わらない | androidTest ◎ / UnitTest ○。`SakeEditViewModelImageCleanupTest` で画像追加・既存画像削除後に保存しない場合、永続化済み画像が変わらず、未保存の一時画像だけcleanupされることを確認済み。 |
 | ☑ | レビュー入力モード 通常 | 通常モードで通常向け項目だけが表示される | androidTest ◎ / UnitTest ○。既存 UnitTest で通常モード定義を確認済み。UI表示差分は追加候補。 |
-| ☐ | レビュー入力モード 利酒師 | 利酒師モードで記述系項目が表示され、通常モードとの差分が反映される | androidTest ◎ / UnitTest ○。現状、利酒師モード固有の項目差分テストは不足。追加候補。 |
+| ☑ | レビュー入力モード 利酒師 | 利酒師モードで記述系項目が表示され、通常モードとの差分が反映される | UnitTest ○ / androidTest ◎。`ReviewModeTest` と `ReviewEditViewModelTest` で利酒師モードの有効項目、記述系項目、通常モードとの差分を確認済み。UI表示差分は追加余地あり。 |
 | ☑ | レビュー入力モード デバッグ | 全項目が表示される | androidTest ◎ / UnitTest ○。既存 UnitTest で debug モードが全項目を有効化することを確認済み。UI表示差分は追加候補。 |
 | ☑ | ヘルプ表示トグル | ヘルプ表示 OFF でレビュー項目のヘルプ導線が消え、ON で戻る | androidTest ◎ / UnitTest ○。既存 androidTest で酒編集/レビュー編集のヘルプ表示切替、UnitTest で設定反映を確認済み。 |
 | ☑ | レビュー詳細 accordion | 香り、味、基本情報、見た目、メモ・評価の開閉ができる | androidTest ◎ / UnitTest △。既存 androidTest で初期折り畳みと開閉を確認済み。 |
 | ☑ | 未入力項目の詳細表示 | 未入力項目が詳細で過剰に表示されない | androidTest ◎ / UnitTest ○。既存 androidTest で空セクション非表示を確認済み。 |
 | ☑ | 平均評価 | 複数レビュー登録時、酒一覧・レビュー一覧の平均評価が更新される | UnitTest ◎ / androidTest ◎。既存 UnitTest/Repository test と androidTest で平均評価を確認済み。 |
-| ☐ | レビュー一覧タブ | 酒レビュー/料理相性タブを切り替え、FAB の追加先がタブに応じて変わる | androidTest ◎ / UnitTest △。現状は料理相性件数表示の一部のみで、タブ切替とFAB分岐のテストが不足。 |
+| ☑ | レビュー一覧タブ | 酒レビュー/料理相性タブを切り替え、FAB の追加先がタブに応じて変わる | androidTest ◎ / UnitTest △。`ReviewListScreenTest` で酒レビュー/料理相性タブ切替、空状態表示、FAB追加先の分岐を確認済み。 |
 | ☑ | 設定中の転送状態 | バックアップ処理中に多重実行できず、「読み書き中」が出る | androidTest ◎ / UnitTest ○。既存 UnitTest で処理中/キャンセル/再表示時フィードバックを確認済み。UI多重操作は追加候補。 |
 | ☑ | 復元後の設定 | バックアップ内の設定、レビュー入力モード、健全度表示が復元される | UnitTest ◎ / androidTest ○。既存 UnitTest で settings と reviewMode の export/restore を確認済み。画面反映は追加候補。 |
 | ☑ | 用語集 | 設定から用語集に遷移し、戻れる | androidTest ◎ / UnitTest ×。既存 androidTest で設定行 callback を確認済み。NavHost の実遷移は追加候補。 |
@@ -95,4 +95,3 @@
 | ☐ | アプリ再起動 | 保存済みの酒、レビュー、画像、設定が再起動後も残る | androidTest ◎ / UnitTest ○。Repository/DataStore の永続化テストはあるが、アプリ再起動E2Eは不足。 |
 | ☐ | 戻る連打/保存連打 | 連打しても二重保存・クラッシュしない | androidTest ◎ / UnitTest ○。保存中ボタン無効化の表示は一部あるが、連打耐性としては不足。 |
 | ☑ | アクセシビリティ | 主要ボタン、画像、削除、ピン留め、星評価の読み上げラベルが最低限成立する | androidTest ○ / UnitTest △。既存 androidTest で contentDescription / semantics の一部を確認済み。全主要操作は追加余地あり。 |
-
