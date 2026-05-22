@@ -1,7 +1,11 @@
 package io.github.pyth0n14n.tastinggenie.feature.sake.edit
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
@@ -11,6 +15,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeUp
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterOption
@@ -71,6 +76,43 @@ class SakeEditScreenTest {
 
         composeRule.onNodeWithText("保存").performClick()
         composeRule.runOnIdle { assertTrue(saveCalled) }
+    }
+
+    @Test
+    fun backWithUnsavedChanges_showsDiscardDialogAndConfirmsBeforeLeaving() {
+        var backCalled = false
+        composeRule.setContent {
+            var state by mutableStateOf(
+                SakeEditUiState(
+                    isLoading = false,
+                    gradeOptions = listOf(MasterOption(value = SakeGrade.JUNMAI.name, label = "純米")),
+                ),
+            )
+            SakeEditScreen(
+                state = state,
+                callbacks =
+                    defaultCallbacks(
+                        onTextChanged = { field, value ->
+                            if (field == SakeTextField.NAME) {
+                                state = state.copy(name = value)
+                            }
+                        },
+                    ),
+                onSave = {},
+                onBack = { backCalled = true },
+            )
+        }
+
+        composeRule.onNode(hasText("銘柄名 *") and hasSetTextAction()).performTextInput("テスト銘柄")
+        composeRule.onNodeWithContentDescription("戻る").performClick()
+        composeRule.onNodeWithText("下書きを破棄する").assertIsDisplayed()
+        composeRule.onNodeWithText("キャンセル").performClick()
+        composeRule.onNodeWithText("下書きを破棄する").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(false, backCalled) }
+
+        composeRule.onNodeWithContentDescription("戻る").performClick()
+        composeRule.onNodeWithText("確定").performClick()
+        composeRule.runOnIdle { assertTrue(backCalled) }
     }
 
     @Test

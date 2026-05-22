@@ -6,12 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import io.github.pyth0n14n.tastinggenie.R
@@ -49,6 +52,42 @@ class ReviewEditScreenTest {
 
         composeRule.onNodeWithContentDescription("戻る").assertIsDisplayed()
         composeRule.onNodeWithText("戻る").assertDoesNotExist()
+    }
+
+    @Test
+    fun backWithUnsavedChanges_showsDiscardDialogAndConfirmsBeforeLeaving() {
+        var backCalled = false
+        composeRule.setContent {
+            var state by mutableStateOf(ReviewEditUiState(isLoading = false))
+            ReviewEditScreen(
+                onBack = { backCalled = true },
+                content =
+                    ReviewEditScreenContent(
+                        state = state,
+                        onAction = { action ->
+                            if (action is ReviewEditAction.TextChanged) {
+                                state = state.withText(action.field, action.value)
+                            }
+                        },
+                        onSave = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNode(hasText("店名") and hasSetTextAction()).performTextInput("テスト店")
+        composeRule.onNodeWithContentDescription("戻る").performClick()
+        composeRule.onNodeWithText("下書きを破棄する").assertIsDisplayed()
+        composeRule.onNodeWithText("キャンセル").performClick()
+        composeRule.onNodeWithText("下書きを破棄する").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(false, backCalled) }
+
+        composeRule.onNodeWithContentDescription("戻る").performClick()
+        composeRule.onNodeWithText("確定").performClick()
+        composeRule.runOnIdle { assertEquals(true, backCalled) }
     }
 
     @Test

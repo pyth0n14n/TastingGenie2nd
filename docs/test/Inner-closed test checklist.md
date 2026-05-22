@@ -44,7 +44,7 @@
 | ☑ | 画像追加 | 酒編集でギャラリーから JPEG/PNG/WebP を追加し、保存後に酒一覧・レビュー一覧・画像ビューアで表示される | androidTest △ / UnitTest ○。実ギャラリーは避ける。既存 UnitTest で import/persist、既存 androidTest で画像ボタン・表示を一部確認済み。 |
 | ☑ | カメラ撮影画像 | カメラで撮影して保存でき、保存後に画像が残る | androidTest △ / UnitTest △。実カメラは手動。既存 androidTest は撮影 callback、UnitTest は一時capture cleanupを確認済み。 |
 | ☑ | 画像削除 | 画像削除時に確認ダイアログが出る。保存後、該当画像が消える | androidTest ◎ / UnitTest ○。既存 androidTest で確認Dialog、UnitTest で保存後削除/cleanupを確認済み。 |
-| ☐ | 下書き破棄 | 酒編集・レビュー編集・料理相性編集で入力後に戻ると破棄確認が出る。キャンセルで画面に残り、確定で戻る | androidTest ◎ / UnitTest △。BackHandler/Dialog の画面テストが主対象。現状は専用テスト不足。 |
+| ☑ | 下書き破棄 | 酒編集・レビュー編集・料理相性編集で入力後に戻ると破棄確認が出る。キャンセルで画面に残り、確定で戻る | androidTest ◎ / UnitTest △。`SakeEditScreenTest`、`ReviewEditScreenTest`、`SakeFoodReviewEditScreenTest` で入力変更後の戻る、破棄Dialog、キャンセル、確定を確認済み。 |
 | ☑ | 設定の永続化 | ヘルプ表示、健全度表示、レビュー入力モードを変更し、画面遷移・アプリ再起動後も反映される | androidTest ◎ / UnitTest ◎。既存 UnitTest で Settings ViewModel/Repository を確認済み。再起動込みは androidTest 追加候補。 |
 | ☑ | 健全度非表示 | 設定で健全度を非表示にすると、レビュー入力・詳細で健全度が出ない | androidTest ◎ / UnitTest ○。既存 UnitTest で非表示時の保存値初期化、既存 androidTest で一部表示条件を確認済み。 |
 | ☑ | バックアップ書き出し | 設定から ZIP バックアップを書き出せる。完了メッセージが出る | UnitTest ◎ / androidTest △。既存 UnitTest で ZIP 生成、SettingsViewModel 成功/失敗を確認済み。SAF実UIは手動。 |
@@ -95,5 +95,4 @@
 | ☐ | アプリ再起動 | 保存済みの酒、レビュー、画像、設定が再起動後も残る | androidTest ◎ / UnitTest ○。Repository/DataStore の永続化テストはあるが、アプリ再起動E2Eは不足。 |
 | ☐ | 戻る連打/保存連打 | 連打しても二重保存・クラッシュしない | androidTest ◎ / UnitTest ○。保存中ボタン無効化の表示は一部あるが、連打耐性としては不足。 |
 | ☑ | アクセシビリティ | 主要ボタン、画像、削除、ピン留め、星評価の読み上げラベルが最低限成立する | androidTest ○ / UnitTest △。既存 androidTest で contentDescription / semantics の一部を確認済み。全主要操作は追加余地あり。 |
-
 
