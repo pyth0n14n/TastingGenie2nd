@@ -34,7 +34,7 @@ data class ReviewEditUiState(
     val reviewId: ReviewId? = null,
     val sakeName: String = "",
     val showHelpHints: Boolean = true,
-    val showReviewSoundness: Boolean = true,
+    val showReviewSoundness: Boolean = false,
     val enabledItemIds: Set<ReviewItemId> = emptySet(),
     val date: String = defaultReviewDateText(),
     val bar: String = "",

@@ -168,7 +168,7 @@
 | 項目 | 型 | 必須 |
 |------|----|------|
 | showHelpHints | Boolean | 必須（既定値: true） |
-| showReviewSoundness | Boolean | 必須（既定値: true） |
+| showReviewSoundness | Boolean | 必須（既定値: false） |
 | reviewModeId | String | 必須（既定値: `normal`） |
 
 ---

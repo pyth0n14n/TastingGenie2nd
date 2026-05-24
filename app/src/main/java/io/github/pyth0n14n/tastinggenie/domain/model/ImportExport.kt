@@ -25,7 +25,7 @@ data class BackupManifest(
 @Serializable
 data class SerializableAppSettings(
     val showHelpHints: Boolean = true,
-    val showReviewSoundness: Boolean = true,
+    val showReviewSoundness: Boolean = false,
     val reviewModeId: String = ReviewMode.NORMAL.id,
 )
 

@@ -120,6 +120,7 @@ class ReviewEditViewModelTest {
                             ),
                         ),
                     reviewRepository = RecordingReviewRepository(listOf(testReview())),
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = true)),
                 )
             advanceUntilIdle()
 
@@ -173,6 +174,7 @@ class ReviewEditViewModelTest {
                 reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     reviewRepository = repository,
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = true)),
                 )
             advanceUntilIdle()
 
@@ -192,6 +194,7 @@ class ReviewEditViewModelTest {
                 reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     reviewRepository = repository,
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = true)),
                 )
             advanceUntilIdle()
 
@@ -269,6 +272,7 @@ class ReviewEditViewModelTest {
                 reviewEditViewModel(
                     savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
                     reviewRepository = repository,
+                    settingsRepository = FakeSettingsRepository(AppSettings(showReviewSoundness = true)),
                 )
             advanceUntilIdle()
 

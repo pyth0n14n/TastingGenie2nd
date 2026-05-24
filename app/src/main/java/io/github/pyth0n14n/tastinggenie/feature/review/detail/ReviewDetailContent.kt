@@ -160,7 +160,7 @@ data class ReviewDetailContentState(
     val review: Review,
     val sakeName: String,
     val labels: ReviewDetailLabels,
-    val showReviewSoundness: Boolean = true,
+    val showReviewSoundness: Boolean = false,
 )
 
 @Composable

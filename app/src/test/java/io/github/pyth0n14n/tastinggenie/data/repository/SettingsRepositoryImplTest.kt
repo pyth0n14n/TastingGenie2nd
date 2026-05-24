@@ -13,7 +13,7 @@ import java.util.UUID
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsRepositoryImplTest {
     @Test
-    fun observeSettings_defaultsToEnabledFlags() =
+    fun observeSettings_defaultsToConfiguredFlags() =
         runTest {
             val repository = createRepository()
 

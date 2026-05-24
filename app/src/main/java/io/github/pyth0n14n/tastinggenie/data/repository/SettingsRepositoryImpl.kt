@@ -60,7 +60,7 @@ class SettingsRepositoryImpl
         private fun Preferences.toAppSettings(): AppSettings =
             AppSettings(
                 showHelpHints = this[showHelpHintsKey] ?: true,
-                showReviewSoundness = this[showReviewSoundnessKey] ?: true,
+                showReviewSoundness = this[showReviewSoundnessKey] ?: false,
                 reviewModeId = this[reviewModeIdKey] ?: ReviewMode.NORMAL.id,
             )
     }
