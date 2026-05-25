@@ -35,7 +35,7 @@
 | 味 | 具体的な味わい：旨味 | TASTE_UMAMI | tasteUmami | 〇 | - | 〇 | taste scale |
 | 味 | 具体的な味わい：苦味 | TASTE_BITTERNESS | tasteBitterness | 〇 | - | 〇 | taste scale |
 | 味 | 具体的な味わい：自由記述 | TASTE_DESCRIPTION | tasteDescription | - | 〇 | 〇 | String |
-| 味 | 甘辛度 | TASTE_SWEET_DRYNESS | tasteSweetDryness | 〇 | 〇 | 〇 | SWEET, MEDIUM_SWEET, MEDIUM_DRY, DRY |
+| 味 | 甘辛度 | TASTE_SWEET_DRYNESS | tasteSweetDryness | 〇 | 〇 | 〇 | SWEET, MEDIUM_SWEET, MEDIUM, MEDIUM_DRY, DRY |
 | 味 | 含み香：強さ | TASTE_IN_PALATE_AROMA_INTENSITY | tasteInPalateAromaIntensity | 〇 | 〇 | 〇 | intensity master |
 | 味 | 含み香：具体例 | TASTE_IN_PALATE_AROMA_EXAMPLES | tasteInPalateAroma | 〇 | 〇 | 〇 | aroma master |
 | 味 | 余韻：長さ | TASTE_AFTERTASTE_LENGTH | tasteAftertaste | 〇 | 〇 | 〇 | taste scale aftertaste labels |

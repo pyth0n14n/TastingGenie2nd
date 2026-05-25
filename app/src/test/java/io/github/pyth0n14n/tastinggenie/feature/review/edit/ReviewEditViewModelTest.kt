@@ -12,6 +12,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.enums.IntensityLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.OverallReview
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.ReviewSoundness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.SakeColor
+import io.github.pyth0n14n.tastinggenie.domain.model.enums.SweetDryness
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.TasteLevel
 import io.github.pyth0n14n.tastinggenie.domain.model.enums.Temperature
 import io.github.pyth0n14n.tastinggenie.domain.model.kikisakeShiReviewItemIds
@@ -325,6 +326,30 @@ class ReviewEditViewModelTest {
             val savedInput = repository.savedInputs.single()
             assertEquals(SakeColor.OTHER, savedInput.appearanceColor)
             assertEquals("桃色", savedInput.appearanceColorOther)
+        }
+
+    @Test
+    fun save_withMediumSweetDryness_persistsMediumValue() =
+        runTest {
+            val repository = RecordingReviewRepository()
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    reviewRepository = repository,
+                )
+            advanceUntilIdle()
+
+            viewModel.onAction(
+                ReviewEditAction.SelectionChanged(
+                    field = ReviewSelectionField.TASTE_SWEET_DRYNESS,
+                    value = SweetDryness.MEDIUM.name,
+                ),
+            )
+            viewModel.save()
+            advanceUntilIdle()
+
+            val savedInput = repository.savedInputs.single()
+            assertEquals(SweetDryness.MEDIUM, savedInput.tasteSweetDryness)
         }
 
     @Test

@@ -93,6 +93,7 @@ fun sweetDrynessOptions(): List<ReviewResourceOption> =
             value = SweetDryness.MEDIUM_SWEET.name,
             labelRes = R.string.label_sweet_dryness_medium_sweet,
         ),
+        ReviewResourceOption(value = SweetDryness.MEDIUM.name, labelRes = R.string.label_sweet_dryness_medium),
         ReviewResourceOption(
             value = SweetDryness.MEDIUM_DRY.name,
             labelRes = R.string.label_sweet_dryness_medium_dry,

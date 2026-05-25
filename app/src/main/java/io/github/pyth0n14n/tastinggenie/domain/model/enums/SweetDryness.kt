@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 enum class SweetDryness {
     SWEET,
     MEDIUM_SWEET,
+    MEDIUM,
     MEDIUM_DRY,
     DRY,
 }
