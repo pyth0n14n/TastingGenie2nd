@@ -5,12 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.MasterDataBundle
+import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeFoodReviewRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.SakeRepository
+import io.github.pyth0n14n.tastinggenie.domain.repository.SettingsRepository
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +33,7 @@ class ReviewListViewModel
         private val reviewRepository: ReviewRepository,
         private val foodReviewRepository: SakeFoodReviewRepository,
         private val masterDataRepository: MasterDataRepository,
+        private val settingsRepository: SettingsRepository = NoOpSettingsRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(ReviewListUiState())
         val uiState: StateFlow<ReviewListUiState> = _uiState.asStateFlow()
@@ -120,6 +124,8 @@ class ReviewListViewModel
                 .observeReviews(sakeId)
                 .combine(foodReviewRepository.observeFoodReviews(sakeId)) { reviews, foodReviews ->
                     reviews to foodReviews
+                }.combine(settingsRepository.observeSettings()) { reviewLists, settings ->
+                    Triple(reviewLists.first, reviewLists.second, settings)
                 }.catch { throwable ->
                     _uiState.update {
                         it.copy(
@@ -138,7 +144,8 @@ class ReviewListViewModel
                                 ),
                         )
                     }
-                }.collect { (reviews, foodReviews) ->
+                }.collect { (reviews, foodReviews, settings) ->
+                    markReviewCoachmarkSeenAfterDataAdded(reviews, settings)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -154,9 +161,35 @@ class ReviewListViewModel
                             aromaLabels = labels.aromaLabels,
                             tasteLabels = labels.tasteLabels,
                             isSakeMissing = false,
+                            onboardingCompleted = settings.onboardingCompleted,
+                            reviewEmptyFabCoachmarkSeen = settings.reviewEmptyFabCoachmarkSeen,
                         )
                     }
                 }
+        }
+
+        private suspend fun markReviewCoachmarkSeenAfterDataAdded(
+            reviews: List<Review>,
+            settings: AppSettings,
+        ) {
+            if (reviews.isNotEmpty() && settings.onboardingCompleted && !settings.reviewEmptyFabCoachmarkSeen) {
+                settingsRepository.updateReviewEmptyFabCoachmarkSeen(seen = true)
+            }
+        }
+
+        fun addReviewFromFab(onAddReview: () -> Unit) {
+            viewModelScope.launch {
+                if (_uiState.value.shouldShowReviewEmptyFabCoachmark) {
+                    settingsRepository.updateReviewEmptyFabCoachmarkSeen(seen = true)
+                }
+                onAddReview()
+            }
+        }
+
+        fun dismissReviewEmptyFabCoachmark() {
+            viewModelScope.launch {
+                settingsRepository.updateReviewEmptyFabCoachmarkSeen(seen = true)
+            }
         }
 
         @Suppress("TooGenericExceptionCaught")
@@ -225,6 +258,20 @@ class ReviewListViewModel
             }
         }
     }
+
+private object NoOpSettingsRepository : SettingsRepository {
+    override fun observeSettings() = MutableStateFlow(AppSettings())
+
+    override suspend fun getCurrentSettings() = AppSettings()
+
+    override suspend fun updateShowHelpHints(enabled: Boolean) = Unit
+
+    override suspend fun updateShowReviewSoundness(enabled: Boolean) = Unit
+
+    override suspend fun updateReviewMode(modeId: String) = Unit
+
+    override suspend fun replaceSettings(settings: AppSettings) = Unit
+}
 
 private fun SavedStateHandle.reviewListSakeId(): Long = get<Long>(AppDestination.ARG_SAKE_ID) ?: AppDestination.NO_ID
 

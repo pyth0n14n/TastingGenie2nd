@@ -14,5 +14,11 @@ interface SettingsRepository {
 
     suspend fun updateReviewMode(modeId: String)
 
+    suspend fun updateOnboardingCompleted(completed: Boolean) = Unit
+
+    suspend fun updateSakeEmptyFabCoachmarkSeen(seen: Boolean) = Unit
+
+    suspend fun updateReviewEmptyFabCoachmarkSeen(seen: Boolean) = Unit
+
     suspend fun replaceSettings(settings: AppSettings)
 }

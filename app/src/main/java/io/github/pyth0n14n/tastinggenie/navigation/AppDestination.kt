@@ -11,6 +11,7 @@ object AppDestination {
     const val REVIEW_LIST_TAB_FOOD = "FOOD_REVIEW"
     const val NO_ID = -1L
 
+    const val ONBOARDING = "onboarding"
     const val SAKE_LIST = "sake/list"
     const val SAKE_EDIT = "sake/edit?$ARG_SAKE_ID={$ARG_SAKE_ID}"
     const val REVIEW_LIST = "review/list/{$ARG_SAKE_ID}"

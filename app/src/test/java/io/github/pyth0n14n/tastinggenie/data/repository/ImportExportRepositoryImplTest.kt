@@ -104,7 +104,15 @@ class ImportExportRepositoryImplTest {
             database.reviewDao().insert(sampleReviewEntity())
             database.reviewModeDao().upsertModes(listOf(ReviewModeEntity("normal", "通常", true)))
             database.reviewModeDao().upsertModeItems(listOf(ReviewModeItemEntity("normal", "APPEARANCE_COLOR", true)))
-            settingsRepository.replaceSettings(AppSettings(showHelpHints = false, reviewModeId = "normal"))
+            settingsRepository.replaceSettings(
+                AppSettings(
+                    showHelpHints = false,
+                    reviewModeId = "normal",
+                    onboardingCompleted = true,
+                    sakeEmptyFabCoachmarkSeen = true,
+                    reviewEmptyFabCoachmarkSeen = true,
+                ),
+            )
 
             val output = ByteArrayOutputStream()
             repository.exportBackup(output).getOrThrow()
@@ -115,6 +123,9 @@ class ImportExportRepositoryImplTest {
             assertTrue(entries.containsKey("data.json"))
             assertEquals(CURRENT_SCHEMA_VERSION, payload.schemaVersion)
             assertEquals(false, payload.settings.showHelpHints)
+            assertEquals(true, payload.settings.onboardingCompleted)
+            assertEquals(true, payload.settings.sakeEmptyFabCoachmarkSeen)
+            assertEquals(true, payload.settings.reviewEmptyFabCoachmarkSeen)
             assertEquals("テスト酒", payload.sakes.single().name)
             assertEquals("桃色", payload.reviews.single().appearanceColorOther)
             assertEquals("normal", payload.reviewModes.single().id)
@@ -142,7 +153,14 @@ class ImportExportRepositoryImplTest {
             settingsRepository.replaceSettings(AppSettings(showHelpHints = true))
             val payload =
                 samplePayload(
-                    settings = SerializableAppSettings(showHelpHints = false, reviewModeId = "normal"),
+                    settings =
+                        SerializableAppSettings(
+                            showHelpHints = false,
+                            reviewModeId = "normal",
+                            onboardingCompleted = true,
+                            sakeEmptyFabCoachmarkSeen = true,
+                            reviewEmptyFabCoachmarkSeen = true,
+                        ),
                     sakes = listOf(sampleSerializableSake().copy(imageUris = listOf("images/sakes/source.jpg"))),
                     reviews = listOf(sampleSerializableReview()),
                 )
@@ -161,6 +179,9 @@ class ImportExportRepositoryImplTest {
             assertEquals(SAMPLE_REVIEW_ID, storedReview.id)
             assertEquals(storedSake.id, storedReview.sakeId)
             assertEquals(false, settingsRepository.getCurrentSettings().showHelpHints)
+            assertEquals(true, settingsRepository.getCurrentSettings().onboardingCompleted)
+            assertEquals(true, settingsRepository.getCurrentSettings().sakeEmptyFabCoachmarkSeen)
+            assertEquals(true, settingsRepository.getCurrentSettings().reviewEmptyFabCoachmarkSeen)
             val restoredUri = storedSake.imageUris.single()
             assertNotEquals("images/sakes/source.jpg", restoredUri)
             assertEquals("new image", File(checkNotNull(Uri.parse(restoredUri).path)).readText())

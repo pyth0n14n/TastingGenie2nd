@@ -16,9 +16,14 @@ data class SakeListUiState(
     val prefectureLabels: Map<String, String> = emptyMap(),
     val overallReviewLabels: Map<String, String> = emptyMap(),
     val showHelpHints: Boolean = true,
+    val onboardingCompleted: Boolean = false,
+    val sakeEmptyFabCoachmarkSeen: Boolean = false,
 ) {
     val displayedSakes: List<SakeListSummary>
         get() = sortedSakes(filteredSakes())
+
+    val shouldShowEmptyFabCoachmark: Boolean
+        get() = sakes.isEmpty() && onboardingCompleted && !sakeEmptyFabCoachmarkSeen
 
     private fun filteredSakes(): List<SakeListSummary> {
         val query = searchQuery.trim()

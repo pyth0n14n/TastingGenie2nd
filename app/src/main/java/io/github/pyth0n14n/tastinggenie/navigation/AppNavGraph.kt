@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.pyth0n14n.tastinggenie.feature.help.HelpRoute
+import io.github.pyth0n14n.tastinggenie.feature.onboarding.OnboardingRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
@@ -25,16 +26,46 @@ import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRouteActions
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListTopBarActions
 import io.github.pyth0n14n.tastinggenie.feature.settings.SettingsRoute
+import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(startViewModel: AppStartViewModel = hiltViewModel()) {
+    val settings by startViewModel.settings.collectAsStateWithLifecycle()
+    val currentSettings =
+        settings ?: run {
+            LoadingContent()
+            return
+        }
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = AppDestination.SAKE_LIST,
+        startDestination =
+            if (currentSettings.onboardingCompleted) {
+                AppDestination.SAKE_LIST
+            } else {
+                AppDestination.ONBOARDING
+            },
     ) {
+        addOnboardingGraph(navController)
         addSakeGraph(navController)
         addReviewGraph(navController)
+    }
+}
+
+private fun NavGraphBuilder.addOnboardingGraph(navController: NavHostController) {
+    composable(AppDestination.ONBOARDING) {
+        OnboardingRoute(
+            onSkip = {
+                navController.navigate(AppDestination.SAKE_LIST) {
+                    popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                }
+            },
+            onCreateSake = {
+                navController.navigate(AppDestination.sakeEditRoute(sakeId = null)) {
+                    popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                }
+            },
+        )
     }
 }
 

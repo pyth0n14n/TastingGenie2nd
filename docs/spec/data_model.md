@@ -170,6 +170,13 @@
 | showHelpHints | Boolean | 必須（既定値: true） |
 | showReviewSoundness | Boolean | 必須（既定値: false） |
 | reviewModeId | String | 必須（既定値: `normal`） |
+| onboardingCompleted | Boolean | 必須（既定値: false） |
+| sakeEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
+| reviewEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
+
+- `onboardingCompleted = false` の場合、アプリ起動時に初回オンボーディングを表示する。
+- `sakeEmptyFabCoachmarkSeen` は酒一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
+- `reviewEmptyFabCoachmarkSeen` はレビュー一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
 
 ---
 

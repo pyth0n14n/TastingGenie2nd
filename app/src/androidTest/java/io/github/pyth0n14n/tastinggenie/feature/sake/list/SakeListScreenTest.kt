@@ -496,7 +496,56 @@ class SakeListScreenTest {
         }
 
         composeRule.onNodeWithText("酒は削除しましたが画像の削除に失敗しました").assertIsDisplayed()
-        composeRule.onNodeWithText("登録された酒がありません").assertIsDisplayed()
+        composeRule.onNodeWithText("まだ酒が登録されていません").assertIsDisplayed()
+        composeRule.onNodeWithText("右下の＋から、飲んだ日本酒を登録できます。").assertIsDisplayed()
+    }
+
+    @Test
+    fun emptyFabCoachmark_displaysAndDismisses() {
+        var dismissed = false
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes = emptyList(),
+                        onboardingCompleted = true,
+                        sakeEmptyFabCoachmarkSeen = false,
+                    ),
+                actions =
+                    screenActions(
+                        onDismissEmptyFabCoachmark = { dismissed = true },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("ここから酒を登録").assertIsDisplayed()
+        composeRule.onNodeWithText("銘柄名と種類だけでも始められます。").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("閉じる").performClick()
+        composeRule.runOnIdle { assertTrue(dismissed) }
+    }
+
+    @Test
+    fun emptyFabCoachmark_hidesWhenListIsNotEmpty() {
+        composeRule.setContent {
+            SakeListScreen(
+                state =
+                    SakeListUiState(
+                        isLoading = false,
+                        sakes =
+                            listOf(
+                                SakeListSummary(
+                                    sake = Sake(id = 1L, name = "酒", grade = SakeGrade.JUNMAI),
+                                ),
+                            ),
+                        onboardingCompleted = true,
+                        sakeEmptyFabCoachmarkSeen = false,
+                    ),
+                actions = screenActions(),
+            )
+        }
+
+        composeRule.onNodeWithText("ここから酒を登録").assertDoesNotExist()
     }
 }
 
@@ -508,6 +557,7 @@ private fun screenActions(
     onDeleteSake: (Long) -> Unit = {},
     onTogglePinned: (Long, Boolean) -> Unit = { _, _ -> },
     onOpenSettings: () -> Unit = {},
+    onDismissEmptyFabCoachmark: () -> Unit = {},
 ): SakeListScreenActions =
     SakeListScreenActions(
         onCreateSake = onCreateSake,
@@ -523,4 +573,5 @@ private fun screenActions(
             SakeListTopBarActions(
                 onOpenSettings = onOpenSettings,
             ),
+        onDismissEmptyFabCoachmark = onDismissEmptyFabCoachmark,
     )

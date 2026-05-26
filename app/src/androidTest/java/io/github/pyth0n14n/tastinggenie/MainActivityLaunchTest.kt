@@ -19,18 +19,21 @@ class MainActivityLaunchTest {
     val composeRule = createEmptyComposeRule()
 
     @Before
-    fun clearDatabase() {
-        targetContext().deleteDatabase("tasting_genie.db")
+    fun clearStoredState() {
+        val context = targetContext()
+        context.deleteDatabase("tasting_genie.db")
+        context.filesDir
+            .resolve("datastore/settings.preferences_pb")
+            .delete()
     }
 
     @Test
-    fun firstLaunch_showsEmptySakeList() {
+    fun firstLaunch_showsOnboarding() {
         ActivityScenario.launch(MainActivity::class.java).use {
-            composeRule.onNodeWithText("ききさけ帖").assertIsDisplayed()
             composeRule.waitUntil(timeoutMillis = 5_000) {
-                composeRule.onAllNodesWithText("登録された酒がありません").fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("まずは酒を登録").fetchSemanticsNodes().isNotEmpty()
             }
-            composeRule.onNodeWithText("登録された酒がありません").assertIsDisplayed()
+            composeRule.onNodeWithText("まずは酒を登録").assertIsDisplayed()
         }
     }
 

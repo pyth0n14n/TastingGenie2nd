@@ -193,9 +193,44 @@ class ReviewListScreenTest {
         }
 
         composeRule.onNode(hasText("酒レビュー") and hasClickAction()).performClick()
-        composeRule.onNodeWithText("登録されたレビューがありません")
+        composeRule.onNodeWithText("まだレビューがありません")
+        composeRule.onNodeWithText("この酒を飲んだら、右下の＋からレビューを記録できます。")
         composeRule.onNodeWithContentDescription("追加").performClick()
         composeRule.runOnIdle { assertEquals(testReview().sakeId, addedReviewSakeId) }
+    }
+
+    @Test
+    fun emptyFabCoachmark_displaysOnlyOnSakeReviewTabAndDismisses() {
+        var dismissed = false
+        composeRule.setContent {
+            ReviewListScreen(
+                state =
+                    ReviewListUiState(
+                        isLoading = false,
+                        sakeId = testReview().sakeId,
+                        onboardingCompleted = true,
+                        reviewEmptyFabCoachmarkSeen = false,
+                    ),
+                onBack = {},
+                onAddReview = {},
+                onAddFoodReview = {},
+                actions =
+                    ReviewListActionHandlers(
+                        onOpenReview = {},
+                        onOpenSakeImage = {},
+                        onDeleteReview = {},
+                        onDismissReviewEmptyFabCoachmark = { dismissed = true },
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("ここからレビューを追加").assertExists()
+        composeRule.onNodeWithText("色・香り・味を選んで記録できます。").assertExists()
+        composeRule.onNode(hasText("料理相性") and hasClickAction()).performClick()
+        composeRule.onNodeWithText("ここからレビューを追加").assertDoesNotExist()
+        composeRule.onNode(hasText("酒レビュー") and hasClickAction()).performClick()
+        composeRule.onNodeWithContentDescription("閉じる").performClick()
+        composeRule.runOnIdle { assertEquals(true, dismissed) }
     }
 
     @Test

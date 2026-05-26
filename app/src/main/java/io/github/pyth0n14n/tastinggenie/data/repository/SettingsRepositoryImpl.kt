@@ -43,11 +43,32 @@ class SettingsRepositoryImpl
             }
         }
 
+        override suspend fun updateOnboardingCompleted(completed: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[onboardingCompletedKey] = completed
+            }
+        }
+
+        override suspend fun updateSakeEmptyFabCoachmarkSeen(seen: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[sakeEmptyFabCoachmarkSeenKey] = seen
+            }
+        }
+
+        override suspend fun updateReviewEmptyFabCoachmarkSeen(seen: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[reviewEmptyFabCoachmarkSeenKey] = seen
+            }
+        }
+
         override suspend fun replaceSettings(settings: AppSettings) {
             dataStore.edit { preferences ->
                 preferences[showHelpHintsKey] = settings.showHelpHints
                 preferences[showReviewSoundnessKey] = settings.showReviewSoundness
                 preferences[reviewModeIdKey] = settings.reviewModeId
+                preferences[onboardingCompletedKey] = settings.onboardingCompleted
+                preferences[sakeEmptyFabCoachmarkSeenKey] = settings.sakeEmptyFabCoachmarkSeen
+                preferences[reviewEmptyFabCoachmarkSeenKey] = settings.reviewEmptyFabCoachmarkSeen
             }
         }
 
@@ -55,6 +76,9 @@ class SettingsRepositoryImpl
             val showHelpHintsKey = booleanPreferencesKey("show_help_hints")
             val showReviewSoundnessKey = booleanPreferencesKey("show_review_soundness")
             val reviewModeIdKey = stringPreferencesKey("review_mode_id")
+            val onboardingCompletedKey = booleanPreferencesKey("onboarding_completed")
+            val sakeEmptyFabCoachmarkSeenKey = booleanPreferencesKey("sake_empty_fab_coachmark_seen")
+            val reviewEmptyFabCoachmarkSeenKey = booleanPreferencesKey("review_empty_fab_coachmark_seen")
         }
 
         private fun Preferences.toAppSettings(): AppSettings =
@@ -62,5 +86,8 @@ class SettingsRepositoryImpl
                 showHelpHints = this[showHelpHintsKey] ?: true,
                 showReviewSoundness = this[showReviewSoundnessKey] ?: false,
                 reviewModeId = this[reviewModeIdKey] ?: ReviewMode.NORMAL.id,
+                onboardingCompleted = this[onboardingCompletedKey] ?: false,
+                sakeEmptyFabCoachmarkSeen = this[sakeEmptyFabCoachmarkSeenKey] ?: false,
+                reviewEmptyFabCoachmarkSeen = this[reviewEmptyFabCoachmarkSeenKey] ?: false,
             )
     }
