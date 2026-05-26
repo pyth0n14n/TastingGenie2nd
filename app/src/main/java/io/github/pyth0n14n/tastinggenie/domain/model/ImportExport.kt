@@ -30,6 +30,7 @@ data class SerializableAppSettings(
     val onboardingCompleted: Boolean = false,
     val sakeEmptyFabCoachmarkSeen: Boolean = false,
     val reviewEmptyFabCoachmarkSeen: Boolean = false,
+    val hasSeenTastingGuide: Boolean = false,
 )
 
 @Serializable

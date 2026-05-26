@@ -23,6 +23,7 @@
     <string name="action_unpin_sake">固定を解除</string>
     <string name="action_view_image">画像</string>
     <string name="action_close_message">閉じる</string>
+    <string name="action_done">完了</string>
     <string name="action_ok">OK</string>
     <string name="action_confirm">確定</string>
     <string name="action_cancel">キャンセル</string>
@@ -383,6 +384,18 @@
     <string name="onboarding_add_sake">酒を登録する</string>
     <string name="onboarding_image_placeholder">説明画像</string>
     <string name="onboarding_page_indicator">オンボーディング %1$d / %2$d</string>
+    <string name="tasting_guide_look_title">まず、色を見る</string>
+    <string name="tasting_guide_look_message">グラスや白い器に注ぎ、\n色合い・透明度・輝きを見てみましょう。</string>
+    <string name="tasting_guide_smell_title">香りをゆっくり確かめる</string>
+    <string name="tasting_guide_smell_message">鼻を近づけて、最初に浮かんだ印象を大切にします。\n果物、花、米、木など、近い香りを探してみましょう。</string>
+    <string name="tasting_guide_taste_title">少し含んで味わう</string>
+    <string name="tasting_guide_taste_message">甘味・酸味・旨味だけでなく、\n口当たりや、飲み込んだ後の余韻も感じてみましょう。</string>
+    <string name="tasting_guide_record_title">近いものを選んで記録</string>
+    <string name="tasting_guide_record_message">正解を探す必要はありません。\n感じた印象にいちばん近い選択肢を選べば十分です。</string>
+    <string name="tasting_guide_action_to_review">レビュー入力へ</string>
+    <string name="tasting_guide_image_content_description">利き酒ガイドの説明画像</string>
+    <string name="tasting_guide_page_indicator">利き酒ガイド %1$d / %2$d</string>
+    <string name="cd_tasting_guide">利き酒の流れを表示</string>
     <string name="sake_empty_fab_coachmark_title">ここから酒を登録</string>
     <string name="sake_empty_fab_coachmark_message">銘柄名と種類だけでも始められます。</string>
     <string name="review_empty_fab_coachmark_title">ここからレビューを追加</string>

@@ -57,6 +57,19 @@ class SettingsRepositoryImplTest {
         }
 
     @Test
+    fun updateHasSeenTastingGuide_persistsValue() =
+        runTest {
+            val repository = createRepository()
+
+            repository.updateHasSeenTastingGuide(seen = true)
+
+            assertEquals(
+                AppSettings(hasSeenTastingGuide = true),
+                repository.observeSettings().first(),
+            )
+        }
+
+    @Test
     fun replaceSettings_persistsOnboardingAndCoachmarkFlags() =
         runTest {
             val repository = createRepository()
@@ -67,6 +80,7 @@ class SettingsRepositoryImplTest {
                     onboardingCompleted = true,
                     sakeEmptyFabCoachmarkSeen = true,
                     reviewEmptyFabCoachmarkSeen = true,
+                    hasSeenTastingGuide = true,
                 )
 
             repository.replaceSettings(settings)

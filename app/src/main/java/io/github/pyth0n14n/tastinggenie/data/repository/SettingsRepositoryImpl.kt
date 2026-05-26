@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
+@Suppress("TooManyFunctions")
 class SettingsRepositoryImpl
     @Inject
     constructor(
@@ -61,6 +62,12 @@ class SettingsRepositoryImpl
             }
         }
 
+        override suspend fun updateHasSeenTastingGuide(seen: Boolean) {
+            dataStore.edit { preferences ->
+                preferences[hasSeenTastingGuideKey] = seen
+            }
+        }
+
         override suspend fun replaceSettings(settings: AppSettings) {
             dataStore.edit { preferences ->
                 preferences[showHelpHintsKey] = settings.showHelpHints
@@ -69,6 +76,7 @@ class SettingsRepositoryImpl
                 preferences[onboardingCompletedKey] = settings.onboardingCompleted
                 preferences[sakeEmptyFabCoachmarkSeenKey] = settings.sakeEmptyFabCoachmarkSeen
                 preferences[reviewEmptyFabCoachmarkSeenKey] = settings.reviewEmptyFabCoachmarkSeen
+                preferences[hasSeenTastingGuideKey] = settings.hasSeenTastingGuide
             }
         }
 
@@ -79,6 +87,7 @@ class SettingsRepositoryImpl
             val onboardingCompletedKey = booleanPreferencesKey("onboarding_completed")
             val sakeEmptyFabCoachmarkSeenKey = booleanPreferencesKey("sake_empty_fab_coachmark_seen")
             val reviewEmptyFabCoachmarkSeenKey = booleanPreferencesKey("review_empty_fab_coachmark_seen")
+            val hasSeenTastingGuideKey = booleanPreferencesKey("has_seen_tasting_guide")
         }
 
         private fun Preferences.toAppSettings(): AppSettings =
@@ -89,5 +98,6 @@ class SettingsRepositoryImpl
                 onboardingCompleted = this[onboardingCompletedKey] ?: false,
                 sakeEmptyFabCoachmarkSeen = this[sakeEmptyFabCoachmarkSeenKey] ?: false,
                 reviewEmptyFabCoachmarkSeen = this[reviewEmptyFabCoachmarkSeenKey] ?: false,
+                hasSeenTastingGuide = this[hasSeenTastingGuideKey] ?: false,
             )
     }

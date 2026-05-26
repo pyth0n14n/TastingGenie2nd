@@ -39,9 +39,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.BASIC,
@@ -55,10 +56,107 @@ class ReviewEditScreenTest {
     }
 
     @Test
-    fun backWithUnsavedChanges_showsDiscardDialogAndConfirmsBeforeLeaving() {
+    fun initialTastingGuide_showsThenClosesToReviewInput() {
+        composeRule.setContent {
+            var state by mutableStateOf(ReviewEditUiState(isLoading = false))
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state = state,
+                        onAction = {},
+                        onSave = {},
+                        onTastingGuideSeen = { state = state.copy(hasSeenTastingGuide = true) },
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("まず、色を見る").assertIsDisplayed()
+        composeRule.onNodeWithText("次へ").performClick()
+        composeRule.onNodeWithText("香りをゆっくり確かめる").assertIsDisplayed()
+        composeRule.onNodeWithText("次へ").performClick()
+        composeRule.onNodeWithText("次へ").performClick()
+        composeRule.onNodeWithText("レビュー入力へ").performClick()
+
+        composeRule.onNodeWithText("まず、色を見る").assertDoesNotExist()
+        composeRule.onNodeWithText("* は必須項目です").assertIsDisplayed()
+    }
+
+    @Test
+    fun manualTastingGuide_showsDoneActionAndReturnsToDraft() {
+        composeRule.setContent {
+            ReviewEditScreen(
+                onBack = {},
+                content =
+                    ReviewEditScreenContent(
+                        state =
+                            ReviewEditUiState(
+                                isLoading = false,
+                                hasSeenTastingGuide = true,
+                                bar = "入力中の店",
+                            ),
+                        onAction = {},
+                        onSave = {},
+                        onTastingGuideSeen = {},
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithContentDescription("利き酒の流れを表示").performClick()
+        composeRule.onNodeWithText("まず、色を見る").assertIsDisplayed()
+        repeat(3) {
+            composeRule.onNodeWithText("次へ").performClick()
+        }
+        composeRule.onNodeWithText("完了").assertIsDisplayed()
+        composeRule.onNodeWithText("完了").performClick()
+
+        composeRule.onNodeWithText("まず、色を見る").assertDoesNotExist()
+        composeRule.onNodeWithText("入力中の店").assertIsDisplayed()
+    }
+
+    @Test
+    fun backWhileTastingGuideVisible_closesOnlyGuide() {
         var backCalled = false
         composeRule.setContent {
             var state by mutableStateOf(ReviewEditUiState(isLoading = false))
+            ReviewEditScreen(
+                onBack = { backCalled = true },
+                content =
+                    ReviewEditScreenContent(
+                        state = state,
+                        onAction = {},
+                        onSave = {},
+                        onTastingGuideSeen = { state = state.copy(hasSeenTastingGuide = true) },
+                        viscosityOptions = emptyList(),
+                        volumeShortcutOptions = emptyList(),
+                        selectedSection = ReviewSection.BASIC,
+                        onSectionSelected = {},
+                    ),
+            )
+        }
+
+        composeRule.onNodeWithText("まず、色を見る").assertIsDisplayed()
+        composeRule.runOnUiThread {
+            composeRule.activity.onBackPressedDispatcher.onBackPressed()
+        }
+
+        composeRule.onNodeWithText("まず、色を見る").assertDoesNotExist()
+        composeRule.runOnIdle { assertEquals(false, backCalled) }
+    }
+
+    @Test
+    fun backWithUnsavedChanges_showsDiscardDialogAndConfirmsBeforeLeaving() {
+        var backCalled = false
+        composeRule.setContent {
+            var state by mutableStateOf(ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true))
             ReviewEditScreen(
                 onBack = { backCalled = true },
                 content =
@@ -70,6 +168,7 @@ class ReviewEditScreenTest {
                             }
                         },
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.BASIC,
@@ -100,11 +199,13 @@ class ReviewEditScreenTest {
                         state =
                             ReviewEditUiState(
                                 isLoading = false,
+                                hasSeenTastingGuide = true,
                                 isEditTargetMissing = true,
                                 error = UiError(messageResId = R.string.error_load_review),
                             ),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.BASIC,
@@ -127,9 +228,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = selectedSection,
@@ -152,9 +254,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = selectedSection,
@@ -177,6 +280,7 @@ class ReviewEditScreenTest {
                         state =
                             ReviewEditUiState(
                                 isLoading = false,
+                                hasSeenTastingGuide = true,
                                 tasteOptions =
                                     TasteLevel.entries.map { level ->
                                         MasterOption(value = level.name, label = level.name)
@@ -184,6 +288,7 @@ class ReviewEditScreenTest {
                             ),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.TASTE,
@@ -201,6 +306,7 @@ class ReviewEditScreenTest {
         var state by mutableStateOf(
             ReviewEditUiState(
                 isLoading = false,
+                hasSeenTastingGuide = true,
                 showReviewSoundness = false,
                 colorOptions =
                     listOf(
@@ -225,6 +331,7 @@ class ReviewEditScreenTest {
                             }
                         },
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.APPEARANCE,
@@ -252,9 +359,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false, showHelpHints = true),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true, showHelpHints = true),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = reviewTestViscosityOptions(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.APPEARANCE,
@@ -277,9 +385,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false, showHelpHints = true),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true, showHelpHints = true),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = reviewTestViscosityOptions(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.TASTE,
@@ -301,9 +410,10 @@ class ReviewEditScreenTest {
                 onBack = {},
                 content =
                     ReviewEditScreenContent(
-                        state = ReviewEditUiState(isLoading = false, showHelpHints = false),
+                        state = ReviewEditUiState(isLoading = false, hasSeenTastingGuide = true, showHelpHints = false),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = reviewTestViscosityOptions(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.APPEARANCE,
@@ -325,11 +435,13 @@ class ReviewEditScreenTest {
                         state =
                             ReviewEditUiState(
                                 isLoading = false,
+                                hasSeenTastingGuide = true,
                                 price = "800",
                                 volume = "180",
                             ),
                         onAction = {},
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions =
                             listOf(
@@ -370,6 +482,7 @@ class ReviewEditScreenTest {
                         state =
                             ReviewEditUiState(
                                 isLoading = false,
+                                hasSeenTastingGuide = true,
                                 temperatureOptions =
                                     listOf(
                                         MasterOption(value = Temperature.YUKIBIE.name, label = "雪冷え"),
@@ -382,6 +495,7 @@ class ReviewEditScreenTest {
                             }
                         },
                         onSave = {},
+                        onTastingGuideSeen = {},
                         viscosityOptions = emptyList(),
                         volumeShortcutOptions = emptyList(),
                         selectedSection = ReviewSection.BASIC,

@@ -35,6 +35,7 @@ data class ReviewEditUiState(
     val sakeName: String = "",
     val showHelpHints: Boolean = true,
     val showReviewSoundness: Boolean = false,
+    val hasSeenTastingGuide: Boolean = false,
     val enabledItemIds: Set<ReviewItemId> = emptySet(),
     val date: String = defaultReviewDateText(),
     val bar: String = "",
@@ -80,6 +81,9 @@ data class ReviewEditUiState(
 ) {
     val isInputLocked: Boolean
         get() = isSakeMissing || isEditTargetMissing
+
+    val shouldShowInitialTastingGuide: Boolean
+        get() = !isLoading && !isInputLocked && reviewId == null && !hasSeenTastingGuide
 
     fun isItemEnabled(itemId: ReviewItemId): Boolean = enabledItemIds.isEmpty() || itemId in enabledItemIds
 }

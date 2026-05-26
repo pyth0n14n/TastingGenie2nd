@@ -111,6 +111,7 @@ class ImportExportRepositoryImplTest {
                     onboardingCompleted = true,
                     sakeEmptyFabCoachmarkSeen = true,
                     reviewEmptyFabCoachmarkSeen = true,
+                    hasSeenTastingGuide = true,
                 ),
             )
 
@@ -126,6 +127,7 @@ class ImportExportRepositoryImplTest {
             assertEquals(true, payload.settings.onboardingCompleted)
             assertEquals(true, payload.settings.sakeEmptyFabCoachmarkSeen)
             assertEquals(true, payload.settings.reviewEmptyFabCoachmarkSeen)
+            assertEquals(true, payload.settings.hasSeenTastingGuide)
             assertEquals("テスト酒", payload.sakes.single().name)
             assertEquals("桃色", payload.reviews.single().appearanceColorOther)
             assertEquals("normal", payload.reviewModes.single().id)
@@ -160,6 +162,7 @@ class ImportExportRepositoryImplTest {
                             onboardingCompleted = true,
                             sakeEmptyFabCoachmarkSeen = true,
                             reviewEmptyFabCoachmarkSeen = true,
+                            hasSeenTastingGuide = true,
                         ),
                     sakes = listOf(sampleSerializableSake().copy(imageUris = listOf("images/sakes/source.jpg"))),
                     reviews = listOf(sampleSerializableReview()),
@@ -182,6 +185,7 @@ class ImportExportRepositoryImplTest {
             assertEquals(true, settingsRepository.getCurrentSettings().onboardingCompleted)
             assertEquals(true, settingsRepository.getCurrentSettings().sakeEmptyFabCoachmarkSeen)
             assertEquals(true, settingsRepository.getCurrentSettings().reviewEmptyFabCoachmarkSeen)
+            assertEquals(true, settingsRepository.getCurrentSettings().hasSeenTastingGuide)
             val restoredUri = storedSake.imageUris.single()
             assertNotEquals("images/sakes/source.jpg", restoredUri)
             assertEquals("new image", File(checkNotNull(Uri.parse(restoredUri).path)).readText())

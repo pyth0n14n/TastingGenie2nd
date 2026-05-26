@@ -20,5 +20,7 @@ interface SettingsRepository {
 
     suspend fun updateReviewEmptyFabCoachmarkSeen(seen: Boolean) = Unit
 
+    suspend fun updateHasSeenTastingGuide(seen: Boolean) = Unit
+
     suspend fun replaceSettings(settings: AppSettings)
 }

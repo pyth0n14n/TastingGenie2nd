@@ -91,6 +91,77 @@ class ReviewEditViewModelTest {
         }
 
     @Test
+    fun loadInitial_newReviewWithUnseenTastingGuide_targetsInitialGuide() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    settingsRepository = FakeSettingsRepository(AppSettings(hasSeenTastingGuide = false)),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.hasSeenTastingGuide)
+            assertTrue(state.shouldShowInitialTastingGuide)
+        }
+
+    @Test
+    fun loadInitial_newReviewWithSeenTastingGuide_doesNotTargetInitialGuide() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    settingsRepository = FakeSettingsRepository(AppSettings(hasSeenTastingGuide = true)),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertTrue(state.hasSeenTastingGuide)
+            assertFalse(state.shouldShowInitialTastingGuide)
+        }
+
+    @Test
+    fun loadInitial_editReview_doesNotTargetInitialTastingGuide() =
+        runTest {
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle =
+                        SavedStateHandle(
+                            mapOf(
+                                AppDestination.ARG_SAKE_ID to TEST_SAKE_ID,
+                                AppDestination.ARG_REVIEW_ID to TEST_REVIEW_ID,
+                            ),
+                        ),
+                    reviewRepository = RecordingReviewRepository(listOf(testReview())),
+                    settingsRepository = FakeSettingsRepository(AppSettings(hasSeenTastingGuide = false)),
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertEquals(TEST_REVIEW_ID, state.reviewId)
+            assertFalse(state.shouldShowInitialTastingGuide)
+        }
+
+    @Test
+    fun markTastingGuideSeen_updatesStateAndSettings() =
+        runTest {
+            val settingsRepository = FakeSettingsRepository(AppSettings(hasSeenTastingGuide = false))
+            val viewModel =
+                reviewEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    settingsRepository = settingsRepository,
+                )
+            advanceUntilIdle()
+
+            viewModel.markTastingGuideSeen()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.hasSeenTastingGuide)
+            assertFalse(viewModel.uiState.value.shouldShowInitialTastingGuide)
+            assertTrue(settingsRepository.getCurrentSettings().hasSeenTastingGuide)
+        }
+
+    @Test
     fun loadInitial_appliesKikisakeShiReviewModeItems() =
         runTest {
             val viewModel =
@@ -594,6 +665,10 @@ private class FakeSettingsRepository(
 
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
+    }
+
+    override suspend fun updateHasSeenTastingGuide(seen: Boolean) {
+        stream.value = stream.value.copy(hasSeenTastingGuide = seen)
     }
 
     override suspend fun replaceSettings(settings: AppSettings) {

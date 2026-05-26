@@ -93,6 +93,16 @@ class ReviewEditViewModel
             _uiState.update { it.copy(isSaved = false) }
         }
 
+        fun markTastingGuideSeen() {
+            if (_uiState.value.hasSeenTastingGuide) {
+                return
+            }
+            _uiState.update { it.copy(hasSeenTastingGuide = true) }
+            viewModelScope.launch {
+                settingsRepository.updateHasSeenTastingGuide(seen = true)
+            }
+        }
+
         private fun loadInitial() {
             viewModelScope.launch {
                 val args = savedStateHandle.toReviewArgs()

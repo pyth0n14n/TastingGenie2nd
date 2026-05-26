@@ -173,10 +173,12 @@
 | onboardingCompleted | Boolean | 必須（既定値: false） |
 | sakeEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
 | reviewEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
+| hasSeenTastingGuide | Boolean | 必須（既定値: false） |
 
 - `onboardingCompleted = false` の場合、アプリ起動時に初回オンボーディングを表示する。
 - `sakeEmptyFabCoachmarkSeen` は酒一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
 - `reviewEmptyFabCoachmarkSeen` はレビュー一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
+- `hasSeenTastingGuide` はレビュー入力画面の全画面「利き酒ガイド」をユーザーが確認済みかを保持する。未確認の場合、新規レビュー入力時のみ初回自動表示する。
 
 ---
 
