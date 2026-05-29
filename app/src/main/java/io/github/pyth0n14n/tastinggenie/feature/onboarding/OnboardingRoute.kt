@@ -22,13 +22,16 @@ private fun onboardingPages(): List<OnboardingPage> =
         OnboardingPage(
             titleResId = R.string.onboarding_page_one_title,
             messageResId = R.string.onboarding_page_one_message,
+            imageResId = R.drawable.walkthrough_register_sake,
         ),
         OnboardingPage(
             titleResId = R.string.onboarding_page_two_title,
             messageResId = R.string.onboarding_page_two_message,
+            imageResId = R.drawable.walkthrough_review_sake,
         ),
         OnboardingPage(
             titleResId = R.string.onboarding_page_three_title,
             messageResId = R.string.onboarding_page_three_message,
+            imageResId = R.drawable.walkthrough_select,
         ),
     )
