@@ -39,6 +39,7 @@ class SettingsScreenTest {
         composeRule.onNodeWithText("バックアップから復元").assertIsDisplayed()
         composeRule.onNodeWithText("その他").assertIsDisplayed()
         composeRule.onNodeWithText("アプリの使い方").assertIsDisplayed()
+        composeRule.onNodeWithText("プライバシーポリシー").assertIsDisplayed()
         composeRule.onNodeWithText("このアプリについて").assertIsDisplayed()
     }
 
@@ -77,6 +78,24 @@ class SettingsScreenTest {
 
         composeRule.runOnIdle {
             assertTrue(appGuideClicked)
+        }
+    }
+
+    @Test
+    fun privacyPolicyRow_callsCallback() {
+        var privacyPolicyClicked = false
+        composeRule.setContent {
+            SettingsScreen(
+                state = SettingsUiState(isLoading = false),
+                onBack = {},
+                actions = emptySettingsActions(onOpenPrivacyPolicy = { privacyPolicyClicked = true }),
+            )
+        }
+
+        composeRule.onNodeWithText("プライバシーポリシー").performClick()
+
+        composeRule.runOnIdle {
+            assertTrue(privacyPolicyClicked)
         }
     }
 
@@ -153,6 +172,7 @@ private fun emptySettingsActions(
     onExportBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
     onOpenAppGuide: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
     onDismissMessage: () -> Unit = {},
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
@@ -161,5 +181,6 @@ private fun emptySettingsActions(
     onExportBackup = onExportBackup,
     onRestoreBackup = onRestoreBackup,
     onOpenAppGuide = onOpenAppGuide,
+    onOpenPrivacyPolicy = onOpenPrivacyPolicy,
     onDismissMessage = onDismissMessage,
 )

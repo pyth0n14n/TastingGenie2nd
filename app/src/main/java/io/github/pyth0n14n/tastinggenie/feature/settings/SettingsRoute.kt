@@ -5,6 +5,7 @@ package io.github.pyth0n14n.tastinggenie.feature.settings
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
@@ -74,6 +75,7 @@ private const val REQUIRED_VERSION_PARTS = 3
 private const val EXPORT_FILE_NAME = "tastinggenie-backup.zip"
 private const val DEFAULT_APP_VERSION = "1.0"
 private const val VERSION_PART_PADDING = "0"
+private const val PRIVACY_POLICY_URL = "https://pyth0n14n.github.io/TastingGenie2nd-site/privacy-policy.html"
 
 @Composable
 fun SettingsRoute(
@@ -125,6 +127,9 @@ fun SettingsRoute(
                     if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/zip"))
                 },
                 onOpenAppGuide = onOpenAppGuide,
+                onOpenPrivacyPolicy = {
+                    activityContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                },
                 onDismissMessage = viewModel::clearTransferFeedback,
             ),
     )
@@ -289,6 +294,11 @@ private fun SettingsContent(
                 )
                 SettingsDivider()
                 SettingNavigationRow(
+                    label = stringResource(R.string.setting_privacy_policy),
+                    onClick = actions.onOpenPrivacyPolicy,
+                )
+                SettingsDivider()
+                SettingNavigationRow(
                     label = stringResource(R.string.setting_about_app),
                     value = stringResource(R.string.setting_about_app_version, versionText),
                     onClick = { isAboutAppOpen = true },
@@ -333,6 +343,7 @@ data class SettingsScreenActions(
     val onExportBackup: () -> Unit,
     val onRestoreBackup: () -> Unit,
     val onOpenAppGuide: () -> Unit,
+    val onOpenPrivacyPolicy: () -> Unit,
     val onDismissMessage: () -> Unit,
 )
 
