@@ -370,7 +370,7 @@
     <string name="message_restore_backup">復元すると現在のデータはバックアップ内容で上書きされます。</string>
     <string name="action_restore_backup">復元する</string>
     <string name="message_backup_restore">ZIPバックアップとして書き出すか、以前のバックアップを読み込みます。</string>
-    <string name="setting_glossary">用語集（日本酒のきほん）</string>
+    <string name="setting_app_guide">アプリの使い方</string>
     <string name="setting_about_app">このアプリについて</string>
     <string name="setting_about_app_version">ききさけ帖 %1$s</string>
     <string name="title_about_app">このアプリについて</string>

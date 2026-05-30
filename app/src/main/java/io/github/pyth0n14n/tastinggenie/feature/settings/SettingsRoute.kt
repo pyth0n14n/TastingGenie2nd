@@ -78,7 +78,7 @@ private const val VERSION_PART_PADDING = "0"
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
-    onOpenGlossary: () -> Unit,
+    onOpenAppGuide: () -> Unit,
     viewModel: SettingsViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,7 +124,7 @@ fun SettingsRoute(
                 onRestoreBackup = {
                     if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/zip"))
                 },
-                onOpenGlossary = onOpenGlossary,
+                onOpenAppGuide = onOpenAppGuide,
                 onDismissMessage = viewModel::clearTransferFeedback,
             ),
     )
@@ -284,8 +284,8 @@ private fun SettingsContent(
         item {
             SettingsSection(title = stringResource(R.string.settings_section_other)) {
                 SettingNavigationRow(
-                    label = stringResource(R.string.setting_glossary),
-                    onClick = actions.onOpenGlossary,
+                    label = stringResource(R.string.setting_app_guide),
+                    onClick = actions.onOpenAppGuide,
                 )
                 SettingsDivider()
                 SettingNavigationRow(
@@ -332,7 +332,7 @@ data class SettingsScreenActions(
     val onSelectReviewMode: (String) -> Unit,
     val onExportBackup: () -> Unit,
     val onRestoreBackup: () -> Unit,
-    val onOpenGlossary: () -> Unit,
+    val onOpenAppGuide: () -> Unit,
     val onDismissMessage: () -> Unit,
 )
 

@@ -38,7 +38,7 @@ class SettingsScreenTest {
         composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップから復元").assertIsDisplayed()
         composeRule.onNodeWithText("その他").assertIsDisplayed()
-        composeRule.onNodeWithText("用語集（日本酒のきほん）").assertIsDisplayed()
+        composeRule.onNodeWithText("アプリの使い方").assertIsDisplayed()
         composeRule.onNodeWithText("このアプリについて").assertIsDisplayed()
     }
 
@@ -63,20 +63,20 @@ class SettingsScreenTest {
     }
 
     @Test
-    fun glossaryRow_callsCallback() {
-        var glossaryClicked = false
+    fun appGuideRow_callsCallback() {
+        var appGuideClicked = false
         composeRule.setContent {
             SettingsScreen(
                 state = SettingsUiState(isLoading = false),
                 onBack = {},
-                actions = emptySettingsActions(onOpenGlossary = { glossaryClicked = true }),
+                actions = emptySettingsActions(onOpenAppGuide = { appGuideClicked = true }),
             )
         }
 
-        composeRule.onNodeWithText("用語集（日本酒のきほん）").performClick()
+        composeRule.onNodeWithText("アプリの使い方").performClick()
 
         composeRule.runOnIdle {
-            assertTrue(glossaryClicked)
+            assertTrue(appGuideClicked)
         }
     }
 
@@ -152,7 +152,7 @@ class SettingsScreenTest {
 private fun emptySettingsActions(
     onExportBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
-    onOpenGlossary: () -> Unit = {},
+    onOpenAppGuide: () -> Unit = {},
     onDismissMessage: () -> Unit = {},
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
@@ -160,6 +160,6 @@ private fun emptySettingsActions(
     onSelectReviewMode = {},
     onExportBackup = onExportBackup,
     onRestoreBackup = onRestoreBackup,
-    onOpenGlossary = onOpenGlossary,
+    onOpenAppGuide = onOpenAppGuide,
     onDismissMessage = onDismissMessage,
 )

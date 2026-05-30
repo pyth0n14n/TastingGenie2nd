@@ -56,8 +56,12 @@ private fun NavGraphBuilder.addOnboardingGraph(navController: NavHostController)
     composable(AppDestination.ONBOARDING) {
         OnboardingRoute(
             onSkip = {
-                navController.navigate(AppDestination.SAKE_LIST) {
-                    popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                if (navController.previousBackStackEntry?.destination?.route == AppDestination.SETTINGS) {
+                    navController.popBackStackIfPossible()
+                } else {
+                    navController.navigate(AppDestination.SAKE_LIST) {
+                        popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                    }
                 }
             },
             onCreateSake = {
@@ -106,7 +110,7 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
         val sakeListEntry = remember(it) { navController.getBackStackEntry(AppDestination.SAKE_LIST) }
         SettingsRoute(
             onBack = { navController.popBackStackIfPossible() },
-            onOpenGlossary = { navController.navigate(AppDestination.HELP) },
+            onOpenAppGuide = { navController.navigate(AppDestination.ONBOARDING) },
             viewModel = hiltViewModel(sakeListEntry),
         )
     }
