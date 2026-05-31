@@ -145,7 +145,6 @@ class ReviewListViewModel
                         )
                     }
                 }.collect { (reviews, foodReviews, settings) ->
-                    markReviewCoachmarkSeenAfterDataAdded(reviews, settings)
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -165,6 +164,7 @@ class ReviewListViewModel
                             reviewEmptyFabCoachmarkSeen = settings.reviewEmptyFabCoachmarkSeen,
                         )
                     }
+                    markReviewCoachmarkSeenAfterDataAdded(reviews, settings)
                 }
         }
 
@@ -173,7 +173,13 @@ class ReviewListViewModel
             settings: AppSettings,
         ) {
             if (reviews.isNotEmpty() && settings.onboardingCompleted && !settings.reviewEmptyFabCoachmarkSeen) {
-                settingsRepository.updateReviewEmptyFabCoachmarkSeen(seen = true)
+                runCatching {
+                    settingsRepository.updateReviewEmptyFabCoachmarkSeen(seen = true)
+                }.onFailure { throwable ->
+                    if (throwable is CancellationException) {
+                        throw throwable
+                    }
+                }
             }
         }
 

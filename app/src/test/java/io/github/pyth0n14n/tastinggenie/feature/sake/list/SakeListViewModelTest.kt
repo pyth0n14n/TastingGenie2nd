@@ -277,6 +277,29 @@ class SakeListViewModelTest {
         }
 
     @Test
+    fun emptyFabCoachmark_autoMarkFailureDoesNotBlockListState() =
+        runTest {
+            val settingsRepository =
+                FakeSettingsRepository(
+                    initial = AppSettings(onboardingCompleted = true),
+                    failSakeCoachmarkUpdates = true,
+                )
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = listOf(Sake(id = 1L, name = "酒", grade = SakeGrade.JUNMAI))),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertEquals(null, state.error)
+            assertEquals(1, state.sakes.size)
+        }
+
+    @Test
     fun emptyFabCoachmark_dismissAndFabClickMarkSeen() =
         runTest {
             val settingsRepository =
@@ -745,6 +768,7 @@ private class FakeMasterDataRepository : MasterDataRepository {
 
 private class FakeSettingsRepository(
     initial: AppSettings = AppSettings(),
+    private val failSakeCoachmarkUpdates: Boolean = false,
 ) : SettingsRepository {
     private val stream = MutableStateFlow(initial)
 
@@ -769,6 +793,9 @@ private class FakeSettingsRepository(
     }
 
     override suspend fun updateSakeEmptyFabCoachmarkSeen(seen: Boolean) {
+        if (failSakeCoachmarkUpdates) {
+            error("sake coachmark update failed")
+        }
         stream.value = stream.value.copy(sakeEmptyFabCoachmarkSeen = seen)
     }
 

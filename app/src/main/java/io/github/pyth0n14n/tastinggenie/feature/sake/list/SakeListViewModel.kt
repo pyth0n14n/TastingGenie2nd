@@ -89,7 +89,6 @@ class SakeListViewModel
                             )
                         }
                     }.collect { (sakes, settings) ->
-                        markSakeCoachmarkSeenAfterDataAdded(sakes, settings)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -104,6 +103,7 @@ class SakeListViewModel
                                 sakeEmptyFabCoachmarkSeen = settings.sakeEmptyFabCoachmarkSeen,
                             )
                         }
+                        markSakeCoachmarkSeenAfterDataAdded(sakes, settings)
                     }
             }
         }
@@ -113,7 +113,13 @@ class SakeListViewModel
             settings: AppSettings,
         ) {
             if (sakes.isNotEmpty() && settings.onboardingCompleted && !settings.sakeEmptyFabCoachmarkSeen) {
-                settingsRepository.updateSakeEmptyFabCoachmarkSeen(seen = true)
+                runCatching {
+                    settingsRepository.updateSakeEmptyFabCoachmarkSeen(seen = true)
+                }.onFailure { throwable ->
+                    if (throwable is CancellationException) {
+                        throw throwable
+                    }
+                }
             }
         }
 

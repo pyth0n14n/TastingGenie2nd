@@ -319,6 +319,31 @@ class ReviewListViewModelTest {
         }
 
     @Test
+    fun emptyFabCoachmark_autoMarkFailureDoesNotBlockListState() =
+        runTest {
+            val settingsRepository =
+                FakeSettingsRepository(
+                    initial = AppSettings(onboardingCompleted = true),
+                    failReviewCoachmarkUpdates = true,
+                )
+            val viewModel =
+                ReviewListViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to TEST_SAKE_ID)),
+                    sakeRepository = RecordingSakeRepository(initial = listOf(testSake())),
+                    reviewRepository = RecordingReviewRepository(initial = listOf(testReview())),
+                    foodReviewRepository = RecordingSakeFoodReviewRepository(),
+                    masterDataRepository = ReviewFakeMasterDataRepository(),
+                    settingsRepository = settingsRepository,
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertEquals(null, state.loadError)
+            assertEquals(1, state.reviews.size)
+        }
+
+    @Test
     fun emptyFabCoachmark_dismissAndFabClickMarkSeen() =
         runTest {
             val settingsRepository =
@@ -368,6 +393,7 @@ class ReviewListViewModelTest {
 
 private class FakeSettingsRepository(
     initial: AppSettings = AppSettings(),
+    private val failReviewCoachmarkUpdates: Boolean = false,
 ) : SettingsRepository {
     private val stream = MutableStateFlow(initial)
 
@@ -396,6 +422,9 @@ private class FakeSettingsRepository(
     }
 
     override suspend fun updateReviewEmptyFabCoachmarkSeen(seen: Boolean) {
+        if (failReviewCoachmarkUpdates) {
+            error("review coachmark update failed")
+        }
         stream.value = stream.value.copy(reviewEmptyFabCoachmarkSeen = seen)
     }
 
