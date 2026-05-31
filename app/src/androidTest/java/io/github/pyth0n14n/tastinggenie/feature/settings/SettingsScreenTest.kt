@@ -1,10 +1,14 @@
 package io.github.pyth0n14n.tastinggenie.feature.settings
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import io.github.pyth0n14n.tastinggenie.ui.theme.TastingGenie2ndAndroidTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -34,25 +38,64 @@ class SettingsScreenTest {
         composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
         composeRule.onNodeWithText("バックアップから復元").assertIsDisplayed()
         composeRule.onNodeWithText("その他").assertIsDisplayed()
-        composeRule.onNodeWithText("用語集（日本酒のきほん）").assertIsDisplayed()
+        composeRule.onNodeWithText("アプリの使い方").assertIsDisplayed()
+        composeRule.onNodeWithText("プライバシーポリシー").assertIsDisplayed()
         composeRule.onNodeWithText("このアプリについて").assertIsDisplayed()
     }
 
     @Test
-    fun glossaryRow_callsCallback() {
-        var glossaryClicked = false
+    fun settingsContent_rendersInLightAndDarkTheme() {
+        var darkTheme by mutableStateOf(false)
+        composeRule.setContent {
+            TastingGenie2ndAndroidTheme(darkTheme = darkTheme) {
+                SettingsScreen(
+                    state = SettingsUiState(isLoading = false),
+                    onBack = {},
+                    actions = emptySettingsActions(),
+                )
+            }
+        }
+        composeRule.onNodeWithText("設定").assertIsDisplayed()
+        composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
+
+        composeRule.runOnIdle { darkTheme = true }
+        composeRule.onNodeWithText("設定").assertIsDisplayed()
+        composeRule.onNodeWithText("バックアップを書き出す").assertIsDisplayed()
+    }
+
+    @Test
+    fun appGuideRow_callsCallback() {
+        var appGuideClicked = false
         composeRule.setContent {
             SettingsScreen(
                 state = SettingsUiState(isLoading = false),
                 onBack = {},
-                actions = emptySettingsActions(onOpenGlossary = { glossaryClicked = true }),
+                actions = emptySettingsActions(onOpenAppGuide = { appGuideClicked = true }),
             )
         }
 
-        composeRule.onNodeWithText("用語集（日本酒のきほん）").performClick()
+        composeRule.onNodeWithText("アプリの使い方").performClick()
 
         composeRule.runOnIdle {
-            assertTrue(glossaryClicked)
+            assertTrue(appGuideClicked)
+        }
+    }
+
+    @Test
+    fun privacyPolicyRow_callsCallback() {
+        var privacyPolicyClicked = false
+        composeRule.setContent {
+            SettingsScreen(
+                state = SettingsUiState(isLoading = false),
+                onBack = {},
+                actions = emptySettingsActions(onOpenPrivacyPolicy = { privacyPolicyClicked = true }),
+            )
+        }
+
+        composeRule.onNodeWithText("プライバシーポリシー").performClick()
+
+        composeRule.runOnIdle {
+            assertTrue(privacyPolicyClicked)
         }
     }
 
@@ -128,7 +171,8 @@ class SettingsScreenTest {
 private fun emptySettingsActions(
     onExportBackup: () -> Unit = {},
     onRestoreBackup: () -> Unit = {},
-    onOpenGlossary: () -> Unit = {},
+    onOpenAppGuide: () -> Unit = {},
+    onOpenPrivacyPolicy: () -> Unit = {},
     onDismissMessage: () -> Unit = {},
 ) = SettingsScreenActions(
     onToggleHelpHints = {},
@@ -136,6 +180,7 @@ private fun emptySettingsActions(
     onSelectReviewMode = {},
     onExportBackup = onExportBackup,
     onRestoreBackup = onRestoreBackup,
-    onOpenGlossary = onOpenGlossary,
+    onOpenAppGuide = onOpenAppGuide,
+    onOpenPrivacyPolicy = onOpenPrivacyPolicy,
     onDismissMessage = onDismissMessage,
 )

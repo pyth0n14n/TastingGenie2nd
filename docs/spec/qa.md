@@ -124,6 +124,12 @@ This document captures common issues from Codex reviews to prevent regressions. 
 - **Test Coverage**:
   - Disable help hints; verify help action hidden in sake list.
 
+### Problem: Non-critical settings writes stop list observers.
+- **Example**: Auto-marking a one-time coachmark as seen fails and prevents the sake/review list state from rendering.
+- **Preventive Measure**: Do not perform best-effort settings writes as unguarded work inside Flow `collect` blocks that drive core UI state. Emit the list state first, preserve cancellation, and isolate persistence failures so the primary observer keeps running.
+- **Test Coverage**:
+  - Force coachmark seen persistence to fail; verify the sake/review list still leaves loading and shows data.
+
 ### Problem: Navigation flow deviates from spec.
 - **Example**: Image viewer not reachable from review list as per navigation.md.
 - **Root Cause**: From commit `9ccbe26` (test(review): verify dummy image renders in viewer) - Wired navigation only from detail route.

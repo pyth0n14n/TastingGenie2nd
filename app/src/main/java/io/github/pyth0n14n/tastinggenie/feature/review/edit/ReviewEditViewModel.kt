@@ -58,7 +58,7 @@ class ReviewEditViewModel
 
         fun save() {
             val snapshot = uiState.value
-            if (snapshot.isInputLocked) {
+            if (snapshot.isInputLocked || snapshot.isSaving) {
                 return
             }
 
@@ -68,8 +68,8 @@ class ReviewEditViewModel
                 return
             }
 
+            _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
             viewModelScope.launch {
-                _uiState.update { it.copy(isSaving = true, error = null, validationErrors = emptyMap()) }
                 runCatching {
                     reviewRepository.upsertReview(input)
                 }.onSuccess {
@@ -91,6 +91,16 @@ class ReviewEditViewModel
 
         fun consumeSaved() {
             _uiState.update { it.copy(isSaved = false) }
+        }
+
+        fun markTastingGuideSeen() {
+            if (_uiState.value.hasSeenTastingGuide) {
+                return
+            }
+            _uiState.update { it.copy(hasSeenTastingGuide = true) }
+            viewModelScope.launch {
+                settingsRepository.updateHasSeenTastingGuide(seen = true)
+            }
         }
 
         private fun loadInitial() {

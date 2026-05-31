@@ -5,6 +5,7 @@ package io.github.pyth0n14n.tastinggenie.feature.settings
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
@@ -74,11 +75,12 @@ private const val REQUIRED_VERSION_PARTS = 3
 private const val EXPORT_FILE_NAME = "tastinggenie-backup.zip"
 private const val DEFAULT_APP_VERSION = "1.0"
 private const val VERSION_PART_PADDING = "0"
+private const val PRIVACY_POLICY_URL = "https://pyth0n14n.github.io/TastingGenie2nd-site/privacy-policy.html"
 
 @Composable
 fun SettingsRoute(
     onBack: () -> Unit,
-    onOpenGlossary: () -> Unit,
+    onOpenAppGuide: () -> Unit,
     viewModel: SettingsViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -124,7 +126,10 @@ fun SettingsRoute(
                 onRestoreBackup = {
                     if (!state.isProcessingTransfer) importLauncher.launch(arrayOf("application/zip"))
                 },
-                onOpenGlossary = onOpenGlossary,
+                onOpenAppGuide = onOpenAppGuide,
+                onOpenPrivacyPolicy = {
+                    activityContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_POLICY_URL)))
+                },
                 onDismissMessage = viewModel::clearTransferFeedback,
             ),
     )
@@ -202,7 +207,11 @@ fun SettingsScreen(
                 },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        scrolledContainerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     ),
             )
         },
@@ -280,8 +289,13 @@ private fun SettingsContent(
         item {
             SettingsSection(title = stringResource(R.string.settings_section_other)) {
                 SettingNavigationRow(
-                    label = stringResource(R.string.setting_glossary),
-                    onClick = actions.onOpenGlossary,
+                    label = stringResource(R.string.setting_app_guide),
+                    onClick = actions.onOpenAppGuide,
+                )
+                SettingsDivider()
+                SettingNavigationRow(
+                    label = stringResource(R.string.setting_privacy_policy),
+                    onClick = actions.onOpenPrivacyPolicy,
                 )
                 SettingsDivider()
                 SettingNavigationRow(
@@ -328,7 +342,8 @@ data class SettingsScreenActions(
     val onSelectReviewMode: (String) -> Unit,
     val onExportBackup: () -> Unit,
     val onRestoreBackup: () -> Unit,
-    val onOpenGlossary: () -> Unit,
+    val onOpenAppGuide: () -> Unit,
+    val onOpenPrivacyPolicy: () -> Unit,
     val onDismissMessage: () -> Unit,
 )
 

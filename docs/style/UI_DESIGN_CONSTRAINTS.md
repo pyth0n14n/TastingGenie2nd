@@ -9,6 +9,8 @@
 - Prefer Material Design 3 components and interaction patterns.
 - Use the project theme tokens for colors, typography, and surface treatment instead of hardcoded values.
 - Figma-aligned screens use the fixed light color scheme. Do not use Android dynamic color as the visual baseline.
+- The fixed light color scheme is sourced from Figma `Tasting genie 2nd` / `Styles` / `M3` variables: https://www.figma.com/design/WHIFjb7FbG6BC67NzWdD5z/Tasting-genie-2nd?node-id=49823-12141
+- Current seed roles are Primary `#3C6090`, Secondary `#545F71`, Tertiary `#6D5676`, Error `#BA1A1A`, Background/Surface `#F9F9FF`, Neutral `#5E5E60`, and Neutral Variant `#5C5E64`.
 - Preserve accessibility labels when replacing visible text actions with icons or overflow actions.
 
 ## Existing Behavior

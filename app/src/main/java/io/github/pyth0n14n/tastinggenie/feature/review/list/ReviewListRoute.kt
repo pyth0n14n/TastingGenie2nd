@@ -1,9 +1,11 @@
 package io.github.pyth0n14n.tastinggenie.feature.review.list
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,6 +34,7 @@ import io.github.pyth0n14n.tastinggenie.domain.model.Review
 import io.github.pyth0n14n.tastinggenie.domain.model.SakeFoodReview
 import io.github.pyth0n14n.tastinggenie.navigation.AppDestination
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
+import io.github.pyth0n14n.tastinggenie.ui.common.FabCoachMark
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
@@ -44,6 +48,7 @@ data class ReviewListActionHandlers(
     val onOpenSakeImage: (Long) -> Unit,
     val onDeleteReview: (Long) -> Unit,
     val onDeleteFoodReview: (Long) -> Unit = {},
+    val onDismissReviewEmptyFabCoachmark: () -> Unit = {},
 )
 
 private enum class ReviewListTab {
@@ -69,7 +74,7 @@ fun ReviewListRoute(
         state = state,
         initialTabName = initialTabName,
         onBack = onBack,
-        onAddReview = onAddReview,
+        onAddReview = { sakeId -> viewModel.addReviewFromFab { onAddReview(sakeId) } },
         onAddFoodReview = onAddFoodReview,
         actions =
             ReviewListActionHandlers(
@@ -78,6 +83,7 @@ fun ReviewListRoute(
                 onOpenSakeImage = onOpenSakeImage,
                 onDeleteReview = viewModel::deleteReview,
                 onDeleteFoodReview = viewModel::deleteFoodReview,
+                onDismissReviewEmptyFabCoachmark = viewModel::dismissReviewEmptyFabCoachmark,
             ),
     )
 }
@@ -120,47 +126,61 @@ fun ReviewListScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TastingTopAppBar(
-                title =
-                    if (state.sakeName.isBlank()) {
-                        stringResource(R.string.screen_review_list)
-                    } else {
-                        state.sakeName
-                    },
-                onBack = onBack,
-            )
-        },
-        floatingActionButton = {
-            val addActionLabel = stringResource(R.string.action_add)
-            TastingMediumFab(
-                icon = Icons.Filled.Add,
-                contentDescription = addActionLabel,
-                onClick = {
-                    state.sakeId?.let { sakeId ->
-                        when (selectedTab) {
-                            ReviewListTab.SAKE_REVIEW -> onAddReview(sakeId)
-                            ReviewListTab.FOOD_REVIEW -> onAddFoodReview(sakeId)
-                        }
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        when {
-            state.isLoading -> LoadingContent()
-            state.loadError != null -> MessageContent(text = stringResource(state.loadError.messageResId))
-            else ->
-                ReviewListContent(
-                    state = state,
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    actions = actions,
-                    onDeleteRequest = { review -> pendingDeleteReview = review },
-                    onDeleteFoodReviewRequest = { review -> pendingDeleteFoodReview = review },
-                    modifier = Modifier.padding(padding),
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TastingTopAppBar(
+                    title =
+                        if (state.sakeName.isBlank()) {
+                            stringResource(R.string.screen_review_list)
+                        } else {
+                            state.sakeName
+                        },
+                    onBack = onBack,
                 )
+            },
+            floatingActionButton = {
+                val addActionLabel = stringResource(R.string.action_add)
+                TastingMediumFab(
+                    icon = Icons.Filled.Add,
+                    contentDescription = addActionLabel,
+                    onClick = {
+                        state.sakeId?.let { sakeId ->
+                            when (selectedTab) {
+                                ReviewListTab.SAKE_REVIEW -> onAddReview(sakeId)
+                                ReviewListTab.FOOD_REVIEW -> onAddFoodReview(sakeId)
+                            }
+                        }
+                    },
+                )
+            },
+        ) { padding ->
+            when {
+                state.isLoading -> LoadingContent()
+                state.loadError != null -> MessageContent(text = stringResource(state.loadError.messageResId))
+                else ->
+                    ReviewListContent(
+                        state = state,
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                        actions = actions,
+                        onDeleteRequest = { review -> pendingDeleteReview = review },
+                        onDeleteFoodReviewRequest = { review -> pendingDeleteFoodReview = review },
+                        modifier = Modifier.padding(padding),
+                    )
+            }
+        }
+        if (selectedTab == ReviewListTab.SAKE_REVIEW && state.shouldShowReviewEmptyFabCoachmark) {
+            FabCoachMark(
+                title = stringResource(R.string.review_empty_fab_coachmark_title),
+                message = stringResource(R.string.review_empty_fab_coachmark_message),
+                onDismiss = actions.onDismissReviewEmptyFabCoachmark,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(end = 24.dp, bottom = 104.dp),
+            )
         }
     }
 }
@@ -215,7 +235,10 @@ private fun ReviewListContent(
         when (selectedTab) {
             ReviewListTab.SAKE_REVIEW -> {
                 if (state.reviews.isEmpty()) {
-                    MessageContent(text = stringResource(R.string.message_no_reviews))
+                    MessageContent(
+                        title = stringResource(R.string.title_no_reviews),
+                        text = stringResource(R.string.message_no_reviews_empty),
+                    )
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),

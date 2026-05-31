@@ -43,7 +43,7 @@ class SettingsViewModelTest {
             val state = viewModel.uiState.value
             Assert.assertFalse(state.isLoading)
             Assert.assertEquals(true, state.settings.showHelpHints)
-            Assert.assertEquals(true, state.settings.showReviewSoundness)
+            Assert.assertEquals(false, state.settings.showReviewSoundness)
         }
 
     @Test
@@ -57,11 +57,11 @@ class SettingsViewModelTest {
                 )
             advanceUntilIdle()
 
-            viewModel.toggleReviewSoundness(enabled = false)
+            viewModel.toggleReviewSoundness(enabled = true)
             advanceUntilIdle()
 
             val state = viewModel.uiState.value
-            Assert.assertEquals(false, state.settings.showReviewSoundness)
+            Assert.assertEquals(true, state.settings.showReviewSoundness)
         }
 
     @Test

@@ -1,4 +1,4 @@
-@file:Suppress("TooManyFunctions")
+@file:Suppress("LongMethod", "TooManyFunctions")
 
 package io.github.pyth0n14n.tastinggenie.feature.review.edit
 
@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +18,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -85,6 +90,7 @@ fun ReviewEditRoute(
                 state = state,
                 onAction = viewModel::onAction,
                 onSave = viewModel::save,
+                onTastingGuideSeen = viewModel::markTastingGuideSeen,
                 viscosityOptions = viscosityOptions(),
                 volumeShortcutOptions = volumeShortcutOptions(),
                 selectedSection = selectedSection,
@@ -129,29 +135,55 @@ fun ReviewEditScreen(
             onDismiss = { isDiscardDraftDialogVisible = false },
         )
     }
-    Scaffold(
-        topBar = {
-            TastingTopAppBar(
-                title =
-                    if (content.state.sakeName.isBlank()) {
-                        stringResource(R.string.screen_review_edit)
-                    } else {
-                        content.state.sakeName
+    var isManualTastingGuideVisible by rememberSaveable { mutableStateOf(false) }
+    val tastingGuideLaunchMode =
+        when {
+            isManualTastingGuideVisible -> TastingGuideLaunchMode.Manual
+            content.state.shouldShowInitialTastingGuide -> TastingGuideLaunchMode.Initial
+            else -> null
+        }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                TastingTopAppBar(
+                    title =
+                        if (content.state.sakeName.isBlank()) {
+                            stringResource(R.string.screen_review_edit)
+                        } else {
+                            content.state.sakeName
+                        },
+                    onBack = ::requestBack,
+                    actions = {
+                        IconButton(onClick = { isManualTastingGuideVisible = true }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                                contentDescription = stringResource(R.string.cd_tasting_guide),
+                            )
+                        }
                     },
-                onBack = ::requestBack,
+                )
+            },
+            bottomBar = {
+                ReviewEditBottomBar(
+                    state = content.state,
+                    onSave = content.onSave,
+                )
+            },
+        ) { padding ->
+            ReviewEditBody(
+                content = content,
+                modifier = Modifier.padding(padding),
             )
-        },
-        bottomBar = {
-            ReviewEditBottomBar(
-                state = content.state,
-                onSave = content.onSave,
+        }
+        tastingGuideLaunchMode?.let { launchMode ->
+            TastingGuideScreen(
+                launchMode = launchMode,
+                onDismiss = {
+                    isManualTastingGuideVisible = false
+                    content.onTastingGuideSeen()
+                },
             )
-        },
-    ) { padding ->
-        ReviewEditBody(
-            content = content,
-            modifier = Modifier.padding(padding),
-        )
+        }
     }
 }
 
@@ -305,6 +337,7 @@ data class ReviewEditScreenContent(
     val state: ReviewEditUiState,
     val onAction: (ReviewEditAction) -> Unit,
     val onSave: () -> Unit,
+    val onTastingGuideSeen: () -> Unit,
     val viscosityOptions: List<DropdownOption>,
     val volumeShortcutOptions: List<DropdownOption>,
     val selectedSection: ReviewSection,

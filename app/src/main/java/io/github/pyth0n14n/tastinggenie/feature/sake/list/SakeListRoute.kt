@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.pyth0n14n.tastinggenie.R
 import io.github.pyth0n14n.tastinggenie.ui.common.ConfirmationDialog
+import io.github.pyth0n14n.tastinggenie.ui.common.FabCoachMark
 import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 import io.github.pyth0n14n.tastinggenie.ui.common.MessageContent
 import io.github.pyth0n14n.tastinggenie.ui.common.TastingMediumFab
@@ -77,6 +80,7 @@ data class SakeListScreenActions(
     val topBarActions: SakeListTopBarActions,
     val onSearchQueryChanged: (String) -> Unit = {},
     val onSortModeSelected: (SakeListSortMode) -> Unit = {},
+    val onDismissEmptyFabCoachmark: () -> Unit = {},
 )
 
 /**
@@ -95,7 +99,10 @@ fun SakeListRoute(
         state = uiState,
         actions =
             SakeListScreenActions(
-                onCreateSake = actions.onCreateSake,
+                onCreateSake = {
+                    viewModel.markEmptyFabCoachmarkSeen()
+                    actions.onCreateSake()
+                },
                 itemActions =
                     SakeListItemActions(
                         onOpenSake = actions.onOpenSake,
@@ -107,6 +114,7 @@ fun SakeListRoute(
                 topBarActions = actions.topBarActions,
                 onSearchQueryChanged = viewModel::updateSearchQuery,
                 onSortModeSelected = viewModel::selectSortMode,
+                onDismissEmptyFabCoachmark = viewModel::markEmptyFabCoachmarkSeen,
             ),
         deleteDialogActions =
             SakeListDeleteDialogActions(
@@ -140,6 +148,29 @@ fun SakeListScreen(
         )
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        SakeListScaffold(state = state, actions = actions)
+        if (state.shouldShowEmptyFabCoachmark) {
+            FabCoachMark(
+                title = stringResource(R.string.sake_empty_fab_coachmark_title),
+                message = stringResource(R.string.sake_empty_fab_coachmark_message),
+                onDismiss = actions.onDismissEmptyFabCoachmark,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .navigationBarsPadding()
+                        .padding(end = 24.dp, bottom = 104.dp),
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SakeListScaffold(
+    state: SakeListUiState,
+    actions: SakeListScreenActions,
+) {
     Scaffold(
         topBar = {
             TastingTopAppBar(
@@ -149,9 +180,7 @@ fun SakeListScreen(
                         selectedSortMode = state.sortMode,
                         onSortModeSelected = actions.onSortModeSelected,
                     )
-                    SakeListTopOverflowMenu(
-                        actions = actions.topBarActions,
-                    )
+                    SakeListTopOverflowMenu(actions = actions.topBarActions)
                 },
             )
         },
@@ -214,7 +243,11 @@ private fun SakeListBody(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when {
-            state.sakes.isEmpty() -> MessageContent(text = stringResource(R.string.message_no_sakes))
+            state.sakes.isEmpty() ->
+                MessageContent(
+                    title = stringResource(R.string.title_no_sakes),
+                    text = stringResource(R.string.message_no_sakes_empty),
+                )
             state.displayedSakes.isEmpty() -> MessageContent(text = stringResource(R.string.message_no_sakes_found))
             else -> SakeListItems(state = state, itemActions = itemActions)
         }

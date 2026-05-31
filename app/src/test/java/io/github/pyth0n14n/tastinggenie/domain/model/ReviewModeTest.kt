@@ -1,6 +1,7 @@
 package io.github.pyth0n14n.tastinggenie.domain.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -21,5 +22,19 @@ class ReviewModeTest {
         assertEquals("デバッグ", debugMode.label)
         assertEquals(ReviewItemId.entries.toSet(), debugMode.enabledItemIds)
         assertTrue(debugMode.isBuiltIn)
+    }
+
+    @Test
+    fun kikisakeShiMode_enablesNarrativeFieldsAndHidesNormalOnlyChoiceFields() {
+        val mode = builtInReviewModeDefinitions.single { it.id == ReviewMode.KIKISAKE_SHI.id }
+
+        assertEquals("利酒師", mode.label)
+        assertTrue(ReviewItemId.AROMA_MAIN_NOTE in mode.enabledItemIds)
+        assertTrue(ReviewItemId.TASTE_TEXTURE_NOTE in mode.enabledItemIds)
+        assertTrue(ReviewItemId.TASTE_DESCRIPTION in mode.enabledItemIds)
+        assertTrue(ReviewItemId.OTHER_CAUTIONS in mode.enabledItemIds)
+        assertFalse(ReviewItemId.AROMA_COMPLEXITY in mode.enabledItemIds)
+        assertFalse(ReviewItemId.TASTE_TEXTURE_ROUNDNESS in mode.enabledItemIds)
+        assertFalse(ReviewItemId.TASTE_TEXTURE_SMOOTHNESS in mode.enabledItemIds)
     }
 }

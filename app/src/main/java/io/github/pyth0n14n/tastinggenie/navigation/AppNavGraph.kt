@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.pyth0n14n.tastinggenie.feature.help.HelpRoute
+import io.github.pyth0n14n.tastinggenie.feature.onboarding.OnboardingRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.ReviewSection
 import io.github.pyth0n14n.tastinggenie.feature.review.detail.ReviewDetailRoute
 import io.github.pyth0n14n.tastinggenie.feature.review.edit.ReviewEditRoute
@@ -25,16 +26,50 @@ import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRoute
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListRouteActions
 import io.github.pyth0n14n.tastinggenie.feature.sake.list.SakeListTopBarActions
 import io.github.pyth0n14n.tastinggenie.feature.settings.SettingsRoute
+import io.github.pyth0n14n.tastinggenie.ui.common.LoadingContent
 
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(startViewModel: AppStartViewModel = hiltViewModel()) {
+    val settings by startViewModel.settings.collectAsStateWithLifecycle()
+    val currentSettings =
+        settings ?: run {
+            LoadingContent()
+            return
+        }
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = AppDestination.SAKE_LIST,
+        startDestination =
+            if (currentSettings.onboardingCompleted) {
+                AppDestination.SAKE_LIST
+            } else {
+                AppDestination.ONBOARDING
+            },
     ) {
+        addOnboardingGraph(navController)
         addSakeGraph(navController)
         addReviewGraph(navController)
+    }
+}
+
+private fun NavGraphBuilder.addOnboardingGraph(navController: NavHostController) {
+    composable(AppDestination.ONBOARDING) {
+        OnboardingRoute(
+            onSkip = {
+                if (navController.previousBackStackEntry?.destination?.route == AppDestination.SETTINGS) {
+                    navController.popBackStackIfPossible()
+                } else {
+                    navController.navigate(AppDestination.SAKE_LIST) {
+                        popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                    }
+                }
+            },
+            onCreateSake = {
+                navController.navigate(AppDestination.sakeEditRoute(sakeId = null)) {
+                    popUpTo(AppDestination.ONBOARDING) { inclusive = true }
+                }
+            },
+        )
     }
 }
 
@@ -66,16 +101,16 @@ private fun NavGraphBuilder.addSakeGraph(navController: NavHostController) {
                 },
             ),
     ) {
-        SakeEditRoute(onBack = { navController.popBackStack() })
+        SakeEditRoute(onBack = { navController.popBackStackIfPossible() })
     }
     composable(AppDestination.HELP) {
-        HelpRoute(onBack = { navController.popBackStack() })
+        HelpRoute(onBack = { navController.popBackStackIfPossible() })
     }
     composable(AppDestination.SETTINGS) {
         val sakeListEntry = remember(it) { navController.getBackStackEntry(AppDestination.SAKE_LIST) }
         SettingsRoute(
-            onBack = { navController.popBackStack() },
-            onOpenGlossary = { navController.navigate(AppDestination.HELP) },
+            onBack = { navController.popBackStackIfPossible() },
+            onOpenAppGuide = { navController.navigate(AppDestination.ONBOARDING) },
             viewModel = hiltViewModel(sakeListEntry),
         )
     }
@@ -97,7 +132,7 @@ private fun NavGraphBuilder.addReviewGraph(navController: NavHostController) {
                 .collectAsStateWithLifecycle()
         ReviewListRoute(
             initialTabName = requestedTabName,
-            onBack = { navController.popBackStack() },
+            onBack = { navController.popBackStackIfPossible() },
             onAddReview = { sakeId ->
                 navController.navigate(AppDestination.reviewEditRoute(sakeId = sakeId, reviewId = null))
             },
@@ -139,12 +174,12 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
     ) { backStackEntry ->
         val initialSection = backStackEntry.reviewSectionArgument()
         ReviewEditRoute(
-            onBack = { navController.popBackStack() },
+            onBack = { navController.popBackStackIfPossible() },
             onSaved = {
                 navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
             initialSection = initialSection,
         )
@@ -167,12 +202,12 @@ private fun NavGraphBuilder.addReviewEditDestinations(navController: NavHostCont
     ) { backStackEntry ->
         val initialSection = backStackEntry.reviewSectionArgument()
         ReviewEditRoute(
-            onBack = { navController.popBackStack() },
+            onBack = { navController.popBackStackIfPossible() },
             onSaved = {
                 navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.set(AppDestination.RESULT_REVIEW_REFRESH, true)
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
             initialSection = initialSection,
         )
@@ -192,11 +227,11 @@ private fun NavGraphBuilder.addFoodReviewEditDestinations(navController: NavHost
         SakeFoodReviewEditRoute(
             onBack = {
                 navController.selectFoodReviewListTab()
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
             onSaved = {
                 navController.selectFoodReviewListTab()
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
         )
     }
@@ -215,11 +250,11 @@ private fun NavGraphBuilder.addFoodReviewEditDestinations(navController: NavHost
         SakeFoodReviewEditRoute(
             onBack = {
                 navController.selectFoodReviewListTab()
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
             onSaved = {
                 navController.selectFoodReviewListTab()
-                navController.popBackStack()
+                navController.popBackStackIfPossible()
             },
         )
     }
@@ -246,7 +281,7 @@ private fun NavGraphBuilder.addReviewDetailDestination(navController: NavHostCon
                 .getStateFlow(AppDestination.RESULT_REVIEW_REFRESH, false)
                 .collectAsStateWithLifecycle()
         ReviewDetailRoute(
-            onBack = { navController.popBackStack() },
+            onBack = { navController.popBackStackIfPossible() },
             onEditReview = { sakeId, reviewId, section ->
                 navController.navigate(
                     AppDestination.reviewEditRoute(
@@ -280,7 +315,7 @@ private fun NavGraphBuilder.addReviewImageDestination(navController: NavHostCont
                 },
             ),
     ) {
-        ReviewImageRoute(onBack = { navController.popBackStack() })
+        ReviewImageRoute(onBack = { navController.popBackStackIfPossible() })
     }
     composable(
         route = AppDestination.SAKE_IMAGE,
@@ -291,6 +326,6 @@ private fun NavGraphBuilder.addReviewImageDestination(navController: NavHostCont
                 },
             ),
     ) {
-        ReviewImageRoute(onBack = { navController.popBackStack() })
+        ReviewImageRoute(onBack = { navController.popBackStackIfPossible() })
     }
 }

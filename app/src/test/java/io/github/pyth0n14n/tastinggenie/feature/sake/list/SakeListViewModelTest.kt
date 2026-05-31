@@ -32,6 +32,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -221,6 +222,118 @@ class SakeListViewModelTest {
             advanceUntilIdle()
 
             assertEquals(false, viewModel.uiState.value.showHelpHints)
+        }
+
+    @Test
+    fun emptyFabCoachmark_showsOnlyWhenOnboardingCompletedAndUnseen() =
+        runTest {
+            val settingsRepository =
+                FakeSettingsRepository(
+                    AppSettings(
+                        onboardingCompleted = true,
+                        sakeEmptyFabCoachmarkSeen = false,
+                    ),
+                )
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = emptyList()),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.shouldShowEmptyFabCoachmark)
+
+            settingsRepository.updateSakeEmptyFabCoachmarkSeen(seen = true)
+            advanceUntilIdle()
+
+            assertFalse(viewModel.uiState.value.shouldShowEmptyFabCoachmark)
+        }
+
+    @Test
+    fun emptyFabCoachmark_hidesWhenSakeExistsOrOnboardingIncomplete() =
+        runTest {
+            val withSakeSettings = FakeSettingsRepository(AppSettings(onboardingCompleted = true))
+            val withSake =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = listOf(Sake(id = 1L, name = "酒", grade = SakeGrade.JUNMAI))),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    withSakeSettings,
+                )
+            val onboardingIncomplete =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = emptyList()),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    FakeSettingsRepository(AppSettings(onboardingCompleted = false)),
+                )
+            advanceUntilIdle()
+
+            assertFalse(withSake.uiState.value.shouldShowEmptyFabCoachmark)
+            assertFalse(onboardingIncomplete.uiState.value.shouldShowEmptyFabCoachmark)
+            assertTrue(withSakeSettings.getCurrentSettings().sakeEmptyFabCoachmarkSeen)
+        }
+
+    @Test
+    fun emptyFabCoachmark_autoMarkFailureDoesNotBlockListState() =
+        runTest {
+            val settingsRepository =
+                FakeSettingsRepository(
+                    initial = AppSettings(onboardingCompleted = true),
+                    failSakeCoachmarkUpdates = true,
+                )
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = listOf(Sake(id = 1L, name = "酒", grade = SakeGrade.JUNMAI))),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            val state = viewModel.uiState.value
+            assertFalse(state.isLoading)
+            assertEquals(null, state.error)
+            assertEquals(1, state.sakes.size)
+        }
+
+    @Test
+    fun emptyFabCoachmark_dismissAndFabClickMarkSeen() =
+        runTest {
+            val settingsRepository =
+                FakeSettingsRepository(
+                    AppSettings(
+                        onboardingCompleted = true,
+                        sakeEmptyFabCoachmarkSeen = false,
+                    ),
+                )
+            val viewModel =
+                SakeListViewModel(
+                    FakeSakeRepository(initial = emptyList()),
+                    FakeReviewRepository(),
+                    FakeMasterDataRepository(),
+                    settingsRepository,
+                )
+            advanceUntilIdle()
+
+            viewModel.markEmptyFabCoachmarkSeen()
+            advanceUntilIdle()
+
+            assertTrue(settingsRepository.getCurrentSettings().sakeEmptyFabCoachmarkSeen)
+
+            settingsRepository.replaceSettings(
+                settingsRepository.getCurrentSettings().copy(sakeEmptyFabCoachmarkSeen = false),
+            )
+            advanceUntilIdle()
+            var created = false
+            viewModel.markEmptyFabCoachmarkSeen()
+            created = true
+            advanceUntilIdle()
+
+            assertTrue(created)
+            assertTrue(settingsRepository.getCurrentSettings().sakeEmptyFabCoachmarkSeen)
         }
 
     @Test
@@ -653,8 +766,11 @@ private class FakeMasterDataRepository : MasterDataRepository {
         )
 }
 
-private class FakeSettingsRepository : SettingsRepository {
-    private val stream = MutableStateFlow(AppSettings())
+private class FakeSettingsRepository(
+    initial: AppSettings = AppSettings(),
+    private val failSakeCoachmarkUpdates: Boolean = false,
+) : SettingsRepository {
+    private val stream = MutableStateFlow(initial)
 
     override fun observeSettings(): Flow<AppSettings> = stream
 
@@ -670,6 +786,21 @@ private class FakeSettingsRepository : SettingsRepository {
 
     override suspend fun updateReviewMode(modeId: String) {
         stream.value = stream.value.copy(reviewModeId = modeId)
+    }
+
+    override suspend fun updateOnboardingCompleted(completed: Boolean) {
+        stream.value = stream.value.copy(onboardingCompleted = completed)
+    }
+
+    override suspend fun updateSakeEmptyFabCoachmarkSeen(seen: Boolean) {
+        if (failSakeCoachmarkUpdates) {
+            error("sake coachmark update failed")
+        }
+        stream.value = stream.value.copy(sakeEmptyFabCoachmarkSeen = seen)
+    }
+
+    override suspend fun updateReviewEmptyFabCoachmarkSeen(seen: Boolean) {
+        stream.value = stream.value.copy(reviewEmptyFabCoachmarkSeen = seen)
     }
 
     override suspend fun replaceSettings(settings: AppSettings) {

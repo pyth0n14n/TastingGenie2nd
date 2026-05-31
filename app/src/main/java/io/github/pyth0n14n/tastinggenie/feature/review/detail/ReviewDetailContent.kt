@@ -160,7 +160,7 @@ data class ReviewDetailContentState(
     val review: Review,
     val sakeName: String,
     val labels: ReviewDetailLabels,
-    val showReviewSoundness: Boolean = true,
+    val showReviewSoundness: Boolean = false,
 )
 
 @Composable
@@ -1300,6 +1300,7 @@ private fun SweetDryness.toLabel(): String =
     when (this) {
         SweetDryness.SWEET -> "甘口"
         SweetDryness.MEDIUM_SWEET -> "やや甘口"
+        SweetDryness.MEDIUM -> "中程度"
         SweetDryness.MEDIUM_DRY -> "やや辛口"
         SweetDryness.DRY -> "辛口"
     }

@@ -476,6 +476,10 @@ private fun AppSettings.toSerializable(): SerializableAppSettings =
         showHelpHints = showHelpHints,
         showReviewSoundness = showReviewSoundness,
         reviewModeId = reviewModeId,
+        onboardingCompleted = onboardingCompleted,
+        sakeEmptyFabCoachmarkSeen = sakeEmptyFabCoachmarkSeen,
+        reviewEmptyFabCoachmarkSeen = reviewEmptyFabCoachmarkSeen,
+        hasSeenTastingGuide = hasSeenTastingGuide,
     )
 
 private fun SerializableAppSettings.toAppSettings(): AppSettings =
@@ -483,6 +487,10 @@ private fun SerializableAppSettings.toAppSettings(): AppSettings =
         showHelpHints = showHelpHints,
         showReviewSoundness = showReviewSoundness,
         reviewModeId = reviewModeId,
+        onboardingCompleted = onboardingCompleted,
+        sakeEmptyFabCoachmarkSeen = sakeEmptyFabCoachmarkSeen,
+        reviewEmptyFabCoachmarkSeen = reviewEmptyFabCoachmarkSeen,
+        hasSeenTastingGuide = hasSeenTastingGuide,
     )
 
 private fun ReviewModeEntity.toSerializable(): SerializableReviewMode =

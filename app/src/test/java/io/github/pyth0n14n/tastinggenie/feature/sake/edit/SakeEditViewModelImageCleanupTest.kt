@@ -150,6 +150,42 @@ class SakeEditViewModelImageCleanupTest {
         }
 
     @Test
+    fun cancelAfterImageEdits_keepsPersistedImagesUnchangedAndCleansPendingSource() =
+        runTest {
+            val repository =
+                RecordingSakeRepository(
+                    initial =
+                        listOf(
+                            Sake(
+                                id = EXISTING_SAKE_ID,
+                                name = "既存銘柄",
+                                grade = SakeGrade.JUNMAI,
+                                imageUris = listOf(EXISTING_IMAGE_URI),
+                            ),
+                        ),
+                )
+            val imageRepository = RecordingSakeImageRepository()
+            val viewModel =
+                SakeEditViewModel(
+                    savedStateHandle = SavedStateHandle(mapOf(AppDestination.ARG_SAKE_ID to EXISTING_SAKE_ID)),
+                    sakeRepository = repository,
+                    sakeImageRepository = imageRepository,
+                    masterDataRepository = FakeMasterDataRepository(),
+                )
+            advanceUntilIdle()
+
+            viewModel.onImageSelected(PICKED_IMAGE_URI)
+            viewModel.removeImage(EXISTING_IMAGE_URI)
+            advanceUntilIdle()
+            invokeOnCleared(viewModel)
+            advanceUntilIdle()
+
+            assertTrue(repository.savedInputs.isEmpty())
+            assertEquals(listOf(EXISTING_IMAGE_URI), repository.getSake(EXISTING_SAKE_ID)?.imageUris)
+            assertEquals(listOf(PICKED_IMAGE_URI), imageRepository.deletedUris)
+        }
+
+    @Test
     fun removeImage_cleansUpPendingCapturedSource() =
         runTest {
             val imageRepository = RecordingSakeImageRepository()

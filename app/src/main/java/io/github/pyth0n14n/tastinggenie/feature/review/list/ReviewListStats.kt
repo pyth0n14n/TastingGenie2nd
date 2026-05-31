@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import io.github.pyth0n14n.tastinggenie.R
 
 private val StatsVerticalPadding = 14.dp
+private val StatsCellHorizontalPadding = 8.dp
 private val StatsDividerHeight = 56.dp
-private const val STATS_IMAGE_SPACER_WEIGHT = 0.2f
 
 @Composable
 internal fun ReviewStatsPanel(
@@ -46,6 +45,7 @@ internal fun ReviewStatsPanel(
                 Modifier
                     .fillMaxWidth()
                     .padding(vertical = StatsVerticalPadding),
+            verticalAlignment = Alignment.Top,
         ) {
             ReviewStatCell(
                 label = stringResource(R.string.label_average_review),
@@ -73,7 +73,6 @@ internal fun ReviewStatsPanel(
                 suffix = stringResource(R.string.suffix_review_count),
                 modifier = Modifier.weight(1f),
             )
-            Spacer(modifier = Modifier.weight(STATS_IMAGE_SPACER_WEIGHT))
             if (state.hasSakeImage && state.sakeId != null) {
                 IconButton(onClick = { onOpenImage(state.sakeId) }) {
                     Icon(
@@ -95,7 +94,7 @@ private fun ReviewStatCell(
     suffix: String? = null,
 ) {
     Column(
-        modifier = modifier.padding(horizontal = 14.dp),
+        modifier = modifier.padding(horizontal = StatsCellHorizontalPadding),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
@@ -103,6 +102,8 @@ private fun ReviewStatCell(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            softWrap = false,
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             leading?.invoke()
@@ -110,6 +111,8 @@ private fun ReviewStatCell(
                 text = value,
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                softWrap = false,
             )
             suffix?.let {
                 Text(
@@ -117,6 +120,8 @@ private fun ReviewStatCell(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(start = 8.dp),
+                    maxLines = 1,
+                    softWrap = false,
                 )
             }
         }

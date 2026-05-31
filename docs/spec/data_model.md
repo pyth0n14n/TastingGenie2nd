@@ -137,8 +137,8 @@
 | sakeId | Long | FK |
 | date | LocalDate | 必須 |
 | bar | String | 任意 |
-| dish | String | 任意 |
-| foodCompatibility | Enum | 任意 |
+| dish | String | UI保存時必須（既存データ・復元互換では null 可） |
+| foodCompatibility | Enum | UI保存時必須（既存データ・復元互換では null 可） |
 | temperature | Enum | 任意 |
 | freeComment | String | 任意 |
 
@@ -168,8 +168,17 @@
 | 項目 | 型 | 必須 |
 |------|----|------|
 | showHelpHints | Boolean | 必須（既定値: true） |
-| showReviewSoundness | Boolean | 必須（既定値: true） |
+| showReviewSoundness | Boolean | 必須（既定値: false） |
 | reviewModeId | String | 必須（既定値: `normal`） |
+| onboardingCompleted | Boolean | 必須（既定値: false） |
+| sakeEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
+| reviewEmptyFabCoachmarkSeen | Boolean | 必須（既定値: false） |
+| hasSeenTastingGuide | Boolean | 必須（既定値: false） |
+
+- `onboardingCompleted = false` の場合、アプリ起動時に初回オンボーディングを表示する。
+- `sakeEmptyFabCoachmarkSeen` は酒一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
+- `reviewEmptyFabCoachmarkSeen` はレビュー一覧の空状態FAB吹き出しをユーザーが確認済みかを保持する。
+- `hasSeenTastingGuide` はレビュー入力画面の全画面「利き酒ガイド」をユーザーが確認済みかを保持する。未確認の場合、新規レビュー入力時のみ初回自動表示する。
 
 ---
 

@@ -20,6 +20,8 @@ data class ReviewListUiState(
     val aromaLabels: Map<String, String> = emptyMap(),
     val tasteLabels: Map<String, String> = emptyMap(),
     val isSakeMissing: Boolean = false,
+    val onboardingCompleted: Boolean = false,
+    val reviewEmptyFabCoachmarkSeen: Boolean = false,
 ) {
     val reviewCount: Int
         get() = reviews.size
@@ -33,6 +35,9 @@ data class ReviewListUiState(
             val average = ratings.average().takeIf { value -> !value.isNaN() } ?: 0.0
             return String.format(Locale.US, "%.2f", average)
         }
+
+    val shouldShowReviewEmptyFabCoachmark: Boolean
+        get() = reviews.isEmpty() && onboardingCompleted && !reviewEmptyFabCoachmarkSeen
 }
 
 private val Review.overallReviewScore: Int?

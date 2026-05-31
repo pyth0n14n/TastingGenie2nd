@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.pyth0n14n.tastinggenie.R
+import io.github.pyth0n14n.tastinggenie.domain.model.AppSettings
 import io.github.pyth0n14n.tastinggenie.domain.model.Sake
+import io.github.pyth0n14n.tastinggenie.domain.model.SakeListSummary
 import io.github.pyth0n14n.tastinggenie.domain.model.UiError
 import io.github.pyth0n14n.tastinggenie.domain.repository.MasterDataRepository
 import io.github.pyth0n14n.tastinggenie.domain.repository.ReviewRepository
@@ -23,6 +25,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
+@Suppress("TooManyFunctions")
 class SakeListViewModel
     @Inject
     constructor(
@@ -40,6 +43,7 @@ class SakeListViewModel
             loadInitial()
         }
 
+        @Suppress("LongMethod")
         private fun loadInitial() {
             viewModelScope.launch {
                 val labels =
@@ -95,9 +99,27 @@ class SakeListViewModel
                                 prefectureLabels = labels.prefectureLabels,
                                 overallReviewLabels = labels.overallReviewLabels,
                                 showHelpHints = settings.showHelpHints,
+                                onboardingCompleted = settings.onboardingCompleted,
+                                sakeEmptyFabCoachmarkSeen = settings.sakeEmptyFabCoachmarkSeen,
                             )
                         }
+                        markSakeCoachmarkSeenAfterDataAdded(sakes, settings)
                     }
+            }
+        }
+
+        private suspend fun markSakeCoachmarkSeenAfterDataAdded(
+            sakes: List<SakeListSummary>,
+            settings: AppSettings,
+        ) {
+            if (sakes.isNotEmpty() && settings.onboardingCompleted && !settings.sakeEmptyFabCoachmarkSeen) {
+                runCatching {
+                    settingsRepository.updateSakeEmptyFabCoachmarkSeen(seen = true)
+                }.onFailure { throwable ->
+                    if (throwable is CancellationException) {
+                        throw throwable
+                    }
+                }
             }
         }
 
@@ -107,6 +129,14 @@ class SakeListViewModel
 
         fun selectSortMode(sortMode: SakeListSortMode) {
             _uiState.update { it.copy(sortMode = sortMode) }
+        }
+
+        fun markEmptyFabCoachmarkSeen() {
+            viewModelScope.launch {
+                if (_uiState.value.shouldShowEmptyFabCoachmark) {
+                    settingsRepository.updateSakeEmptyFabCoachmarkSeen(seen = true)
+                }
+            }
         }
 
         fun requestDeleteSake(sakeId: Long) {

@@ -37,7 +37,7 @@ images/sakes/*
   "reviewModeItems": [],
   "settings": {
     "showHelpHints": true,
-    "showReviewSoundness": true,
+    "showReviewSoundness": false,
     "reviewModeId": "normal"
   }
 }
